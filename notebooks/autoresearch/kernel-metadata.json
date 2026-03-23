@@ -1,0 +1,14 @@
+{
+  "id": "dttdrv/todorov-autoresearch",
+  "title": "todorov-autoresearch",
+  "code_file": "train.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "accelerator": "NvidiaTeslaT4",
+  "dataset_sources": [],
+  "competition_sources": [],
+  "kernel_sources": []
+}

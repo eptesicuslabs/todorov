@@ -1,0 +1,37 @@
+project: todorov
+current_phase: 2
+current_step: run_008_complete
+status: analyzing_results
+last_updated: "2026-03-23"
+tests_passing: 76
+total_tests: 76
+critical_fix: matmul path state_approx was only last timestep, now full accumulation (applied in run_008)
+run_history:
+  run_001: Phase 1, sequential, 2000 steps, BPB 2.235 (PASS)
+  run_002: Phase 1, parallel KDA, 500 steps, BPB 2.876, MI 1.275, CKA 0.913 (ALL PASS)
+  run_003: Phase 2 probe, passkey 0%, perplexity +12% at 4K (state bug)
+  run_004: Progressive 256->1024, O(T^2) too slow, cancelled
+  run_005: fla first attempt, FP32 slow, 10min JIT
+  run_006: FP16 fix, stopped by user
+  run_007: hybrid threshold, stopped by user
+  run_008: COMPLETE, progressive 256->2048, BPB 2.82, perplexity +4% PASS, copy 0% FAIL
+latest_run: run_008
+latest_run_results:
+  final_bpb: 2.8186
+  bpb_ratio: 0.780
+  stages:
+    s256: {bpb: 3.3077, s_per_step: 2.87, time_s: 573}
+    s512: {bpb: 3.1080, s_per_step: 14.36, time_s: 2871}
+    s1024: {bpb: 2.9397, s_per_step: 19.96, time_s: 3993}
+    s2048: {bpb: 2.8186, s_per_step: 39.31, time_s: 7862}
+  total_training_time_s: 15299
+  spike_mi: 1.243
+  spike_cka: 0.926
+  spike_fr: 0.419
+  spike_dead: 0.0
+  kda_state_norm: 86.3
+  phase2_gates:
+    selective_copy_1k: {result: "0%", threshold: ">60%", status: FAIL}
+    perplexity_stable: {result: "+4.0%", threshold: "<20%", status: PASS}
+    mla_cache_linear: {result: "not measured", status: PENDING}
+next_action: investigate copy/passkey 0% failure, measure mla_cache_linear gate

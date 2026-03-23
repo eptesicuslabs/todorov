@@ -1,0 +1,57 @@
+phase_0:
+  tests_pass:
+    status: PASS
+    timestamp: "2026-03-22"
+    details: 76/76 tests passing
+  memory_budget:
+    status: PASS
+    timestamp: "2026-03-22"
+    details: MLA RoPE shared, 240 MB at 128K (FP32)
+  parameter_count:
+    status: PASS
+    timestamp: "2026-03-22"
+    details: 312M params (mlp_ratio 2.25)
+phase_1:
+  bpb_threshold:
+    status: PASS
+    timestamp: "2026-03-22"
+    details: "run_002: BPB ratio 0.840x (Todorov 2.876, Transformer 3.424). run_001: 1.022x. Both PASS."
+  spike_mi:
+    status: PASS
+    timestamp: "2026-03-22"
+    details: "MI = 1.275 (threshold > 0.1)"
+  spike_cka:
+    status: PASS
+    timestamp: "2026-03-22"
+    details: "CKA = 0.913 (threshold > 0.3)"
+  spike_firing_rate:
+    status: PASS
+    timestamp: "2026-03-22"
+    details: "42.0% firing rate, 0.0% dead neurons (range [30-60%])"
+phase_2:
+  selective_copy_1k:
+    status: FAIL
+    timestamp: "2026-03-23"
+    run: run_008
+    threshold: ">60% accuracy at 1024 token distance"
+    result: "0.0% at all lengths (256/512/1024/2048)"
+    details: "copy accuracy 0/20 at every context length tested"
+  perplexity_stable:
+    status: PASS
+    timestamp: "2026-03-23"
+    run: run_008
+    threshold: "<20% BPB increase from 256 to 4096"
+    result: "+4.0% (3.9617 at 256 -> 4.1210 at 4096)"
+    details: "BPB scales smoothly: +0.4% at 512, +2.0% at 1024, +2.8% at 2048, +4.0% at 4096"
+  mla_cache_linear:
+    status: PENDING
+    timestamp: "2026-03-23"
+    run: run_008
+    threshold: "Cache scales linearly with context length"
+    result: "not yet measured"
+    details: "need to profile MLA KV cache size at multiple context lengths"
+  phase1_gates_still_hold:
+    status: PASS
+    timestamp: "2026-03-23"
+    run: run_008
+    details: "run_008 reconfirmed: BPB ratio 0.780x, MI=1.243, CKA=0.926, FR=41.9%, dead=0.0%"

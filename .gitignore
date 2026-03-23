@@ -1,0 +1,10 @@
+.mcp.json
+__pycache__/
+*.pyc
+.pytest_cache/
+output/
+notebooks/autoresearch/output/
+*.pt
+*.zip
+run.log
+.triton_cache/
