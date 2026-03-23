@@ -23,16 +23,35 @@ spatial inductive bias (29% n-body improvement). gp as self-interaction works;
 gp as neighbor interaction does not (echoloc thesis, now validated in
 production architecture).
 
-the open question is whether these advantages hold at 300m scale, and whether
-atmn membrane-potential neurons (temporal state, per-neuron thresholds) offer
-further improvement over the simpler ternary spikes. phase 5 tests this with
-isolated ablations.
-
 three prior eptesicus projects led here: gerhard (ternary spikes on rwkv,
 proved spikes work but architecture bottlenecked them), echoloc (geometric
 algebra, proved gp self-interaction but neighbor-interaction failed), and
 chimera-edge (3:1 hybrid ratio, proved the layer mix). todorov unifies all
 three.
+
+# how to think
+
+this project requires unconventional ideas. the architecture is not a
+standard transformer and the solutions to its problems are not in standard
+transformer playbooks. you must think outside the box.
+
+ground yourself before acting. read the knowledge/ files for published
+research and prior findings. read docs/EXPERIMENT_LOG.md for what has
+already been tried and why it worked or failed. search the web for recent
+papers and benchmarks when your assumptions are uncertain. do not guess
+when you can verify.
+
+do not rely solely on your training data. this architecture combines
+mechanisms (kda channel-wise gating, ternary spikes, geometric algebra)
+that have limited coverage in your pretraining corpus. the knowledge files
+contain curated research that is more reliable than your recall. when the
+knowledge files and your memory disagree, trust the knowledge files.
+
+eara and its rules are crucial. if the autoresearch loop protocol is not
+followed -- every step, every subagent, every artifact -- the project is
+jeopardized. previous violations pushed broken code, produced confounded
+results, and wasted gpu time. the protocol is not overhead. it is the
+difference between science and guessing. follow it literally.
 
 # rules
 
