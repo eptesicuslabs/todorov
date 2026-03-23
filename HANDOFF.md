@@ -35,10 +35,9 @@ caveats from phase 3:
 - language improvement likely from multitask regularization, not gp itself
 - to isolate gp contribution, train nogp on same mixed data at same steps
 
-latent bug found: src/layers/swiglu.py spatial_mode had shape mismatch (gp
-output d_model added to hidden_dim tensor). fixed in train.py only -- the
-library code in src/ still has the bug. fix: apply gp residual after down
-projection, not before.
+latent bug found and fixed: src/layers/swiglu.py spatial_mode had shape
+mismatch (gp output d_model added to hidden_dim tensor). fixed in both
+train.py and library. fix: gp residual applied after down projection.
 
 ## what comes next
 
@@ -93,8 +92,7 @@ anomalies. follow this LITERALLY. no shortcuts.
 
 src/ -- the library code. do NOT modify during experiment loops. contains
 the canonical implementations of kda, mamba3, mla, swiglu, ternary spike,
-atmn spike, spiking brain, geometric algebra. note: swiglu.py has a latent
-spatial_mode shape bug (fixed only in train.py).
+atmn spike, spiking brain, geometric algebra.
 
 config.py -- model configuration dataclasses. tiny/small/base configs.
 
