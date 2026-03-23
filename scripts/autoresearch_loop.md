@@ -163,6 +163,7 @@ Same as step 3. Check if results move us toward or away from goals.
 
 #### 9d. DOCUMENTATION AGENT
 Read ALL docs files and state files. Update EVERY file that is stale:
+- CLAUDE.md (results summary, bug history, phase sequencing, run count)
 - docs/STATUS_BOARD.md
 - docs/CHANGELOG.md
 - docs/ARCHITECTURE.md
@@ -177,6 +178,8 @@ Read ALL docs files and state files. Update EVERY file that is stale:
 - state/gate_results.yaml
 - reports/index.md
 - Memory files at ~/.claude/projects/.../memory/
+CLAUDE.md is first in the list because it is the first file any agent reads.
+If it is stale, the next session starts with wrong assumptions.
 Cross-reference between files for consistency.
 
 ### Step 10: INVESTIGATION AGENTS (if ANY anomaly)

@@ -1,3 +1,39 @@
+# what this is
+
+todorov is a proof that biological neural computation principles -- ternary
+spikes, adaptive thresholds, recurrent state accumulation -- can outperform
+standard transformers at matched scale, not despite the biological constraints
+but because of them.
+
+the architecture combines three sequence mechanisms (kda + mamba-3 + mla in
+3:1 ratio) with ternary spike quantization ({-1, 0, +1}) on key/value paths.
+the spikes are not a compression trick. they are the point. the question is
+whether sparse, quantized, biologically-motivated activation patterns can
+carry enough information for competitive language modeling, spatial reasoning,
+and eventually multimodal processing.
+
+phase 1 answered yes: ternary spikes preserve 29x more mutual information
+than gerhard's predecessor architecture (mi 1.275 vs 0.044). the architecture
+was the bottleneck, not the spike mechanism. todorov beats a same-size
+transformer by 16% on byte-level language modeling.
+
+phase 3 validated the geometric algebra module: g(3,0,1) projective geometric
+product as self-interaction in swiglu adds zero overhead and provides genuine
+spatial inductive bias (29% n-body improvement). gp as self-interaction works;
+gp as neighbor interaction does not (echoloc thesis, now validated in
+production architecture).
+
+the open question is whether these advantages hold at 300m scale, and whether
+atmn membrane-potential neurons (temporal state, per-neuron thresholds) offer
+further improvement over the simpler ternary spikes. phase 5 tests this with
+isolated ablations.
+
+three prior eptesicus projects led here: gerhard (ternary spikes on rwkv,
+proved spikes work but architecture bottlenecked them), echoloc (geometric
+algebra, proved gp self-interaction but neighbor-interaction failed), and
+chimera-edge (3:1 hybrid ratio, proved the layer mix). todorov unifies all
+three.
+
 # rules
 
 zero comments in code. no inline, no block, no docstrings, no TODOs.
@@ -131,6 +167,23 @@ bpb not degraded (confounded by step count mismatch). gp overhead: zero.
 spike mi all-time high (1.311).
 
 9 kaggle runs. $0 of $500 budget. ~13 gpu hours total.
+
+# keeping this file current
+
+this file MUST be updated after every completed run. the documentation agent
+(step 9d of the autoresearch loop) is responsible for updating CLAUDE.md
+along with all other docs and state files.
+
+what to update after each run:
+- results summary: add new phase results, update run count and budget
+- bug history: add any new bugs found, with root cause and fix
+- phase sequencing: advance completed phases, update "what comes next"
+- architecture rules: add any new rules learned from the run
+- kaggle section: update if compute backend changes for phase 5
+
+if CLAUDE.md and the actual project state ever disagree, the project state
+(state/program_status.yaml, docs/STATUS_BOARD.md) is authoritative. update
+CLAUDE.md to match, not the other way around.
 
 # read order for new sessions
 
