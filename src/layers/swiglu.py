@@ -73,10 +73,9 @@ class SwiGLU(nn.Module):
 
         gate = F.silu(self.w_gate(gate_input))
         up = self.w_up(up_input)
-        hidden = gate * up
+        out = self.w_down(gate * up)
 
         if self.spatial_mode:
-            gp_out = self._geometric_product_self_interaction(x)
-            hidden = hidden + gp_out
+            out = out + self._geometric_product_self_interaction(x)
 
-        return self.w_down(hidden), aux
+        return out, aux
