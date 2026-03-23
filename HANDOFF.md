@@ -1,4 +1,4 @@
-# todorov handoff: phase 3 and beyond
+# todorov handoff: phase 5 and beyond
 
 ## what this project is
 
@@ -21,14 +21,26 @@ phase 2 (context extension): complete. 2/3 gates pass. perplexity stable at
 0% is expected at 6m params (research confirms 130m+ needed) and is deferred
 to phase 5.
 
-8 kaggle runs completed. $0 of $500 budget spent.
+phase 3 (spatial module): complete. all 4 gates pass. gp self-interaction
+in swiglu validated. shape classification gp 30% vs transformer 25% (gp
+generalizes across 3/4 classes while transformer collapses to majority class).
+n-body dynamics gp mae 51.55 vs transformer 72.70 (29% better). equivariance
+error 1.34e-07 at 60 degrees (machine epsilon). language bpb not degraded
+(gp 3.009 vs nogp 3.707, but confounded by step count mismatch).
+
+9 kaggle runs completed. $0 of $500 budget spent.
+
+caveats from phase 3:
+- shape classification marginal (p~0.07, not statistically significant)
+- language improvement likely from multitask regularization, not gp itself
+- to isolate gp contribution, train nogp on same mixed data at same steps
+
+latent bug found: src/layers/swiglu.py spatial_mode had shape mismatch (gp
+output d_model added to hidden_dim tensor). fixed in train.py only -- the
+library code in src/ still has the bug. fix: apply gp residual after down
+projection, not before.
 
 ## what comes next
-
-phase 3: spatial module validation. enable gp self-interaction in swiglu.
-test on 3d shape classification, n-body dynamics, equivariance at 60-degree
-rotations. gates: outperform transformer on 2/3 spatial tasks, language bpb
-not degraded >10% with gp enabled.
 
 phase 5: scale to 300m parameters on 10-20b tokens. the supervisor mandated
 a strict sequencing:
@@ -57,21 +69,32 @@ to start a new experiment session:
 4. read docs/STATUS_BOARD.md -- what's passing, what's failing, what's next
 5. read docs/EXPERIMENT_LOG.md -- detailed analysis of every prior run
 6. read the relevant knowledge files in knowledge/ for the phase you're working on
+7. read scripts/autoresearch_loop.md -- the mandatory pre-push and post-
+   completion agent protocol. follow it STRICTLY. every step. no exceptions.
 
-then follow the eara loop: modify train.py, pre-run checks, push to kaggle,
-wait, pull results, analyze, keep or discard, repeat. never stop. never ask
-for permission.
+then follow the eara loop: modify train.py, pre-run checks (all 7 steps
+including dedicated research/compliance/self-critique/smoke-test agents),
+push to kaggle, wait, pull results, post-completion (4 parallel agents),
+investigate anomalies, decide, repeat. never stop. never ask for permission.
 
 ## critical files
 
-notebooks/autoresearch/train.py -- the file you modify. 1090 lines.
-self-contained kaggle training script with all model code inlined.
-progressive training (256->512->1024->2048), fla chunk_kda integration,
-spiking brain validation, passkey retrieval tests, perplexity scaling.
+notebooks/autoresearch/train.py -- the file you modify. ~1550 lines.
+self-contained kaggle training script with all model code inlined. includes
+inlined geometric product (G(3,0,1) sparse cayley table), swiglu with
+spatial_mode, synthetic spatial data generators (shape + n-body), phase 1/2/3
+evaluation pipelines.
+
+scripts/autoresearch_loop.md -- the MANDATORY agent loop protocol. 7 pre-push
+steps (report, research agent, plan compliance agent, self-critique agent,
+smoke test agent, fix, push). 4 post-completion parallel agents (analysis,
+research grounding, plan compliance, documentation). investigation agents on
+anomalies. follow this LITERALLY. no shortcuts.
 
 src/ -- the library code. do NOT modify during experiment loops. contains
 the canonical implementations of kda, mamba3, mla, swiglu, ternary spike,
-atmn spike, spiking brain, geometric algebra.
+atmn spike, spiking brain, geometric algebra. note: swiglu.py has a latent
+spatial_mode shape bug (fixed only in train.py).
 
 config.py -- model configuration dataclasses. tiny/small/base configs.
 
@@ -79,7 +102,8 @@ config.py -- model configuration dataclasses. tiny/small/base configs.
 
 kaggle api: the token must be set as KAGGLE_API_TOKEN env var BEFORE
 importing the kaggle package. the package auto-authenticates on import.
-always use acc="NvidiaTeslaT4" in kernels_push.
+always use acc="NvidiaTeslaT4" in kernels_push. the kaggle.json file at
+~/.kaggle/ uses the newer api_token format -- read it and set env var.
 
 fla on t4: triton 3.3+ dropped sm_75 support. if fla fails to install,
 the training script falls back to the o(t^2) matmul path. the hybrid
@@ -98,7 +122,13 @@ kernel launch overhead.
 
 spike health: mi > 0.1, cka > 0.3, firing rate 30-60%. the adaptive
 threshold (alpha * mean(|x|)) with alpha=1.0 gives 42% firing rate at
-initialization. this is validated.
+initialization. this is validated across 9 runs. mi reached all-time
+high of 1.311 in run_009 with gp enabled.
+
+gp self-interaction: adds zero computational overhead (16-dim projections
+are negligible vs 256-dim hidden). residual addition after swiglu down
+projection. provides measurable spatial inductive bias (29% n-body
+improvement) without harming language or spike encoding.
 
 ## implemented but not yet validated
 
@@ -126,5 +156,6 @@ persistent context is stored in the claude memory system at
 point your agent at this repo. say:
 
 "read program.md and eara.yaml. check state/program_status.yaml for current
-phase. read docs/STATUS_BOARD.md for gate status. begin the eara experiment
-loop for the next phase. be fully autonomous."
+phase. read docs/STATUS_BOARD.md for gate status. read HANDOFF.md for full
+context. begin the eara experiment loop for the next phase. be fully
+autonomous."

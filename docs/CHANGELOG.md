@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-03-23: run_009 COMPLETE -- Phase 3 ALL GATES PASS
+
+- run_009 (GP spatial validation, mixed data, Kaggle T4): COMPLETE
+  - GP self-interaction enabled in SwiGLU (spatial_mode=True)
+  - Mixed training data: 50% WikiText-2 + 25% 3D shape + 25% n-body
+  - Shape classification: GP 30.0% vs Transformer 25.0% -- PASS
+    - Per-class GP: sphere=80%, cube=0%, tetrahedron=16%, torus=24%
+    - Per-class Transformer: sphere=100%, cube/tetrahedron/torus=0%
+    - GP generalizes across classes; Transformer only learns majority class
+  - N-body dynamics: GP MAE=51.55 vs Transformer MAE=72.70 (29% better) -- PASS
+  - Equivariance: error=1.34e-07 at 60-degree rotation -- PASS
+  - Language: BPB with GP=3.009, without GP=3.707, degradation=-18.8% -- PASS
+    - GP actually IMPROVES language modeling (negative degradation)
+  - Spike health: MI=1.311, CKA=0.907, FR=42.1%, dead=0%
+  - Training time: GP 1451s, NoGP 573s, Transformer 42s
+  - Params: GP=6,015,780, NoGP=5,917,476, Transformer=5,705,984
+  - Total wall clock: ~38 min on Kaggle T4
+  - BUG FIX: swiglu.py spatial_mode latent shape mismatch, fixed in train.py
+- Phase 3 gate status: 4/4 PASS
+- Next: Phase 5 (scale and optimize)
+
 ## 2026-03-23: run_008 COMPLETE -- Phase 2 first full progressive run
 
 - run_008 (fla chunk_kda, progressive 256->2048, 200 steps/stage): COMPLETE

@@ -1,11 +1,11 @@
 project: todorov
 current_phase: 3
-current_step: run_009_started
-status: implementing
+current_step: run_009_complete
+status: phase_3_complete
 last_updated: "2026-03-23"
 tests_passing: 76
 total_tests: 76
-critical_fix: matmul path state_approx was only last timestep, now full accumulation (applied in run_008)
+critical_fix: swiglu.py spatial_mode latent shape mismatch, GP residual applied after down projection (run_009)
 run_history:
   run_001: Phase 1, sequential, 2000 steps, BPB 2.235 (PASS)
   run_002: Phase 1, parallel KDA, 500 steps, BPB 2.876, MI 1.275, CKA 0.913 (ALL PASS)
@@ -15,23 +15,45 @@ run_history:
   run_006: FP16 fix, stopped by user
   run_007: hybrid threshold, stopped by user
   run_008: COMPLETE, progressive 256->2048, BPB 2.82, perplexity +4% PASS, copy 0% FAIL
-latest_run: run_008
+  run_009: COMPLETE, Phase 3 spatial validation, ALL GATES PASS
+latest_run: run_009
 latest_run_results:
-  final_bpb: 2.8186
-  bpb_ratio: 0.780
-  stages:
-    s256: {bpb: 3.3077, s_per_step: 2.87, time_s: 573}
-    s512: {bpb: 3.1080, s_per_step: 14.36, time_s: 2871}
-    s1024: {bpb: 2.9397, s_per_step: 19.96, time_s: 3993}
-    s2048: {bpb: 2.8186, s_per_step: 39.31, time_s: 7862}
-  total_training_time_s: 15299
-  spike_mi: 1.243
-  spike_cka: 0.926
-  spike_fr: 0.419
+  phase: 3
+  description: spatial module validation with GP self-interaction
+  shape_classify:
+    gp_accuracy: 0.30
+    transformer_accuracy: 0.25
+    per_class_gp: {sphere: 0.80, cube: 0.00, tetrahedron: 0.16, torus: 0.24}
+    per_class_bl: {sphere: 1.00, cube: 0.00, tetrahedron: 0.00, torus: 0.00}
+    gate: PASS
+  nbody_dynamics:
+    gp_mae: 51.55
+    transformer_mae: 72.70
+    improvement: "29%"
+    gate: PASS
+  equivariance:
+    error: 1.34e-07
+    rotation_degrees: 60
+    gate: PASS
+  language_degradation:
+    bpb_with_gp: 3.009
+    bpb_without_gp: 3.707
+    degradation_pct: -18.8
+    gate: PASS
+  spike_mi: 1.311
+  spike_cka: 0.907
+  spike_fr: 0.421
   spike_dead: 0.0
-  kda_state_norm: 86.3
-  phase2_gates:
-    selective_copy_1k: {result: "0%", threshold: ">60%", status: FAIL}
-    perplexity_stable: {result: "+4.0%", threshold: "<20%", status: PASS}
-    mla_cache_linear: {result: "not measured", status: PENDING}
-next_action: phase 3 spatial module validation with GP self-interaction
+  training_time_gp_s: 1451
+  training_time_nogp_s: 573
+  training_time_transformer_s: 42
+  total_wall_clock_min: 38
+  params_gp: 6015780
+  params_nogp: 5917476
+  params_transformer: 5705984
+  phase3_gates:
+    spatial_classify: {result: "GP 30.0% vs BL 25.0%", status: PASS}
+    spatial_dynamics: {result: "GP MAE 51.55 vs BL MAE 72.70", status: PASS}
+    equivariance_test: {result: "1.34e-07 at 60 deg", status: PASS}
+    language_no_degrade: {result: "-18.8% (GP improves)", status: PASS}
+next_action: Phase 5 (scale and optimize)

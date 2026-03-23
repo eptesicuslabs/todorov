@@ -156,3 +156,56 @@ PHASE 2 GATES:
   selective_copy_1k (>60%):    0.0% -- FAIL
   perplexity_stable (<20%):    +4.0% -- PASS
   mla_cache_linear:            NOT MEASURED -- PENDING
+
+## Phase 3 Runs
+
+### run_009: Kaggle T4, GP spatial validation, mixed data -- COMPLETE
+
+Config: d_model=256, n_layers=8, vocab=256, seq_len=256, batch=32
+        spatial_mode=True (GP self-interaction in SwiGLU)
+        Mixed data: 50% WikiText-2, 25% 3D shape, 25% n-body
+        Kaggle T4 GPU, ~38 min wall clock
+Params: 6,015,780 (GP), 5,917,476 (NoGP), 5,705,984 (Transformer)
+
+SHAPE CLASSIFICATION (4-class):
+
+| Model       | Overall | Sphere | Cube | Tetrahedron | Torus |
+|-------------|---------|--------|------|-------------|-------|
+| GP (Todorov)| 30.0%   | 80%    | 0%   | 16%         | 24%   |
+| Transformer | 25.0%   | 100%   | 0%   | 0%          | 0%    |
+
+N-BODY DYNAMICS:
+
+| Model       | MAE    |
+|-------------|--------|
+| GP (Todorov)| 51.55  |
+| Transformer | 72.70  |
+
+EQUIVARIANCE:
+  Rotation: 60 degrees
+  Error: 1.34e-07
+
+LANGUAGE BPB:
+  With GP:    3.009
+  Without GP: 3.707
+  Degradation: -18.8% (GP improves language)
+
+SPIKE VALIDATION:
+  MI:              1.311 (threshold > 0.1) PASS
+  CKA:             0.907 (threshold > 0.3) PASS
+  Firing rate:     42.1% PASS
+  Dead neurons:    0.0%
+
+TIMING:
+
+| Model       | Time (s) |
+|-------------|----------|
+| GP (Todorov)| 1,451    |
+| NoGP        | 573      |
+| Transformer | 42       |
+
+PHASE 3 GATES:
+  spatial_classify (GP > Transformer):    30.0% vs 25.0% -- PASS
+  spatial_dynamics (GP < Transformer MAE): 51.55 vs 72.70 -- PASS
+  equivariance_test (<5% at 60 deg):      1.34e-07 -- PASS
+  language_no_degrade (<10% degradation):  -18.8% (improved) -- PASS

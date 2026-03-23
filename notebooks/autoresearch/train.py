@@ -1335,7 +1335,7 @@ def run_phase3_evaluation(
         "gate_dynamics": bool(gate_dynamics),
         "gate_equiv": bool(gate_equiv),
         "gate_lang": bool(gate_lang),
-        "spatial_pass_count": spatial_pass_count,
+        "spatial_pass_count": int(spatial_pass_count),
         "phase3_pass": bool(phase3_pass),
     }
 
