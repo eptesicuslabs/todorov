@@ -14,21 +14,18 @@ kaggle:
 time_budget_minutes: 120
 
 gates:
-  bpb_ratio:
-    metric: "bpb_ratio"
-    threshold: "<= 1.5"
-  spike_mi:
-    metric: "spike_mi"
-    threshold: "> 0.1"
-  spike_cka:
-    metric: "spike_cka"
-    threshold: "> 0.3"
-  spike_fr:
-    metric: "spike_firing_rate"
-    threshold: "0.3 - 0.6"
-  perplexity_stable:
-    metric: "phase2.perplexity"
-    threshold: "< 20% increase"
+  spatial_classify:
+    metric: "spatial_classify_accuracy"
+    threshold: "> transformer_accuracy"
+  spatial_dynamics:
+    metric: "nbody_mae"
+    threshold: "< transformer_mae"
+  equivariance_test:
+    metric: "equivariance_error_60deg"
+    threshold: "< 0.05"
+  language_no_degrade:
+    metric: "bpb_degradation_pct"
+    threshold: "<= 10.0"
 
 knowledge_dir: "knowledge"
 docs_dir: "docs"

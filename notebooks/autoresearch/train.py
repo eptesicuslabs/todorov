@@ -36,7 +36,7 @@ def _select_device() -> torch.device:
 
 DEVICE = _select_device()
 SEED = 42
-PHASE = 2
+PHASE = 3
 OUTPUT_DIR = Path("/kaggle/working") if Path("/kaggle").exists() else Path("output")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -89,6 +89,7 @@ class TrainConfig:
     seq_len: int = 256
     use_spikes: bool = True
     spike_alpha: float = 1.0
+    spatial_mode: bool = False
 
     @property
     def layer_types(self) -> list[str]:
@@ -179,6 +180,116 @@ class RMSNorm(nn.Module):
     def forward(self, x: Tensor) -> Tensor:
         rms = (x.float().pow(2).mean(-1, keepdim=True) + self.eps).rsqrt()
         return (x.float() * rms).to(x.dtype) * self.weight
+
+
+NUM_MV_COMPONENTS = 16
+_GRADE_RANGES = [(0, 1), (1, 5), (5, 11), (11, 15), (15, 16)]
+
+
+def _build_cayley_table() -> tuple[Tensor, Tensor]:
+    basis_blades = [
+        (),
+        (0,), (1,), (2,), (3,),
+        (0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3),
+        (0, 1, 2), (0, 1, 3), (0, 2, 3), (1, 2, 3),
+        (0, 1, 2, 3),
+    ]
+    metric_sq = {0: 0, 1: 1, 2: 1, 3: 1}
+    blade_to_idx = {b: i for i, b in enumerate(basis_blades)}
+
+    def _mul(a, b):
+        combined = list(a) + list(b)
+        sign = 1
+        n = len(combined)
+        for i in range(n):
+            for j in range(i + 1, n):
+                if combined[j] < combined[i]:
+                    combined[i], combined[j] = combined[j], combined[i]
+                    sign *= -1
+        result = []
+        i = 0
+        while i < len(combined):
+            if i + 1 < len(combined) and combined[i] == combined[i + 1]:
+                sq = metric_sq[combined[i]]
+                if sq == 0:
+                    return 0, ()
+                sign *= sq
+                i += 2
+            else:
+                result.append(combined[i])
+                i += 1
+        return sign, tuple(result)
+
+    indices = torch.zeros(16, 16, dtype=torch.long)
+    signs = torch.zeros(16, 16)
+    for i, ba in enumerate(basis_blades):
+        for j, bb in enumerate(basis_blades):
+            s, rb = _mul(ba, bb)
+            if s != 0 and rb in blade_to_idx:
+                indices[i, j] = blade_to_idx[rb]
+                signs[i, j] = float(s)
+    return indices, signs
+
+
+def _build_sparse_gp_tables(idx: Tensor, sgn: Tensor) -> tuple[Tensor, Tensor, Tensor, Tensor]:
+    si, sj, tk, sg = [], [], [], []
+    for i in range(16):
+        for j in range(16):
+            if sgn[i, j] != 0:
+                si.append(i)
+                sj.append(j)
+                tk.append(idx[i, j].item())
+                sg.append(sgn[i, j].item())
+    return (
+        torch.tensor(si, dtype=torch.long),
+        torch.tensor(sj, dtype=torch.long),
+        torch.tensor(tk, dtype=torch.long),
+        torch.tensor(sg, dtype=torch.float),
+    )
+
+
+_CAY_IDX, _CAY_SGN = _build_cayley_table()
+_GP_SI, _GP_SJ, _GP_TK, _GP_SG = _build_sparse_gp_tables(_CAY_IDX, _CAY_SGN)
+
+
+def _gp_ensure_device(device: torch.device) -> tuple[Tensor, Tensor, Tensor, Tensor]:
+    global _GP_SI, _GP_SJ, _GP_TK, _GP_SG
+    if _GP_SI.device != device:
+        _GP_SI = _GP_SI.to(device)
+        _GP_SJ = _GP_SJ.to(device)
+        _GP_TK = _GP_TK.to(device)
+        _GP_SG = _GP_SG.to(device)
+    return _GP_SI, _GP_SJ, _GP_TK, _GP_SG
+
+
+def sparse_gp(a: Tensor, b: Tensor) -> Tensor:
+    si, sj, tk, sg = _gp_ensure_device(a.device)
+    sg = sg.to(dtype=a.dtype)
+    batch_shape = torch.broadcast_shapes(a.shape[:-1], b.shape[:-1])
+    a = a.expand(*batch_shape, 16)
+    b = b.expand(*batch_shape, 16)
+    products = a[..., si] * b[..., sj] * sg
+    flat = products.reshape(-1, products.shape[-1])
+    out = torch.zeros(flat.shape[0], 16, device=a.device, dtype=a.dtype)
+    out.index_add_(-1, tk, flat)
+    return out.reshape(*batch_shape, 16)
+
+
+_REVERSE_SIGNS = torch.ones(16)
+for _k, (_gs, _ge) in enumerate(_GRADE_RANGES):
+    if _k * (_k - 1) // 2 % 2 == 1:
+        _REVERSE_SIGNS[_gs:_ge] = -1.0
+
+
+def reverse_mv(x: Tensor) -> Tensor:
+    global _REVERSE_SIGNS
+    if _REVERSE_SIGNS.device != x.device:
+        _REVERSE_SIGNS = _REVERSE_SIGNS.to(x.device)
+    return x * _REVERSE_SIGNS.to(dtype=x.dtype)
+
+
+def sandwich_gp(rotor: Tensor, x: Tensor) -> Tensor:
+    return sparse_gp(sparse_gp(rotor, x), reverse_mv(rotor))
 
 
 class KDALayer(nn.Module):
@@ -387,16 +498,27 @@ class TransformerLayer(nn.Module):
 
 
 class SwiGLU(nn.Module):
-    def __init__(self, d: int, ratio: float = 2.75) -> None:
+    def __init__(self, d: int, ratio: float = 2.75, spatial_mode: bool = False) -> None:
         super().__init__()
         h = int(d * ratio)
         h = ((h + 63) // 64) * 64
         self.gate = nn.Linear(d, h, bias=False)
         self.up = nn.Linear(d, h, bias=False)
         self.down = nn.Linear(h, d, bias=False)
+        self.spatial_mode = spatial_mode
+        if spatial_mode:
+            self.w_left = nn.Linear(d, 16, bias=False)
+            self.w_right = nn.Linear(d, 16, bias=False)
+            self.gp_proj = nn.Linear(16, d, bias=False)
 
     def forward(self, x: Tensor) -> Tensor:
-        return self.down(F.silu(self.gate(x)) * self.up(x))
+        h = self.down(F.silu(self.gate(x)) * self.up(x))
+        if self.spatial_mode:
+            left = self.w_left(x)
+            right = self.w_right(x)
+            gp_out = sparse_gp(left, right)
+            h = h + self.gp_proj(gp_out)
+        return h
 
 
 class Block(nn.Module):
@@ -415,7 +537,7 @@ class Block(nn.Module):
         elif lt == "Transformer":
             self.attn = TransformerLayer(cfg.d_model, cfg.kda_num_heads)
             self._sk = "state"
-        self.mlp = SwiGLU(cfg.d_model, cfg.mlp_ratio)
+        self.mlp = SwiGLU(cfg.d_model, cfg.mlp_ratio, spatial_mode=cfg.spatial_mode)
 
     def forward(self, x: Tensor, state=None, offset: int = 0) -> tuple[Tensor, any, dict]:
         r = x
@@ -488,6 +610,163 @@ def download_wikitext2() -> tuple[bytes, bytes]:
         train_data = bytes(rng.randint(0, 256, size=2_000_000).tolist())
         val_data = bytes(rng.randint(0, 256, size=200_000).tolist())
         return train_data, val_data
+
+
+SHAPE_MARKER_START = 0xFE
+SHAPE_MARKER_END = 0xFD
+NBODY_MARKER_START = 0xFC
+NBODY_MARKER_END = 0xFB
+SHAPE_CLASSES = 4
+SHAPE_N_POINTS = 16
+NBODY_N_PARTICLES = 4
+NBODY_N_STEPS = 8
+
+
+def _random_rotation_matrix(rng: np.random.RandomState) -> np.ndarray:
+    q = rng.randn(4)
+    q = q / np.linalg.norm(q)
+    w, x, y, z = q
+    return np.array([
+        [1 - 2*(y*y + z*z), 2*(x*y - z*w), 2*(x*z + y*w)],
+        [2*(x*y + z*w), 1 - 2*(x*x + z*z), 2*(y*z - x*w)],
+        [2*(x*z - y*w), 2*(y*z + x*w), 1 - 2*(x*x + y*y)],
+    ])
+
+
+def _sphere_points(n: int, rng: np.random.RandomState) -> np.ndarray:
+    pts = rng.randn(n, 3)
+    pts = pts / np.linalg.norm(pts, axis=1, keepdims=True)
+    return pts
+
+
+def _cube_points(n: int, rng: np.random.RandomState) -> np.ndarray:
+    pts = np.zeros((n, 3))
+    for i in range(n):
+        face = rng.randint(6)
+        axis = face // 2
+        side = 1.0 if face % 2 == 0 else -1.0
+        coords = rng.uniform(-1, 1, size=3)
+        coords[axis] = side
+        pts[i] = coords
+    return pts
+
+
+def _tetrahedron_points(n: int, rng: np.random.RandomState) -> np.ndarray:
+    verts = np.array([
+        [1, 1, 1], [1, -1, -1], [-1, 1, -1], [-1, -1, 1]
+    ], dtype=np.float64) / np.sqrt(3)
+    faces = [(0, 1, 2), (0, 1, 3), (0, 2, 3), (1, 2, 3)]
+    pts = np.zeros((n, 3))
+    for i in range(n):
+        fi = rng.randint(len(faces))
+        a, b, c = verts[faces[fi][0]], verts[faces[fi][1]], verts[faces[fi][2]]
+        u, v = rng.uniform(0, 1, 2)
+        if u + v > 1:
+            u, v = 1 - u, 1 - v
+        pts[i] = a + u * (b - a) + v * (c - a)
+    return pts
+
+
+def _torus_points(n: int, rng: np.random.RandomState, R: float = 0.7, r: float = 0.3) -> np.ndarray:
+    theta = rng.uniform(0, 2 * np.pi, n)
+    phi = rng.uniform(0, 2 * np.pi, n)
+    x = (R + r * np.cos(phi)) * np.cos(theta)
+    y = (R + r * np.cos(phi)) * np.sin(theta)
+    z = r * np.sin(phi)
+    return np.stack([x, y, z], axis=1)
+
+
+def _quantize_coords(pts: np.ndarray, lo: float = -1.5, hi: float = 1.5) -> list[int]:
+    scaled = (pts - lo) / (hi - lo) * 255.0
+    return np.clip(scaled, 0, 255).astype(np.uint8).flatten().tolist()
+
+
+def generate_shape_data(n_samples: int, seed: int = 42) -> bytes:
+    rng = np.random.RandomState(seed)
+    generators = [_sphere_points, _cube_points, _tetrahedron_points, _torus_points]
+    data = []
+    for i in range(n_samples):
+        cls = i % SHAPE_CLASSES
+        pts = generators[cls](SHAPE_N_POINTS, rng)
+        rot = _random_rotation_matrix(rng)
+        pts = pts @ rot.T
+        coord_bytes = _quantize_coords(pts)
+        sample = [SHAPE_MARKER_START] + coord_bytes + [SHAPE_MARKER_END, cls]
+        data.extend(sample)
+    return bytes(data)
+
+
+def _nbody_simulate(n_particles: int, n_steps: int, rng: np.random.RandomState,
+                    dt: float = 0.02, G: float = 1.0, eps: float = 0.1) -> np.ndarray:
+    pos = rng.uniform(-1, 1, (n_particles, 2))
+    vel = rng.uniform(-0.3, 0.3, (n_particles, 2))
+    mass = np.ones(n_particles)
+    trajectory = np.zeros((n_steps + 1, n_particles, 4))
+    trajectory[0, :, :2] = pos
+    trajectory[0, :, 2:] = vel
+    for t in range(n_steps):
+        acc = np.zeros_like(pos)
+        for i in range(n_particles):
+            for j in range(n_particles):
+                if i == j:
+                    continue
+                diff = pos[j] - pos[i]
+                r2 = np.sum(diff ** 2) + eps ** 2
+                acc[i] += G * mass[j] * diff / (r2 ** 1.5)
+        vel = vel + acc * dt
+        pos = pos + vel * dt
+        pos = np.clip(pos, -2, 2)
+        vel = np.clip(vel, -1, 1)
+        trajectory[t + 1, :, :2] = pos
+        trajectory[t + 1, :, 2:] = vel
+    return trajectory
+
+
+def _quantize_nbody(traj: np.ndarray) -> list[int]:
+    result = []
+    for t in range(traj.shape[0]):
+        for p in range(traj.shape[1]):
+            px = int(np.clip((traj[t, p, 0] + 2) / 4 * 255, 0, 255))
+            py = int(np.clip((traj[t, p, 1] + 2) / 4 * 255, 0, 255))
+            vx = int(np.clip((traj[t, p, 2] + 1) / 2 * 255, 0, 255))
+            vy = int(np.clip((traj[t, p, 3] + 1) / 2 * 255, 0, 255))
+            result.extend([px, py, vx, vy])
+    return result
+
+
+def generate_nbody_data(n_samples: int, seed: int = 42) -> bytes:
+    rng = np.random.RandomState(seed)
+    data = []
+    for _ in range(n_samples):
+        traj = _nbody_simulate(NBODY_N_PARTICLES, NBODY_N_STEPS, rng)
+        history = _quantize_nbody(traj[:NBODY_N_STEPS])
+        target = _quantize_nbody(traj[NBODY_N_STEPS:NBODY_N_STEPS + 1])
+        sample = [NBODY_MARKER_START] + history + [NBODY_MARKER_END] + target
+        data.extend(sample)
+    return bytes(data)
+
+
+def make_mixed_data(lang_data: bytes, shape_data: bytes, nbody_data: bytes,
+                    chunk_size: int = 256) -> bytes:
+    lang_chunks = [lang_data[i:i+chunk_size] for i in range(0, len(lang_data) - chunk_size, chunk_size)]
+    shape_chunks = [shape_data[i:i+chunk_size] for i in range(0, len(shape_data) - chunk_size, chunk_size)]
+    nbody_chunks = [nbody_data[i:i+chunk_size] for i in range(0, len(nbody_data) - chunk_size, chunk_size)]
+    result = []
+    li, si, ni = 0, 0, 0
+    while li < len(lang_chunks) or si < len(shape_chunks) or ni < len(nbody_chunks):
+        if li < len(lang_chunks):
+            result.append(lang_chunks[li])
+            li += 1
+        if li < len(lang_chunks):
+            result.append(lang_chunks[li])
+            li += 1
+        if si < len(shape_chunks):
+            result.append(shape_chunks[si])
+            si += 1
+        if ni < len(nbody_chunks):
+            result.append(nbody_chunks[ni])
+            ni += 1
+    return b"".join(result)
 
 
 @torch.no_grad()
@@ -911,12 +1190,250 @@ def run_phase2_evaluation(model: LM, val_data: bytes) -> dict:
     return {"copy": copy_results, "passkey": passkey_results, "perplexity": ppl_results}
 
 
+@torch.no_grad()
+def shape_classification_test(model: LM, n_trials: int = 200, seed: int = 999) -> dict:
+    model.eval()
+    rng = np.random.RandomState(seed)
+    generators = [_sphere_points, _cube_points, _tetrahedron_points, _torus_points]
+    correct = 0
+    per_class = {c: {"correct": 0, "total": 0} for c in range(SHAPE_CLASSES)}
+    for trial in range(n_trials):
+        cls = trial % SHAPE_CLASSES
+        pts = generators[cls](SHAPE_N_POINTS, rng)
+        rot = _random_rotation_matrix(rng)
+        pts = pts @ rot.T
+        coord_bytes = _quantize_coords(pts)
+        seq = [SHAPE_MARKER_START] + coord_bytes + [SHAPE_MARKER_END]
+        input_tensor = torch.tensor([seq], dtype=torch.long, device=DEVICE)
+        logits, _, _ = model(input_tensor)
+        pred = logits[0, -1, :SHAPE_CLASSES].argmax().item()
+        per_class[cls]["total"] += 1
+        if pred == cls:
+            correct += 1
+            per_class[cls]["correct"] += 1
+    model.train()
+    return {
+        "accuracy": correct / n_trials,
+        "correct": correct,
+        "total": n_trials,
+        "per_class": {k: v["correct"] / max(v["total"], 1) for k, v in per_class.items()},
+    }
+
+
+@torch.no_grad()
+def nbody_prediction_test(model: LM, n_trials: int = 200, seed: int = 999) -> dict:
+    model.eval()
+    rng = np.random.RandomState(seed)
+    total_mae = 0.0
+    for _ in range(n_trials):
+        traj = _nbody_simulate(NBODY_N_PARTICLES, NBODY_N_STEPS, rng)
+        history = _quantize_nbody(traj[:NBODY_N_STEPS])
+        target = _quantize_nbody(traj[NBODY_N_STEPS:NBODY_N_STEPS + 1])
+        seq = [NBODY_MARKER_START] + history + [NBODY_MARKER_END]
+        input_tensor = torch.tensor([seq], dtype=torch.long, device=DEVICE)
+        logits, states, _ = model(input_tensor)
+        n_target = len(target)
+        predicted = []
+        next_token = logits[:, -1].argmax(dim=-1, keepdim=True)
+        predicted.append(next_token.item())
+        for step in range(n_target - 1):
+            logits, states, _ = model(next_token, states=states, offset=input_tensor.shape[1] + step)
+            next_token = logits[:, -1].argmax(dim=-1, keepdim=True)
+            predicted.append(next_token.item())
+        mae = np.mean(np.abs(np.array(predicted) - np.array(target)))
+        total_mae += mae
+    model.train()
+    return {"mae": total_mae / n_trials, "n_trials": n_trials}
+
+
+def equivariance_test(n_samples: int = 200, seed: int = 42) -> dict:
+    rng_t = torch.Generator()
+    rng_t.manual_seed(seed)
+    results = {}
+    for angle_name, angle in [("30deg", math.pi / 6), ("60deg", math.pi / 3), ("90deg", math.pi / 2)]:
+        rotor = torch.zeros(16)
+        rotor[0] = math.cos(angle / 2)
+        rotor[8] = math.sin(angle / 2)
+        errors = []
+        for _ in range(n_samples):
+            x = torch.randn(16, generator=rng_t)
+            gp_xx = sparse_gp(x.unsqueeze(0), x.unsqueeze(0)).squeeze(0)
+            rotate_after = sandwich_gp(rotor.unsqueeze(0), gp_xx.unsqueeze(0)).squeeze(0)
+            x_rot = sandwich_gp(rotor.unsqueeze(0), x.unsqueeze(0)).squeeze(0)
+            gp_rotrot = sparse_gp(x_rot.unsqueeze(0), x_rot.unsqueeze(0)).squeeze(0)
+            norm_a = torch.norm(rotate_after)
+            if norm_a > 1e-8:
+                err = torch.norm(rotate_after - gp_rotrot) / norm_a
+                errors.append(err.item())
+        results[angle_name] = float(np.mean(errors)) if errors else 0.0
+    return results
+
+
+def run_phase3_evaluation(
+    model_gp: LM, model_nogp: LM, model_baseline: LM,
+    val_data: bytes,
+) -> dict:
+    print(f"\n[{datetime.now().strftime('%H:%M:%S')}] === PHASE 3: SPATIAL MODULE VALIDATION ===", flush=True)
+
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] shape classification (todorov+gp)...", flush=True)
+    t0 = time.time()
+    shape_gp = shape_classification_test(model_gp, n_trials=200, seed=999)
+    print(f"  accuracy: {shape_gp['accuracy']:.1%} [{time.time()-t0:.0f}s]", flush=True)
+
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] shape classification (transformer)...", flush=True)
+    t0 = time.time()
+    shape_bl = shape_classification_test(model_baseline, n_trials=200, seed=999)
+    print(f"  accuracy: {shape_bl['accuracy']:.1%} [{time.time()-t0:.0f}s]", flush=True)
+
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] n-body dynamics (todorov+gp)...", flush=True)
+    t0 = time.time()
+    nbody_gp = nbody_prediction_test(model_gp, n_trials=200, seed=999)
+    print(f"  mae: {nbody_gp['mae']:.2f} [{time.time()-t0:.0f}s]", flush=True)
+
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] n-body dynamics (transformer)...", flush=True)
+    t0 = time.time()
+    nbody_bl = nbody_prediction_test(model_baseline, n_trials=200, seed=999)
+    print(f"  mae: {nbody_bl['mae']:.2f} [{time.time()-t0:.0f}s]", flush=True)
+
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] equivariance test...", flush=True)
+    t0 = time.time()
+    equiv = equivariance_test(n_samples=200, seed=42)
+    print(f"  60deg error: {equiv['60deg']:.6f} [{time.time()-t0:.0f}s]", flush=True)
+
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] language degradation check...", flush=True)
+    val_ds_lang = ByteTextDataset(val_data, 256)
+    val_dl_lang = DataLoader(val_ds_lang, batch_size=32, shuffle=False, collate_fn=collate_fn)
+    bpb_gp = evaluate(model_gp, val_dl_lang)["bpb"]
+    bpb_nogp = evaluate(model_nogp, val_dl_lang)["bpb"]
+    degrade_pct = (bpb_gp - bpb_nogp) / max(bpb_nogp, 1e-6) * 100
+    print(f"  BPB with GP: {bpb_gp:.4f}, without GP: {bpb_nogp:.4f}, degradation: {degrade_pct:.1f}%", flush=True)
+
+    gate_classify = shape_gp["accuracy"] > shape_bl["accuracy"]
+    gate_dynamics = nbody_gp["mae"] < nbody_bl["mae"]
+    gate_equiv = equiv["60deg"] < 0.05
+    gate_lang = degrade_pct <= 10.0
+    spatial_pass_count = sum([gate_classify, gate_dynamics, gate_equiv])
+    phase3_pass = spatial_pass_count >= 2 and gate_lang
+
+    print(f"\n[{datetime.now().strftime('%H:%M:%S')}] === PHASE 3 GATES ===")
+    print(f"  spatial_classify:    {'PASS' if gate_classify else 'FAIL'} (GP={shape_gp['accuracy']:.1%} vs BL={shape_bl['accuracy']:.1%})")
+    print(f"  spatial_dynamics:    {'PASS' if gate_dynamics else 'FAIL'} (GP mae={nbody_gp['mae']:.2f} vs BL mae={nbody_bl['mae']:.2f})")
+    print(f"  equivariance_test:   {'PASS' if gate_equiv else 'FAIL'} (error={equiv['60deg']:.6f})")
+    print(f"  language_no_degrade: {'PASS' if gate_lang else 'FAIL'} (degradation={degrade_pct:.1f}%)")
+    print(f"  OVERALL:             {'PASS' if phase3_pass else 'FAIL'} ({spatial_pass_count}/3 spatial + lang={'ok' if gate_lang else 'fail'})")
+
+    return {
+        "shape_gp": shape_gp,
+        "shape_baseline": shape_bl,
+        "nbody_gp": nbody_gp,
+        "nbody_baseline": nbody_bl,
+        "equivariance": equiv,
+        "bpb_with_gp": bpb_gp,
+        "bpb_without_gp": bpb_nogp,
+        "language_degradation_pct": degrade_pct,
+        "gate_classify": bool(gate_classify),
+        "gate_dynamics": bool(gate_dynamics),
+        "gate_equiv": bool(gate_equiv),
+        "gate_lang": bool(gate_lang),
+        "spatial_pass_count": spatial_pass_count,
+        "phase3_pass": bool(phase3_pass),
+    }
+
+
 def main() -> None:
     print(f"[{datetime.now().strftime('%H:%M:%S')}] downloading WikiText-2...")
     train_data, val_data = download_wikitext2()
     print(f"[{datetime.now().strftime('%H:%M:%S')}] train: {len(train_data):,} bytes, val: {len(val_data):,} bytes")
 
-    if PHASE >= 2:
+    if PHASE >= 3:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 3: spatial module validation", flush=True)
+
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] generating spatial data...", flush=True)
+        shape_train = generate_shape_data(4000, seed=SEED)
+        shape_test = generate_shape_data(800, seed=SEED + 100)
+        nbody_train = generate_nbody_data(2000, seed=SEED)
+        nbody_test = generate_nbody_data(400, seed=SEED + 100)
+        mixed_train = make_mixed_data(train_data, shape_train, nbody_train)
+        mixed_val = make_mixed_data(val_data, shape_test, nbody_test)
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] mixed train: {len(mixed_train):,} bytes, mixed val: {len(mixed_val):,} bytes", flush=True)
+
+        gp_cfg = TrainConfig(spatial_mode=True, max_steps=500)
+        gp_result = train_model(gp_cfg, mixed_train, mixed_val, "todorov_gp")
+        gp_checkpoint = str(OUTPUT_DIR / "todorov_gp_best.pt")
+
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+        nogp_cfg = TrainConfig(spatial_mode=False, max_steps=200)
+        nogp_result = train_model(nogp_cfg, train_data, val_data, "todorov_nogp")
+        nogp_checkpoint = str(OUTPUT_DIR / "todorov_nogp_best.pt")
+
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+        bl_cfg = TrainConfig(
+            layer_pattern=("Transformer",) * 8, use_spikes=False,
+            spatial_mode=False, max_steps=200,
+        )
+        bl_result = train_model(bl_cfg, mixed_train, mixed_val, "transformer")
+        bl_checkpoint = str(OUTPUT_DIR / "transformer_best.pt")
+
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] loading models for evaluation...", flush=True)
+        model_gp = LM(gp_cfg).to(DEVICE)
+        if Path(gp_checkpoint).exists():
+            model_gp.load_state_dict(torch.load(gp_checkpoint, map_location=DEVICE, weights_only=True), strict=False)
+        model_nogp = LM(nogp_cfg).to(DEVICE)
+        if Path(nogp_checkpoint).exists():
+            model_nogp.load_state_dict(torch.load(nogp_checkpoint, map_location=DEVICE, weights_only=True), strict=False)
+        model_bl = LM(bl_cfg).to(DEVICE)
+        if Path(bl_checkpoint).exists():
+            model_bl.load_state_dict(torch.load(bl_checkpoint, map_location=DEVICE, weights_only=True), strict=False)
+
+        phase3_results = run_phase3_evaluation(model_gp, model_nogp, model_bl, val_data)
+
+        del model_bl
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+        print(f"\n[{datetime.now().strftime('%H:%M:%S')}] running SpikingBrain validation...")
+        val_ds_sb = ByteTextDataset(val_data, gp_cfg.seq_len)
+        val_dl_sb = DataLoader(val_ds_sb, batch_size=gp_cfg.batch_size, shuffle=False, collate_fn=collate_fn)
+        spike_val = validate_spikes(model_gp, val_dl_sb)
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] MI={spike_val['mi']:.4f} CKA={spike_val['cka']:.4f} (n={spike_val['n_samples']})")
+
+        del model_gp, model_nogp
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+        results = {
+            "phase": 3,
+            "best_val_bpb": gp_result["best_val_bpb"],
+            "baseline_best_bpb": bl_result["best_val_bpb"],
+            "param_count_gp": gp_result["param_count"],
+            "param_count_nogp": nogp_result["param_count"],
+            "param_count_baseline": bl_result["param_count"],
+            "spike_firing_rate": gp_result["spike_firing_rate"],
+            "spike_dead_ratio": gp_result["spike_dead_ratio"],
+            "spike_mi": spike_val["mi"],
+            "spike_cka": spike_val["cka"],
+            "training_time_gp": gp_result["total_time"],
+            "training_time_nogp": nogp_result["total_time"],
+            "training_time_baseline": bl_result["total_time"],
+            "phase3": phase3_results,
+            "timestamp": datetime.now().isoformat(),
+            "device": str(DEVICE),
+            "seed": SEED,
+        }
+
+    elif PHASE >= 2:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 2: progressive context training (fla={FLA_AVAILABLE})", flush=True)
         stages = [
             ("s256",  256,  200,  32, 3e-4, 50),
@@ -952,102 +1469,49 @@ def main() -> None:
             seq_len=2048, max_steps=200, batch_size=8, lr=3e-4,
             layer_pattern=("Transformer",)*8, use_spikes=False,
         )
-    else:
-        todorov_cfg = TrainConfig()
-        baseline_cfg = BASELINE_CONFIG
-        todorov_result = train_model(todorov_cfg, train_data, val_data, "todorov")
-        final_checkpoint = str(OUTPUT_DIR / "todorov_best.pt")
 
-    gc.collect()
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
-    baseline_result = train_model(baseline_cfg, train_data, val_data, "transformer")
+        baseline_result = train_model(baseline_cfg, train_data, val_data, "transformer")
 
-    plot_results(todorov_result, baseline_result)
+        plot_results(todorov_result, baseline_result)
 
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] running SpikingBrain validation...")
-    todorov_model = LM(todorov_cfg).to(DEVICE)
-    if Path(final_checkpoint).exists():
-        todorov_model.load_state_dict(torch.load(final_checkpoint, map_location=DEVICE, weights_only=True), strict=False)
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] loaded {final_checkpoint} for validation")
-    val_ds_sb = ByteTextDataset(val_data, todorov_cfg.seq_len)
-    val_dl_sb = DataLoader(val_ds_sb, batch_size=todorov_cfg.batch_size, shuffle=False, collate_fn=collate_fn)
-    spike_val = validate_spikes(todorov_model, val_dl_sb)
-    del todorov_model
-    gc.collect()
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] MI={spike_val['mi']:.4f} CKA={spike_val['cka']:.4f} (n={spike_val['n_samples']})")
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] running SpikingBrain validation...")
+        todorov_model = LM(todorov_cfg).to(DEVICE)
+        if Path(final_checkpoint).exists():
+            todorov_model.load_state_dict(torch.load(final_checkpoint, map_location=DEVICE, weights_only=True), strict=False)
+        val_ds_sb = ByteTextDataset(val_data, todorov_cfg.seq_len)
+        val_dl_sb = DataLoader(val_ds_sb, batch_size=todorov_cfg.batch_size, shuffle=False, collate_fn=collate_fn)
+        spike_val = validate_spikes(todorov_model, val_dl_sb)
+        del todorov_model
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] MI={spike_val['mi']:.4f} CKA={spike_val['cka']:.4f} (n={spike_val['n_samples']})")
 
-    bpb_ratio = todorov_result["best_val_bpb"] / max(baseline_result["best_val_bpb"], 1e-6)
-    gate_a = bpb_ratio <= 1.5
-    gate_b_mi = spike_val["mi"] > 0.1
-    gate_b_cka = spike_val["cka"] > 0.3
-    gate_b_fr = 0.3 <= todorov_result["spike_firing_rate"] <= 0.6
+        bpb_ratio = todorov_result["best_val_bpb"] / max(baseline_result["best_val_bpb"], 1e-6)
 
-    results = {
-        "final_val_bpb": todorov_result["final_val_bpb"],
-        "best_val_bpb": todorov_result["best_val_bpb"],
-        "baseline_best_bpb": baseline_result["best_val_bpb"],
-        "bpb_ratio": bpb_ratio,
-        "total_steps": todorov_result["total_steps"],
-        "param_count": todorov_result["param_count"],
-        "baseline_param_count": baseline_result["param_count"],
-        "spike_firing_rate": todorov_result["spike_firing_rate"],
-        "spike_dead_ratio": todorov_result["spike_dead_ratio"],
-        "kda_state_norm": float(np.mean([np.mean(n) if n else 0 for n in todorov_result["history"]["state_norms"]])),
-        "spike_mi": spike_val["mi"],
-        "spike_cka": spike_val["cka"],
-        "gate_a_pass": bool(gate_a),
-        "gate_b_mi_pass": bool(gate_b_mi),
-        "gate_b_cka_pass": bool(gate_b_cka),
-        "gate_b_firing_rate_pass": bool(gate_b_fr),
-        "training_time_todorov": todorov_result["total_time"],
-        "training_time_baseline": baseline_result["total_time"],
-        "timestamp": datetime.now().isoformat(),
-        "device": str(DEVICE),
-        "seed": SEED,
-    }
+        results = {
+            "phase": 2,
+            "final_val_bpb": todorov_result["final_val_bpb"],
+            "best_val_bpb": todorov_result["best_val_bpb"],
+            "baseline_best_bpb": baseline_result["best_val_bpb"],
+            "bpb_ratio": bpb_ratio,
+            "total_steps": todorov_result["total_steps"],
+            "param_count": todorov_result["param_count"],
+            "spike_firing_rate": todorov_result["spike_firing_rate"],
+            "spike_dead_ratio": todorov_result["spike_dead_ratio"],
+            "spike_mi": spike_val["mi"],
+            "spike_cka": spike_val["cka"],
+            "training_time_todorov": todorov_result["total_time"],
+            "training_time_baseline": baseline_result["total_time"],
+            "timestamp": datetime.now().isoformat(),
+            "device": str(DEVICE),
+            "seed": SEED,
+        }
 
-    config_dump = {
-        "todorov": {
-            "d_model": todorov_cfg.d_model,
-            "n_layers": todorov_cfg.n_layers,
-            "vocab_size": todorov_cfg.vocab_size,
-            "lr": todorov_cfg.lr,
-            "batch_size": todorov_cfg.batch_size,
-            "max_steps": todorov_cfg.max_steps,
-            "seq_len": todorov_cfg.seq_len,
-            "use_spikes": todorov_cfg.use_spikes,
-        },
-        "baseline": {
-            "d_model": baseline_cfg.d_model,
-            "n_layers": baseline_cfg.n_layers,
-            "vocab_size": baseline_cfg.vocab_size,
-            "lr": baseline_cfg.lr,
-            "batch_size": baseline_cfg.batch_size,
-            "max_steps": baseline_cfg.max_steps,
-        },
-    }
-
-    with open(OUTPUT_DIR / "config.json", "w") as f:
-        json.dump(config_dump, f, indent=2)
-
-    print(f"\n[{datetime.now().strftime('%H:%M:%S')}] === RESULTS ===")
-    print(f"  Todorov BPB:     {todorov_result['best_val_bpb']:.4f}")
-    print(f"  Baseline BPB:    {baseline_result['best_val_bpb']:.4f}")
-    print(f"  BPB Ratio:       {bpb_ratio:.4f}")
-    print(f"  Gate A (<=1.5x): {'PASS' if gate_a else 'FAIL'}")
-    print(f"  Spike FR:        {todorov_result['spike_firing_rate']:.4f}")
-    print(f"  Spike MI:        {spike_val['mi']:.4f}")
-    print(f"  Spike CKA:       {spike_val['cka']:.4f}")
-    print(f"  Gate B (FR):     {'PASS' if gate_b_fr else 'FAIL'}")
-    print(f"  Gate B (MI>0.1): {'PASS' if gate_b_mi else 'FAIL'}")
-    print(f"  Gate B (CKA>0.3):{'PASS' if gate_b_cka else 'FAIL'}")
-
-    phase2_results = {}
-    if PHASE >= 2:
         todorov_model_p2 = LM(todorov_cfg).to(DEVICE)
         if Path(final_checkpoint).exists():
             todorov_model_p2.load_state_dict(torch.load(final_checkpoint, map_location=DEVICE, weights_only=True), strict=False)
@@ -1061,15 +1525,58 @@ def main() -> None:
             "passkey": {str(k): v for k, v in phase2_results.get("passkey", {}).items()},
             "perplexity": {str(k): v for k, v in phase2_results.get("perplexity", {}).items()},
         }
+    else:
+        todorov_cfg = TrainConfig()
+        baseline_cfg = BASELINE_CONFIG
+        todorov_result = train_model(todorov_cfg, train_data, val_data, "todorov")
+        final_checkpoint = str(OUTPUT_DIR / "todorov_best.pt")
+
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+        baseline_result = train_model(baseline_cfg, train_data, val_data, "transformer")
+
+        plot_results(todorov_result, baseline_result)
+
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] running SpikingBrain validation...")
+        todorov_model = LM(todorov_cfg).to(DEVICE)
+        if Path(final_checkpoint).exists():
+            todorov_model.load_state_dict(torch.load(final_checkpoint, map_location=DEVICE, weights_only=True), strict=False)
+        val_ds_sb = ByteTextDataset(val_data, todorov_cfg.seq_len)
+        val_dl_sb = DataLoader(val_ds_sb, batch_size=todorov_cfg.batch_size, shuffle=False, collate_fn=collate_fn)
+        spike_val = validate_spikes(todorov_model, val_dl_sb)
+        del todorov_model
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] MI={spike_val['mi']:.4f} CKA={spike_val['cka']:.4f} (n={spike_val['n_samples']})")
+
+        bpb_ratio = todorov_result["best_val_bpb"] / max(baseline_result["best_val_bpb"], 1e-6)
+
+        results = {
+            "phase": 1,
+            "final_val_bpb": todorov_result["final_val_bpb"],
+            "best_val_bpb": todorov_result["best_val_bpb"],
+            "baseline_best_bpb": baseline_result["best_val_bpb"],
+            "bpb_ratio": bpb_ratio,
+            "param_count": todorov_result["param_count"],
+            "spike_firing_rate": todorov_result["spike_firing_rate"],
+            "spike_mi": spike_val["mi"],
+            "spike_cka": spike_val["cka"],
+            "timestamp": datetime.now().isoformat(),
+            "device": str(DEVICE),
+            "seed": SEED,
+        }
 
     with open(OUTPUT_DIR / "results.json", "w") as f:
         json.dump(results, f, indent=2, default=str)
 
     bundle_path = OUTPUT_DIR / "evidence_bundle.zip"
     with zipfile.ZipFile(bundle_path, "w") as zf:
-        for f in OUTPUT_DIR.iterdir():
-            if f.name != "evidence_bundle.zip" and f.is_file():
-                zf.write(f, f.name)
+        for fp in OUTPUT_DIR.iterdir():
+            if fp.name != "evidence_bundle.zip" and fp.is_file():
+                zf.write(fp, fp.name)
     print(f"[{datetime.now().strftime('%H:%M:%S')}] evidence bundle: {bundle_path}")
     print(f"[{datetime.now().strftime('%H:%M:%S')}] done.")
 
