@@ -1,8 +1,8 @@
 project: todorov
-current_phase: 3
-current_step: run_009_complete
-status: phase_3_complete
-last_updated: "2026-03-23"
+current_phase: 5
+current_step: run_010_complete
+status: phase_5_baseline_complete
+last_updated: "2026-03-26"
 tests_passing: 76
 total_tests: 76
 critical_fix: swiglu.py spatial_mode latent shape mismatch, GP residual applied after down projection (run_009)
@@ -16,44 +16,17 @@ run_history:
   run_007: hybrid threshold, stopped by user
   run_008: COMPLETE, progressive 256->2048, BPB 2.82, perplexity +4% PASS, copy 0% FAIL
   run_009: COMPLETE, Phase 3 spatial validation, ALL GATES PASS
-latest_run: run_009
+  run_010: "KDA+MLA scaling probe (NOT todorov baseline -- Mamba3 absent), H200, 267M, BPB 2.375, ratio 0.663x, gates pass but architecture incomplete"
+latest_run: run_010
 latest_run_results:
-  phase: 3
-  description: spatial module validation with GP self-interaction
-  shape_classify:
-    gp_accuracy: 0.30
-    transformer_accuracy: 0.25
-    per_class_gp: {sphere: 0.80, cube: 0.00, tetrahedron: 0.16, torus: 0.24}
-    per_class_bl: {sphere: 1.00, cube: 0.00, tetrahedron: 0.00, torus: 0.00}
-    gate: PASS
-  nbody_dynamics:
-    gp_mae: 51.55
-    transformer_mae: 72.70
-    improvement: "29%"
-    gate: PASS
-  equivariance:
-    error: 1.34e-07
-    rotation_degrees: 60
-    gate: PASS
-  language_degradation:
-    bpb_with_gp: 3.009
-    bpb_without_gp: 3.707
-    degradation_pct: -18.8
-    gate: PASS
-  spike_mi: 1.311
-  spike_cka: 0.907
-  spike_fr: 0.421
-  spike_dead: 0.0
-  training_time_gp_s: 1451
-  training_time_nogp_s: 573
-  training_time_transformer_s: 42
-  total_wall_clock_min: 38
-  params_gp: 6015780
-  params_nogp: 5917476
-  params_transformer: 5705984
-  phase3_gates:
-    spatial_classify: {result: "GP 30.0% vs BL 25.0%", status: PASS}
-    spatial_dynamics: {result: "GP MAE 51.55 vs BL MAE 72.70", status: PASS}
-    equivariance_test: {result: "1.34e-07 at 60 deg", status: PASS}
-    language_no_degrade: {result: "-18.8% (GP improves)", status: PASS}
-next_action: Phase 5 (scale and optimize)
+  phase: 5
+  description: phase 5 baseline at 267m params on h200, kda+mla only (mamba3 dropped due to sequential scan speed)
+  best_val_bpb: 2.375
+  baseline_best_bpb: 3.583
+  bpb_ratio: 0.663
+  param_count: 267389306
+  spike_mi: 1.168
+  spike_cka: 0.732
+  spike_fr: 0.408
+  all_gates_pass: true
+next_action: "BLOCKER: implement Mamba3 parallel scan (SSD chunked or mamba_ssm kernel). then re-run phase 5 baseline with FULL todorov architecture (KDA+Mamba3+MLA, 6:1:1). run_010 was NOT a valid baseline -- Mamba3 was absent."

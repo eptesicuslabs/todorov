@@ -1,5 +1,10 @@
 CLAUDE.md
 .mcp.json
+.claude/
+docs/superpowers/
+*.kaggle/
+kaggle.json
+data/
 __pycache__/
 *.pyc
 .pytest_cache/

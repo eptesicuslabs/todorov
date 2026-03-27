@@ -7,6 +7,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 
+try:
+    from fla.ops.kda import chunk_kda as _chunk_kda
+    _FLA_AVAILABLE = True
+except ImportError:
+    _FLA_AVAILABLE = False
+
 
 class RotaryPositionEncoding(nn.Module):
 
@@ -153,6 +159,27 @@ class KDALayer(nn.Module):
 
         return output, accumulated_state
 
+    def _forward_fla(
+        self,
+        q: Tensor,
+        k: Tensor,
+        v: Tensor,
+        beta: Tensor,
+    ) -> tuple[Tensor, Tensor]:
+        batch_size, seq_len, num_heads, head_dim = q.shape
+        q = F.normalize(q, p=2, dim=-1)
+        k = F.normalize(k, p=2, dim=-1)
+        g = F.logsigmoid(self.alpha_log)
+        g = g.unsqueeze(0).unsqueeze(1).expand(batch_size, seq_len, -1, -1).contiguous()
+        scale = 1.0 / math.sqrt(head_dim)
+        half_dtype = torch.bfloat16 if torch.cuda.is_available() and torch.cuda.get_device_capability()[0] >= 8 else torch.float16
+        o, state = _chunk_kda(
+            q=q.to(half_dtype), k=k.to(half_dtype), v=v.to(half_dtype),
+            g=g.float(), beta=beta.float(),
+            scale=scale, output_final_state=True,
+        )
+        return o.to(q.dtype), state
+
     def _forward_recurrent(
         self,
         q: Tensor,
@@ -225,6 +252,8 @@ class KDALayer(nn.Module):
 
         if state is not None or seq_len == 1:
             output, state = self._forward_recurrent(q, k, v, alpha, beta, state)
+        elif _FLA_AVAILABLE and seq_len >= 512:
+            output, state = self._forward_fla(q, k, v, beta)
         else:
             output, state = self._forward_parallel(q, k, v, alpha, beta)
 

@@ -1,10 +1,29 @@
-# Status Board
+# status board
 
-## Current Phase: 3 COMPLETE (Spatial Module Validation)
+## current phase: 5 (scale to 267m params)
 
-## Status: run_009 COMPLETE -- ALL PHASE 3 GATES PASS
+## status: run_010 complete -- phase 5 baseline, all gates pass
 
-## Phase 3: COMPLETE -- ALL GATES PASS
+## phase 5: baseline complete (run_010)
+
+h200, 267m params, kda+mla only (no mamba3). fla disabled (chunk_kda NaN at
+d_model=1024). mamba3 dropped (sequential scan ~15s/step at T=2048, not viable
+without parallel scan kernel).
+
+bpb 2.375, ratio 0.663x (33.7% better than transformer baseline at matched
+scale). spike health: mi=1.168, cka=0.732, fr=40.8%.
+
+| gate             | threshold                    | run_010 result                  | status |
+|------------------|------------------------------|---------------------------------|--------|
+| bpb_ratio        | < 1.0 (beat transformer)     | 0.663x (2.375 vs 3.583)        | pass   |
+| spike_mi         | > 0.1                        | 1.168                           | pass   |
+| spike_cka        | > 0.3                        | 0.732                           | pass   |
+| spike_fr         | 30-60%                       | 40.8%                           | pass   |
+
+next: fix fla chunk_kda NaN at d=1024, add mamba3 parallel scan, re-run phase
+5 baseline with full 3:1 architecture.
+
+## phase 3: complete -- all gates pass
 
 ## Phase 2: COMPLETE -- 2/3 gates PASS (selective copy deferred to Phase 5)
 

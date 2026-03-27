@@ -36,7 +36,8 @@ def _select_device() -> torch.device:
 
 DEVICE = _select_device()
 SEED = 42
-PHASE = 3
+PHASE = 5
+PHASE5_STEP = "5a"
 OUTPUT_DIR = Path("/kaggle/working") if Path("/kaggle").exists() else Path("output")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -89,7 +90,9 @@ class TrainConfig:
     seq_len: int = 256
     use_spikes: bool = True
     spike_alpha: float = 1.0
+    spike_type: str = "ternary"
     spatial_mode: bool = False
+    grad_accum_steps: int = 1
 
     @property
     def layer_types(self) -> list[str]:
@@ -104,6 +107,91 @@ BASELINE_CONFIG = TrainConfig(
     vocab_size=256,
     layer_pattern=("Transformer",) * 8,
     use_spikes=False,
+)
+
+PHASE5_CONFIG = TrainConfig(
+    d_model=1024,
+    n_layers=24,
+    vocab_size=256,
+    max_seq_len=131072,
+    kda_num_heads=16,
+    kda_head_dim=64,
+    m3_d_state=32,
+    m3_expand=2,
+    mla_d_c=128,
+    mla_d_R=32,
+    mla_num_heads=8,
+    mlp_ratio=2.25,
+    layer_pattern=("KDA", "KDA", "KDA", "Mamba3", "KDA", "KDA", "KDA", "MLA"),
+    lr=3e-4,
+    weight_decay=0.01,
+    batch_size=16,
+    max_steps=500,
+    warmup_steps=50,
+    eval_interval=50,
+    gradient_clip=1.0,
+    seq_len=512,
+    use_spikes=True,
+    spike_alpha=1.0,
+    spatial_mode=True,
+    grad_accum_steps=1,
+)
+
+PHASE5_BASELINE_CONFIG = TrainConfig(
+    d_model=1024,
+    n_layers=24,
+    vocab_size=256,
+    max_seq_len=131072,
+    kda_num_heads=16,
+    kda_head_dim=64,
+    m3_d_state=32,
+    m3_expand=2,
+    mla_d_c=128,
+    mla_d_R=32,
+    mla_num_heads=8,
+    mlp_ratio=2.25,
+    layer_pattern=("Transformer",) * 24,
+    lr=3e-4,
+    weight_decay=0.01,
+    batch_size=16,
+    max_steps=500,
+    warmup_steps=50,
+    eval_interval=50,
+    gradient_clip=1.0,
+    seq_len=512,
+    use_spikes=False,
+    spike_alpha=1.0,
+    spatial_mode=False,
+    grad_accum_steps=1,
+)
+
+PHASE5A_CONFIG = TrainConfig(
+    d_model=1024,
+    n_layers=24,
+    vocab_size=256,
+    max_seq_len=131072,
+    kda_num_heads=16,
+    kda_head_dim=64,
+    m3_d_state=32,
+    m3_expand=2,
+    mla_d_c=128,
+    mla_d_R=32,
+    mla_num_heads=8,
+    mlp_ratio=2.25,
+    layer_pattern=("KDA", "KDA", "KDA", "Mamba3", "KDA", "KDA", "KDA", "MLA"),
+    lr=3e-4,
+    weight_decay=0.01,
+    batch_size=16,
+    max_steps=2000,
+    warmup_steps=200,
+    eval_interval=200,
+    gradient_clip=1.0,
+    seq_len=2048,
+    use_spikes=True,
+    spike_alpha=1.0,
+    spike_type="atmn",
+    spatial_mode=True,
+    grad_accum_steps=1,
 )
 
 
@@ -292,8 +380,17 @@ def sandwich_gp(rotor: Tensor, x: Tensor) -> Tensor:
     return sparse_gp(sparse_gp(rotor, x), reverse_mv(rotor))
 
 
+def _make_spike(spike_type: str, alpha: float, d_features: int) -> nn.Module:
+    if spike_type == "atmn":
+        import sys, os
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "../.."))
+        from src.spikes.atmn_spike import ATMNSpike
+        return ATMNSpike(d_features=d_features)
+    return AdaptiveSpike(alpha)
+
+
 class KDALayer(nn.Module):
-    def __init__(self, d: int, nh: int, hd: int, spikes: bool = False, alpha: float = 1.0) -> None:
+    def __init__(self, d: int, nh: int, hd: int, spikes: bool = False, alpha: float = 1.0, spike_type: str = "ternary") -> None:
         super().__init__()
         self.nh, self.hd = nh, hd
         inner = nh * hd
@@ -304,8 +401,8 @@ class KDALayer(nn.Module):
         self.beta_proj = nn.Linear(d, nh, bias=True)
         self.alpha_log = nn.Parameter(torch.zeros(nh, hd) - 2.0)
         self.rope = RotaryPE(hd)
-        self.k_spike = AdaptiveSpike(alpha) if spikes else None
-        self.v_spike = AdaptiveSpike(alpha) if spikes else None
+        self.k_spike = _make_spike(spike_type, alpha, inner) if spikes else None
+        self.v_spike = _make_spike(spike_type, alpha, inner) if spikes else None
 
     def forward(self, x: Tensor, state: Tensor | None = None, offset: int = 0) -> tuple[Tensor, Tensor, dict]:
         B, T, _ = x.shape
@@ -319,11 +416,15 @@ class KDALayer(nn.Module):
         kr = rotary_apply(kr.transpose(1,2), c, s).transpose(1,2)
         if self.k_spike:
             aux["pre_k"] = kr.detach()
-            kr = self.k_spike(kr)
+            kr_flat = kr.reshape(B, T, self.nh * self.hd)
+            kr_flat = self.k_spike(kr_flat)
+            kr = kr_flat.reshape(B, T, self.nh, self.hd)
             aux["k_spikes"] = kr.detach()
         if self.v_spike:
             aux["pre_v"] = vr.detach()
-            vr = self.v_spike(vr)
+            vr_flat = vr.reshape(B, T, self.nh * self.hd)
+            vr_flat = self.v_spike(vr_flat)
+            vr = vr_flat.reshape(B, T, self.nh, self.hd)
             aux["v_spikes"] = vr.detach()
         alpha = torch.sigmoid(self.alpha_log)
         beta = torch.sigmoid(self.beta_proj(x))
@@ -339,11 +440,14 @@ class KDALayer(nn.Module):
             out = torch.stack(outs, 1).reshape(B, T, -1)
         elif FLA_AVAILABLE and T >= 512:
             from fla.ops.kda import chunk_kda
+            qr_n = F.normalize(qr, p=2, dim=-1)
+            kr_n = F.normalize(kr, p=2, dim=-1)
             g = F.logsigmoid(self.alpha_log)
             g = g.unsqueeze(0).unsqueeze(1).expand(B, T, -1, -1).contiguous()
             kda_scale = 1.0 / math.sqrt(self.hd)
+            half_dtype = torch.bfloat16 if torch.cuda.is_available() and torch.cuda.get_device_capability()[0] >= 8 else torch.float16
             o, state = chunk_kda(
-                q=qr.half(), k=kr.half(), v=vr.half(),
+                q=qr_n.to(half_dtype), k=kr_n.to(half_dtype), v=vr.to(half_dtype),
                 g=g.float(), beta=beta.float(),
                 scale=kda_scale, output_final_state=True,
             )
@@ -388,6 +492,18 @@ class Mamba3Layer(nn.Module):
         self.out_proj = nn.Linear(di, d, bias=False)
         self.di, self.ds = di, ds
 
+    def _forward_recurrent(self, xi: Tensor, A_bar: Tensor, B_bar: Tensor,
+                           Bm: Tensor, C: Tensor, state: Tensor) -> tuple[Tensor, Tensor]:
+        B, T = xi.shape[0], xi.shape[1]
+        outs = []
+        for t in range(T):
+            Bt = Bm[:,t].unsqueeze(1).expand(-1, self.di, -1)
+            xt = xi[:,t].unsqueeze(-1)
+            state = A_bar[:,t] * state + B_bar[:,t] * Bt * xt
+            Ct = C[:,t].unsqueeze(1).expand(-1, self.di, -1)
+            outs.append((state * Ct).sum(-1))
+        return torch.stack(outs, 1), state
+
     def forward(self, x: Tensor, state: Tensor | None = None, offset: int = 0) -> tuple[Tensor, Tensor, dict]:
         B, T, _ = x.shape
         xz = self.in_proj(x)
@@ -402,14 +518,8 @@ class Mamba3Layer(nn.Module):
         B_bar = dt.unsqueeze(-1) / (1 - dtA/2)
         if state is None:
             state = torch.zeros(B, self.di, self.ds, device=x.device, dtype=x.dtype)
-        outs = []
-        for t in range(T):
-            Bt = Bm[:,t].unsqueeze(1).expand(-1, self.di, -1)
-            xt = xi[:,t].unsqueeze(-1)
-            state = A_bar[:,t] * state + B_bar[:,t] * Bt * xt
-            Ct = C[:,t].unsqueeze(1).expand(-1, self.di, -1)
-            outs.append((state * Ct).sum(-1))
-        out = torch.stack(outs, 1) * z
+        out, state = self._forward_recurrent(xi, A_bar, B_bar, Bm, C, state)
+        out = out * z
         return self.out_proj(self.norm(out)), state, {"state_util": (state.abs()>1e-6).float().mean().item()}
 
 
@@ -525,11 +635,12 @@ class Block(nn.Module):
     def __init__(self, lt: str, cfg: TrainConfig, idx: int) -> None:
         super().__init__()
         self.lt = lt
+        self.use_checkpoint = False
         self.n1 = RMSNorm(cfg.d_model)
         self.n2 = RMSNorm(cfg.d_model)
         self._sk = "kv_cache" if lt == "MLA" else "state"
         if lt == "KDA":
-            self.attn = KDALayer(cfg.d_model, cfg.kda_num_heads, cfg.kda_head_dim, cfg.use_spikes, cfg.spike_alpha)
+            self.attn = KDALayer(cfg.d_model, cfg.kda_num_heads, cfg.kda_head_dim, cfg.use_spikes, cfg.spike_alpha, cfg.spike_type)
         elif lt == "Mamba3":
             self.attn = Mamba3Layer(cfg.d_model, cfg.m3_d_state, cfg.m3_expand)
         elif lt == "MLA":
@@ -540,10 +651,16 @@ class Block(nn.Module):
         self.mlp = SwiGLU(cfg.d_model, cfg.mlp_ratio, spatial_mode=cfg.spatial_mode)
 
     def forward(self, x: Tensor, state=None, offset: int = 0) -> tuple[Tensor, any, dict]:
-        r = x
-        kwargs = {self._sk: state, "offset": offset}
-        a, ns, aux = self.attn(self.n1(r), **kwargs)
-        x = r + a
+        if self.use_checkpoint and self.training and state is None:
+            def _attn_fn(x_in):
+                a, _, _ = self.attn(self.n1(x_in), **{self._sk: None, "offset": offset})
+                return a
+            x = x + torch.utils.checkpoint.checkpoint(_attn_fn, x, use_reentrant=False)
+            ns, aux = None, {}
+        else:
+            kwargs = {self._sk: state, "offset": offset}
+            a, ns, aux = self.attn(self.n1(x), **kwargs)
+            x = x + a
         x = x + self.mlp(self.n2(x))
         return x, ns, aux
 
@@ -571,13 +688,22 @@ class LM(nn.Module):
             all_aux[i] = aux
         return self.head(self.norm(x)), ns, all_aux
 
+    def enable_gradient_checkpointing(self) -> None:
+        for block in self.blocks:
+            block.use_checkpoint = True
+
     def count_params(self) -> int:
         return sum(p.numel() for p in self.parameters())
 
 
 class ByteTextDataset(Dataset):
-    def __init__(self, data: bytes, seq_len: int) -> None:
-        self.data = torch.frombuffer(bytearray(data), dtype=torch.uint8).long()
+    def __init__(self, data, seq_len: int) -> None:
+        if isinstance(data, torch.Tensor):
+            self.data = data.long()
+        elif isinstance(data, np.ndarray):
+            self.data = torch.from_numpy(data.copy()).long()
+        else:
+            self.data = torch.frombuffer(bytearray(data), dtype=torch.uint8).long()
         self.seq_len = seq_len
 
     def __len__(self) -> int:
@@ -595,6 +721,38 @@ def collate_fn(batch: list[Tensor]) -> Tensor:
     for i, b in enumerate(batch):
         padded[i, :b.shape[0]] = b
     return padded
+
+
+def download_fineweb_edu(max_bytes: int = 500_000_000) -> tuple[bytes, bytes]:
+    data_dir = Path("data/fineweb")
+    if (data_dir / "train.bin").exists():
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] loading pre-downloaded fineweb-edu from {data_dir} (memmap)")
+        train_np = np.memmap(data_dir / "train.bin", dtype=np.uint8, mode="r")
+        val_np = np.memmap(data_dir / "val.bin", dtype=np.uint8, mode="r")
+        return train_np, val_np
+    try:
+        from datasets import load_dataset
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] streaming fineweb-edu (target {max_bytes/1e9:.1f}GB)...")
+        ds = load_dataset("HuggingFaceFW/fineweb-edu", "sample-10BT", split="train", streaming=True)
+        buf = bytearray()
+        for item in ds:
+            buf.extend(item["text"].encode("utf-8", errors="replace"))
+            if len(buf) >= max_bytes:
+                break
+            if len(buf) % 500_000_000 < 10000:
+                print(f"  {len(buf)/1e9:.1f}GB...", flush=True)
+        val_size = min(len(buf) // 20, 50_000_000)
+        val_data = bytes(buf[-val_size:])
+        train_data = bytes(buf[:-val_size])
+        data_dir.mkdir(parents=True, exist_ok=True)
+        with open(data_dir / "train.bin", "wb") as f:
+            f.write(train_data)
+        with open(data_dir / "val.bin", "wb") as f:
+            f.write(val_data)
+        return train_data, val_data
+    except Exception as e:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] fineweb-edu failed: {e}, falling back to wikitext-2")
+        return download_wikitext2()
 
 
 def download_wikitext2() -> tuple[bytes, bytes]:
@@ -849,9 +1007,33 @@ def train_model(cfg: TrainConfig, train_data: bytes, val_data: bytes, name: str,
 
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_fn)
 
+    if n_params > 100_000_000:
+        model.enable_gradient_checkpointing()
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] gradient checkpointing enabled")
+
     history = {"train_loss": [], "val_bpb": [], "steps": [], "spike_stats": [], "state_norms": []}
     step = 0
     best_val_bpb = float("inf")
+
+    resume_path = OUTPUT_DIR / f"{name}_latest.pt"
+    if resume_path.exists() and init_checkpoint is None:
+        ckpt = torch.load(resume_path, map_location=DEVICE, weights_only=False)
+        model.load_state_dict(ckpt["model"])
+        optimizer.load_state_dict(ckpt["optimizer"])
+        scheduler.load_state_dict(ckpt["scheduler"])
+        step = ckpt["step"]
+        best_val_bpb = ckpt["best_val_bpb"]
+        torch.random.set_rng_state(ckpt["rng_state"].cpu())
+        if torch.cuda.is_available() and "cuda_rng_state" in ckpt:
+            torch.cuda.set_rng_state(ckpt["cuda_rng_state"].cpu())
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] resumed from step {step}, best_bpb={best_val_bpb:.4f}")
+
+    use_amp = DEVICE.type == "cuda" and n_params > 100_000_000
+    amp_dtype = torch.bfloat16 if torch.cuda.is_available() and torch.cuda.get_device_capability()[0] >= 8 else torch.float16
+    scaler = torch.amp.GradScaler("cuda", enabled=use_amp and amp_dtype == torch.float16)
+    if use_amp:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] AMP enabled ({amp_dtype})")
+
     start_time = time.time()
 
     for epoch in range(100):
@@ -861,13 +1043,19 @@ def train_model(cfg: TrainConfig, train_data: bytes, val_data: bytes, name: str,
             if step >= cfg.max_steps:
                 break
             batch = batch.to(DEVICE)
-            logits, _, aux = model(batch[:, :-1])
-            loss = F.cross_entropy(logits.reshape(-1, logits.shape[-1]), batch[:, 1:].reshape(-1))
-            optimizer.zero_grad()
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), cfg.gradient_clip)
-            optimizer.step()
-            scheduler.step()
+            with torch.amp.autocast("cuda", dtype=amp_dtype, enabled=use_amp):
+                logits, _, aux = model(batch[:, :-1])
+                loss = F.cross_entropy(logits.reshape(-1, logits.shape[-1]), batch[:, 1:].reshape(-1))
+                if cfg.grad_accum_steps > 1:
+                    loss = loss / cfg.grad_accum_steps
+            scaler.scale(loss).backward()
+            if (step + 1) % cfg.grad_accum_steps == 0 or step == cfg.max_steps - 1:
+                scaler.unscale_(optimizer)
+                torch.nn.utils.clip_grad_norm_(model.parameters(), cfg.gradient_clip)
+                scaler.step(optimizer)
+                scaler.update()
+                optimizer.zero_grad()
+                scheduler.step()
 
             if step % 50 == 0:
                 elapsed = time.time() - start_time
@@ -891,6 +1079,19 @@ def train_model(cfg: TrainConfig, train_data: bytes, val_data: bytes, name: str,
                     best_val_bpb = val_result["bpb"]
                     torch.save(model.state_dict(), OUTPUT_DIR / f"{name}_best.pt")
                 print(f"[{datetime.now().strftime('%H:%M:%S')}] val bpb={val_result['bpb']:.4f} best={best_val_bpb:.4f}")
+
+            if step > 0 and step % 1000 == 0:
+                ckpt = {
+                    "model": model.state_dict(),
+                    "optimizer": optimizer.state_dict(),
+                    "scheduler": scheduler.state_dict(),
+                    "step": step,
+                    "best_val_bpb": best_val_bpb,
+                    "rng_state": torch.random.get_rng_state(),
+                }
+                if torch.cuda.is_available():
+                    ckpt["cuda_rng_state"] = torch.cuda.get_rng_state()
+                torch.save(ckpt, OUTPUT_DIR / f"{name}_latest.pt")
 
             step += 1
 
@@ -1034,8 +1235,10 @@ def validate_spikes(model: LM, dataloader: DataLoader, max_batches: int = 20) ->
     denom = math.sqrt(float(hsic_xx * hsic_yy)) + 1e-12
     cka = float(hsic_xy / denom)
 
+    firing_rate = float((spikes != 0).mean())
+
     model.train()
-    return {"mi": mi_mean, "cka": cka, "n_samples": n}
+    return {"mi": mi_mean, "cka": cka, "firing_rate": firing_rate, "n_samples": n}
 
 
 @torch.no_grad()
@@ -1341,6 +1544,102 @@ def run_phase3_evaluation(
 
 
 def main() -> None:
+    if PHASE >= 5:
+        step_label = PHASE5_STEP
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 5 ({step_label}): scale validation (311.5M)", flush=True)
+
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] loading training data...", flush=True)
+        if PHASE5_CONFIG.max_steps <= 50:
+            train_data, val_data = download_wikitext2()
+        else:
+            train_data, val_data = download_fineweb_edu(max_bytes=5_000_000_000)
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] train: {len(train_data):,} bytes, val: {len(val_data):,} bytes")
+
+        if step_label == "5a":
+            todorov_cfg = PHASE5A_CONFIG
+            run_name = "todorov_p5a"
+        else:
+            todorov_cfg = PHASE5_CONFIG
+            run_name = "todorov_p5"
+        todorov_result = train_model(todorov_cfg, train_data, val_data, run_name)
+        todorov_checkpoint = str(OUTPUT_DIR / f"{run_name}_best.pt")
+
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+        bl_cfg = PHASE5_BASELINE_CONFIG
+        bl_result = train_model(bl_cfg, train_data, val_data, "transformer_p5")
+
+        bpb_ratio = todorov_result["best_val_bpb"] / max(bl_result["best_val_bpb"], 1e-6)
+
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] running spike validation...", flush=True)
+        todorov_model = LM(todorov_cfg).to(DEVICE)
+        if Path(todorov_checkpoint).exists():
+            todorov_model.load_state_dict(torch.load(todorov_checkpoint, map_location=DEVICE, weights_only=True), strict=False)
+        val_ds_sb = ByteTextDataset(val_data, todorov_cfg.seq_len)
+        val_dl_sb = DataLoader(val_ds_sb, batch_size=min(todorov_cfg.batch_size, 16), shuffle=False, collate_fn=collate_fn)
+        spike_val = validate_spikes(todorov_model, val_dl_sb)
+        del todorov_model
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] BPB ratio: {bpb_ratio:.4f}")
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] MI={spike_val['mi']:.4f} CKA={spike_val['cka']:.4f}")
+        val_fr = spike_val.get("firing_rate", todorov_result["spike_firing_rate"])
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] spike FR (val): {val_fr:.3f}")
+
+        gate_bpb = bpb_ratio < 1.0
+        gate_mi = spike_val["mi"] > 0.1
+        gate_cka = spike_val["cka"] > 0.3
+        gate_fr = 0.3 <= val_fr <= 0.6
+
+        print(f"\n[{datetime.now().strftime('%H:%M:%S')}] === PHASE 5 GATES ===")
+        print(f"  bpb_ratio:     {'PASS' if gate_bpb else 'FAIL'} ({bpb_ratio:.4f})")
+        print(f"  spike_mi:      {'PASS' if gate_mi else 'FAIL'} ({spike_val['mi']:.4f})")
+        print(f"  spike_cka:     {'PASS' if gate_cka else 'FAIL'} ({spike_val['cka']:.4f})")
+        print(f"  spike_fr:      {'PASS' if gate_fr else 'FAIL'} ({val_fr:.3f})")
+
+        results = {
+            "phase": 5,
+            "best_val_bpb": todorov_result["best_val_bpb"],
+            "baseline_best_bpb": bl_result["best_val_bpb"],
+            "bpb_ratio": float(bpb_ratio),
+            "param_count": todorov_result["param_count"],
+            "baseline_param_count": bl_result["param_count"],
+            "spike_firing_rate": todorov_result["spike_firing_rate"],
+            "spike_dead_ratio": todorov_result["spike_dead_ratio"],
+            "spike_mi": spike_val["mi"],
+            "spike_cka": spike_val["cka"],
+            "training_time_todorov": todorov_result["total_time"],
+            "training_time_baseline": bl_result["total_time"],
+            "gate_bpb": bool(gate_bpb),
+            "gate_mi": bool(gate_mi),
+            "gate_cka": bool(gate_cka),
+            "gate_fr": bool(gate_fr),
+            "all_gates_pass": bool(gate_bpb and gate_mi and gate_cka and gate_fr),
+            "timestamp": datetime.now().isoformat(),
+            "device": str(DEVICE),
+            "seed": SEED,
+            "data_bytes_train": len(train_data),
+            "data_bytes_val": len(val_data),
+        }
+
+        plot_results(todorov_result, bl_result)
+
+        with open(OUTPUT_DIR / "results.json", "w") as f:
+            json.dump(results, f, indent=2, default=str)
+
+        bundle_path = OUTPUT_DIR / "evidence_bundle.zip"
+        with zipfile.ZipFile(bundle_path, "w") as zf:
+            for fp in OUTPUT_DIR.iterdir():
+                if fp.name != "evidence_bundle.zip" and fp.is_file():
+                    zf.write(fp, fp.name)
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] evidence bundle: {bundle_path}")
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] done.")
+        return
+
     print(f"[{datetime.now().strftime('%H:%M:%S')}] downloading WikiText-2...")
     train_data, val_data = download_wikitext2()
     print(f"[{datetime.now().strftime('%H:%M:%S')}] train: {len(train_data):,} bytes, val: {len(val_data):,} bytes")
