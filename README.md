@@ -27,7 +27,22 @@ the spatial module uses g(3,0,1) projective geometric algebra as additive
 self-interaction inside the gated feed-forward network. it provides spatial
 inductive bias at zero measurable compute overhead.
 
-## results
+## latest results
+
+280m parameters, byte-level, fineweb-edu, h200 gpu.
+
+todorov beats a same-size transformer by 28% on language modeling. the
+advantage grows with scale -- 16% at 6m params, 28-34% at 280m params.
+ternary spikes preserve information at scale (mi 1.246, cka 0.802, firing
+rate 41%, zero dead neurons). the geometric product module improves spatial
+reasoning by 29% at zero compute overhead.
+
+bpb ratio vs matched transformer at 280m: **0.72x**
+spike mutual information: **1.246** (threshold 0.1)
+spike cka similarity: **0.802** (threshold 0.3)
+spike firing rate: **41%** (target 30-60%)
+
+## detailed results
 
 phase 5 (scale validation, 280m params, byte-level fineweb-edu):
 bpb ratio vs transformer: 0.72x (28% better at matched scale). spike mi:
