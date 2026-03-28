@@ -58,16 +58,14 @@ class ATMNSpike(nn.Module):
     def forward(self, x: Tensor) -> Tensor:
         original_shape = x.shape
         features_dim = x.shape[-1]
-
-        if features_dim != self.d_features:
-            x_flat = x.reshape(-1, features_dim)
-        else:
-            x_flat = x.reshape(-1, features_dim)
-
+        x_flat = x.reshape(-1, features_dim)
         batch_flat = x_flat.shape[0]
 
         if not self._state_initialized or self.membrane_potential.shape[0] != batch_flat:
             self.reset_state(batch_flat, x.device)
+
+        if self.training:
+            self.membrane_potential = torch.zeros_like(self.membrane_potential)
 
         v_th = self.threshold
 

@@ -37,7 +37,7 @@ def _select_device() -> torch.device:
 DEVICE = _select_device()
 SEED = 42
 PHASE = 5
-PHASE5_STEP = "5a"
+PHASE5_STEP = "baseline"
 OUTPUT_DIR = Path("/kaggle/working") if Path("/kaggle").exists() else Path("output")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -60,8 +60,30 @@ if DEVICE.type == "cuda":
         except Exception:
             pass
 
+MAMBA_SSM_AVAILABLE = False
+if DEVICE.type == "cuda":
+    try:
+        from mamba_ssm.ops.selective_scan_interface import selective_scan_fn
+        MAMBA_SSM_AVAILABLE = True
+    except ImportError:
+        try:
+            import subprocess, sys
+            import platform
+            pyver = f"cp{sys.version_info.major}{sys.version_info.minor}"
+            arch = "linux_x86_64" if platform.machine() == "x86_64" else "linux_aarch64"
+            tv = ".".join(torch.__version__.split(".")[:2])
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-q",
+                                   f"https://github.com/Dao-AILab/causal-conv1d/releases/download/v1.6.1.post4/causal_conv1d-1.6.1.post4+cu12torch{tv}cxx11abiTRUE-{pyver}-{pyver}-{arch}.whl",
+                                   f"https://github.com/state-spaces/mamba/releases/download/v2.3.1/mamba_ssm-2.3.1+cu12torch{tv}cxx11abiTRUE-{pyver}-{pyver}-{arch}.whl"],
+                                  stdout=subprocess.DEVNULL)
+            from mamba_ssm.ops.selective_scan_interface import selective_scan_fn
+            MAMBA_SSM_AVAILABLE = True
+        except Exception:
+            pass
+
 print(f"[{datetime.now().strftime('%H:%M:%S')}] device: {DEVICE}")
 print(f"[{datetime.now().strftime('%H:%M:%S')}] fla available: {FLA_AVAILABLE}")
+print(f"[{datetime.now().strftime('%H:%M:%S')}] mamba_ssm available: {MAMBA_SSM_AVAILABLE}")
 print(f"[{datetime.now().strftime('%H:%M:%S')}] output: {OUTPUT_DIR}")
 
 
@@ -110,25 +132,25 @@ BASELINE_CONFIG = TrainConfig(
 )
 
 PHASE5_CONFIG = TrainConfig(
-    d_model=1024,
-    n_layers=24,
+    d_model=256,
+    n_layers=8,
     vocab_size=256,
     max_seq_len=131072,
-    kda_num_heads=16,
+    kda_num_heads=4,
     kda_head_dim=64,
-    m3_d_state=32,
+    m3_d_state=16,
     m3_expand=2,
-    mla_d_c=128,
-    mla_d_R=32,
-    mla_num_heads=8,
+    mla_d_c=64,
+    mla_d_R=16,
+    mla_num_heads=4,
     mlp_ratio=2.25,
     layer_pattern=("KDA", "KDA", "KDA", "Mamba3", "KDA", "KDA", "KDA", "MLA"),
     lr=3e-4,
     weight_decay=0.01,
     batch_size=16,
-    max_steps=500,
-    warmup_steps=50,
-    eval_interval=50,
+    max_steps=20,
+    warmup_steps=4,
+    eval_interval=10,
     gradient_clip=1.0,
     seq_len=512,
     use_spikes=True,
@@ -138,25 +160,25 @@ PHASE5_CONFIG = TrainConfig(
 )
 
 PHASE5_BASELINE_CONFIG = TrainConfig(
-    d_model=1024,
-    n_layers=24,
+    d_model=256,
+    n_layers=8,
     vocab_size=256,
     max_seq_len=131072,
-    kda_num_heads=16,
+    kda_num_heads=4,
     kda_head_dim=64,
-    m3_d_state=32,
+    m3_d_state=16,
     m3_expand=2,
-    mla_d_c=128,
-    mla_d_R=32,
-    mla_num_heads=8,
+    mla_d_c=64,
+    mla_d_R=16,
+    mla_num_heads=4,
     mlp_ratio=2.25,
-    layer_pattern=("Transformer",) * 24,
+    layer_pattern=("Transformer",) * 8,
     lr=3e-4,
     weight_decay=0.01,
     batch_size=16,
-    max_steps=500,
-    warmup_steps=50,
-    eval_interval=50,
+    max_steps=20,
+    warmup_steps=4,
+    eval_interval=10,
     gradient_clip=1.0,
     seq_len=512,
     use_spikes=False,
@@ -492,9 +514,13 @@ class Mamba3Layer(nn.Module):
         self.out_proj = nn.Linear(di, d, bias=False)
         self.di, self.ds = di, ds
 
-    def _forward_recurrent(self, xi: Tensor, A_bar: Tensor, B_bar: Tensor,
-                           Bm: Tensor, C: Tensor, state: Tensor) -> tuple[Tensor, Tensor]:
-        B, T = xi.shape[0], xi.shape[1]
+    def _forward_recurrent(self, xi: Tensor, A: Tensor,
+                           Bm: Tensor, C: Tensor, dt: Tensor,
+                           state: Tensor) -> tuple[Tensor, Tensor]:
+        B_batch, T = xi.shape[0], xi.shape[1]
+        dtA = dt.unsqueeze(-1) * A.unsqueeze(0).unsqueeze(0)
+        A_bar = (1 + dtA/2) / (1 - dtA/2)
+        B_bar = dt.unsqueeze(-1) / (1 - dtA/2)
         outs = []
         for t in range(T):
             Bt = Bm[:,t].unsqueeze(1).expand(-1, self.di, -1)
@@ -503,6 +529,22 @@ class Mamba3Layer(nn.Module):
             Ct = C[:,t].unsqueeze(1).expand(-1, self.di, -1)
             outs.append((state * Ct).sum(-1))
         return torch.stack(outs, 1), state
+
+    def _forward_fused(self, xi: Tensor, A: Tensor,
+                       Bm: Tensor, C: Tensor, dt: Tensor,
+                       z: Tensor) -> tuple[Tensor, Tensor]:
+        u = xi.transpose(1, 2).contiguous()
+        delta = dt.transpose(1, 2).contiguous()
+        B_ssm = Bm.transpose(1, 2).contiguous()
+        C_ssm = C.transpose(1, 2).contiguous()
+        z_t = z.transpose(1, 2).contiguous()
+        y, last_state = selective_scan_fn(
+            u, delta, A, B_ssm, C_ssm,
+            D=None, z=z_t,
+            delta_bias=None, delta_softplus=False,
+            return_last_state=True,
+        )
+        return y.transpose(1, 2), last_state
 
     def forward(self, x: Tensor, state: Tensor | None = None, offset: int = 0) -> tuple[Tensor, Tensor, dict]:
         B, T, _ = x.shape
@@ -513,12 +555,12 @@ class Mamba3Layer(nn.Module):
         Bm = self.B_proj(x)
         C = self.C_proj(x)
         dt = F.softplus(self.dt_proj(x) + self.dt_bias)
-        dtA = dt.unsqueeze(-1) * A.unsqueeze(0).unsqueeze(0)
-        A_bar = (1 + dtA/2) / (1 - dtA/2)
-        B_bar = dt.unsqueeze(-1) / (1 - dtA/2)
+        if MAMBA_SSM_AVAILABLE and state is None and DEVICE.type == "cuda":
+            out, state = self._forward_fused(xi, A, Bm, C, dt, z)
+            return self.out_proj(self.norm(out)), state, {"state_util": (state.abs()>1e-6).float().mean().item()}
         if state is None:
             state = torch.zeros(B, self.di, self.ds, device=x.device, dtype=x.dtype)
-        out, state = self._forward_recurrent(xi, A_bar, B_bar, Bm, C, state)
+        out, state = self._forward_recurrent(xi, A, Bm, C, dt, state)
         out = out * z
         return self.out_proj(self.norm(out)), state, {"state_util": (state.abs()>1e-6).float().mean().item()}
 

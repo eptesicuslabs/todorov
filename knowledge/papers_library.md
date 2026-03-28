@@ -84,7 +84,7 @@ Pioneers shared attention in SSM hybrids — all attention layers share weights,
 
 **2.6 TransMLA — Multi-Head Latent Attention Is All You Need**
 Fanxu Meng, Pingzhi Tang et al. · Peking University / Xiaomi · arXiv:2502.07864 · NeurIPS 2025 Spotlight
-Proves MLA strictly subsumes GQA — any GQA layer can be rewritten as MLA, but not vice versa. TransMLA converts GQA models to MLA, achieving **10.6× speedup on LLaMA-2-7B** by compressing 93% of KV cache. ⚡ **Provides theoretical basis for MLA as optimal full-attention mechanism in Todorov's design.**
+Proves MLA strictly subsumes GQA — any GQA layer can be rewritten as MLA, but not vice versa. TransMLA converts GQA models to MLA, achieving **~10× speedup on LLaMA-2-7B** by compressing 93% of KV cache. ⚡ **Provides theoretical basis for MLA as optimal full-attention mechanism in Todorov's design.**
 
 **2.7 Falcon-H1 — Hybrid-Head Language Models**
 Jingwei Zuo, Maksim Velikanov et al. · TII, Abu Dhabi · arXiv:2507.22448 · July 2025
@@ -148,11 +148,11 @@ Evolving family. GLM-4-9B supports 128K context with tool calling. Later version
 
 **4.1 Quamba — Post-Training Quantization for Selective State Space Models**
 Chiang et al. · arXiv:2410.13229 · 2024
-First dedicated PTQ method for Mamba SSMs. SSM activations exhibit distinct outlier patterns vs. Transformers (in output tensor y). Uses Hadamard transforms and percentile clipping. INT8 with 1.1% accuracy drop on Jamba hybrid. ⚡ **CRITICAL — Only paper specifically addressing SSM quantization. Directly applicable to Todorov's Mamba-3 layers.**
+First dedicated PTQ method for Mamba SSMs. SSM activations exhibit distinct outlier patterns vs. Transformers (in output tensor y). Uses Hadamard transforms and percentile clipping. INT8 with 0.9% accuracy drop on Jamba hybrid. ⚡ **CRITICAL — Only paper specifically addressing SSM quantization. Directly applicable to Todorov's Mamba-3 layers.**
 
 **4.2 SpinQuant — LLM Quantization with Learned Rotations**
 Liu et al. · Meta · arXiv:2405.16406 · ICLR 2025
-Learned rotation matrices via Cayley SGD remove activation outliers before quantization. W4A4KV4 narrows gap to 2.9 points on LLaMA-2 7B. **Used in Meta's Llama 3.2 on-device deployment.** ⚡ **HIGH PRIORITY — Rotation-based approach may improve INT8 quantization of KDA/Mamba layers where outlier patterns differ from standard attention.**
+Learned rotation matrices via spin parametrization on the orthogonal group remove activation outliers before quantization. W4A4KV4 narrows gap to 2.9 points on LLaMA-2 7B. **Used in Meta's Llama 3.2 on-device deployment.** ⚡ **HIGH PRIORITY — Rotation-based approach may improve INT8 quantization of KDA/Mamba layers where outlier patterns differ from standard attention.**
 
 **4.3 QuaRot — Outlier-Free 4-Bit Inference in Rotated LLMs**
 Ashkboos et al. · arXiv:2404.00456 · 2024
@@ -200,7 +200,7 @@ Quantizes both synaptic weights and membrane potentials. Weight-Spike Dual Regul
 
 **4.14 TurboQuant — Extreme KV Cache Compression**
 Amir Zandieh, Vahab Mirrokni, Praneeth Kacham, Majid Hadian, Insu Han, Majid Daliri, Lars Gottesburen, Rajesh Jayaram · Google · arXiv:2504.19874 · ICLR 2026
-Two-stage KV cache compression: (1) PolarQuant — random rotation converts vectors to polar coordinates (radius + angle), eliminating expensive normalization and simplifying geometry for per-component scalar quantization; (2) QJL (Quantized Johnson-Lindenstrauss) — uses just 1 additional bit as a residual error-checker that mathematically eliminates quantization bias in attention score computation. 3-bit KV cache with **zero accuracy loss** on Gemma, Mistral, Llama-3.1-8B across LongBench, NIAH, ZeroSCROLLS, RULER, L-Eval. 6x memory reduction. 4-bit achieves **8x speedup** on H100 computing attention logits vs FP32. Builds on QJL (AAAI 2025) and PolarQuant (AISTATS 2026). ⚡ **HIGH PRIORITY — The PolarQuant rotation stage is conceptually related to SpinQuant/QuaRot but uses polar decomposition instead of Hadamard/Cayley rotations. The QJL bias elimination is critical for long-context accuracy (128K+). For Todorov: (a) apply to MLA latent vectors — study whether 3-bit quantization on top of MLA's d_c=128 latent compression is feasible (double compression); (b) the rotation-based approach may handle MLA's joint key-value latent space better than methods designed for separate K/V heads; (c) at 300M with 128K context, MLA cache is the dominant memory cost and 6x reduction directly enables the 4GB edge target.**
+Two-stage KV cache compression: (1) PolarQuant — random rotation converts vectors to polar coordinates (radius + angle), eliminating expensive normalization and simplifying geometry for per-component scalar quantization; (2) QJL (Quantized Johnson-Lindenstrauss) — uses just 1 additional bit as a residual error-checker that mathematically eliminates quantization bias in attention score computation. 3-bit KV cache with **zero accuracy loss** on Gemma, Mistral, Llama-3.1-8B across LongBench, NIAH, ZeroSCROLLS, RULER, L-Eval. 6x memory reduction. 4-bit achieves **8x speedup** on H100 computing attention logits vs FP32. Builds on QJL and PolarQuant (venue details unverified; both are components of TurboQuant). ⚡ **HIGH PRIORITY — The PolarQuant rotation stage is conceptually related to SpinQuant/QuaRot but uses polar decomposition instead of Hadamard/Cayley rotations. The QJL bias elimination is critical for long-context accuracy (128K+). For Todorov: (a) apply to MLA latent vectors — study whether 3-bit quantization on top of MLA's d_c=128 latent compression is feasible (double compression); (b) the rotation-based approach may handle MLA's joint key-value latent space better than methods designed for separate K/V heads; (c) at 300M with 128K context, MLA cache is the dominant memory cost and 6x reduction directly enables the 4GB edge target.**
 
 **Surveys:** "A Survey of Low-bit Large Language Models" (arXiv:2409.16694, 2024). "A Comprehensive Study on Quantization Techniques for LLMs" (arXiv:2411.02530, 2024).
 
