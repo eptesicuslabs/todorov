@@ -33,7 +33,7 @@ Every path through Todorov encounters a compression stage. All compressions are 
     C_spike(x) = sign(x) * [|x| > theta]
 
 where theta = alpha * mean(|x|). Maps R^d -> {-1, 0, +1}^d.
-Information: 1.58 bits per dimension. Energy: 0.9 pJ or 0 pJ per operation (vs 4.6 pJ for FP32 multiply at 45nm CMOS).
+Information: 1.58 bits per dimension. Energy: 0.03 pJ or 0 pJ per INT8 add/skip (vs 4.6 pJ for FP32 MAC at 45nm CMOS, Horowitz 2014 ISSCC).
 Applied to: KDA K/V paths. Optionally all 132 linear projection inputs.
 
 **C_spike^ATMN: Membrane-potential ternary quantization.** Stateful extension.
@@ -48,7 +48,7 @@ where V_th = exp(a), a is learnable per-neuron. Adds temporal memory to the comp
 
     C_latent(x) = W_down x,    W_down in R^{d_c x d_model}
 
-Maps R^{d_model} -> R^{d_c}, d_c = 128. Lossless up to rank d_c. Invertible via learned decompression W_k_up, W_v_up. Applied to: MLA KV cache. Each token is individually compressed and individually recoverable.
+Maps R^{d_model} -> R^{d_c} (d_c = 64 at 6M scale, 128 at 280M scale). Lossless up to rank d_c. Invertible via learned decompression W_k_up, W_v_up. Applied to: MLA KV cache. Each token is individually compressed and individually recoverable.
 
 **C_state: Implicit recurrent compression.** The KDA and Mamba-3 state.
 
@@ -128,16 +128,15 @@ Selective amplification/suppression. The gate controls which features pass throu
 
 where sigma and cayley are the sign and index tables of G(3,0,1). 192 non-zero entries in the 16x16 Cayley table. This is the most general bilinear interaction in the architecture — it simultaneously computes scalar products (grade 0), vector products (grade 1), area products (grade 2), volume products (grade 3), and pseudoscalar products (grade 4) between two multivectors.
 
-### 3.2 Subsumption
+### 3.2 Relationships
 
-B_dot and B_gate are restrictions of B_GP to specific grades:
+B_dot is a restriction of B_GP: for two pure 1-vectors a, b in G(3,0,1), the scalar part (grade 0) of the geometric product equals the inner product: grade_0(B_GP(a, b)) = a . b.
 
-- B_dot(a, b) = grade_0(B_GP(a_vec, b_vec)): the scalar part of the GP of two vectors
-- B_gate corresponds to grade-preserving diagonal action
+B_gate (Hadamard product) is a separate bilinear map in the same family, not a restriction of B_GP. The element-wise product preserves index position, while the geometric product mixes grades -- these are algebraically distinct operations.
 
-B_outer is the tensor product that B_GP generalizes: where B_outer maps two vectors to a matrix, B_GP maps two multivectors to a multivector — encoding not just the association but its geometric character (rotation, translation, reflection).
+B_outer (rank-1 tensor product) maps to a different output space than B_GP (R^{d x d} vs R^16) and no algebraic embedding makes it a special case. Both are bilinear maps over their respective spaces.
 
-This does not mean everything should use B_GP. It means the architecture has one computational primitive at different specialization levels.
+The architecture has one family of bilinear primitives at different specialization levels. B_GP is the most general member. Not everything should use B_GP, but understanding the family reveals which compositions are mathematically natural.
 
 ### 3.3 XSA as bilinear output correction
 
@@ -199,14 +198,15 @@ The geometric product of two multivectors produces a result that encodes rotatio
 
 ### 4.2 Nesting
 
-C ≅ SO(2) ⊂ Spin(2) ⊂ Spin(3) ⊂ Pin(3,0,1)
+Spin(2) ≅ SO(2) ≅ U(1) ⊂ Spin(3) ⊂ Pin(3,0,1)
 
-- Complex numbers = even sub-algebra of Cl(2,0,0) = 2D rotors
-- RoPE pairs = d/2 copies of these 2D rotors
-- Mamba-3 complex state = same 2D rotors with data-dependent angle
+- Complex numbers = even sub-algebra of Cl(2,0,0) = 2D rotors = Spin(2)
+- Spin(2) and SO(2) are isomorphic as Lie groups (not nested -- the same group)
+- RoPE pairs = d/2 copies of Spin(2) rotors
+- Mamba-3 complex state = same Spin(2) rotors with data-dependent angle
 - PGA multivectors = full Cl(3,0,1) containing all lower algebras
 
-Each layer uses the smallest rotation group that serves its function — a design choice, not a mathematical necessity. Lifting Mamba-3 to an explicit Cl(2,0,0) rotor parameterization is a notational change, not a computational one — the same two floats, the same rotation, but formally positioned within the algebraic hierarchy. This unifies the description without changing anything about the implementation.
+Each layer uses the smallest rotation group that serves its function — a design choice, not a mathematical necessity. Lifting Mamba-3 to an explicit Cl(2,0,0) rotor parameterization is a notational change, not a computational one — the same two floats, the same rotation, but formally positioned within the algebraic hierarchy.
 
 ### 4.3 CoPE as learned R_pos
 
@@ -238,22 +238,23 @@ KDA and Mamba-3 both implement:
 
 **KDA parameterization:**
 
-    H_t = diag(alpha) H_{t-1} + beta_t k_t v_t^T
+    H_t = (I - beta_t k_t k_t^T) diag(alpha) H_{t-1} + beta_t k_t v_t^T
 
 - H_t in R^{num_heads x d_k x d_v}: matrix-valued state
 - Lambda_t = diag(sigmoid(alpha_log)): channel-wise decay, data-independent (learned, not input-dependent)
 - Gamma_t = sigmoid(beta_proj(x_t)): data-dependent write gate
 - X_t = k_t v_t^T: rank-1 outer product (bilinear B_outer)
+- Erasure: (I - beta_t k_t k_t^T) erases content aligned with the current key before writing
 - Output: o_t = H_t q_t (retrieval via B_dot)
 
-The delta rule interpretation: the update performs online gradient descent minimizing ||H k_t - v_t||^2 with learning rate beta_t.
+The delta rule: the update performs online gradient descent minimizing ||H k_t - v_t||^2 with learning rate beta_t. The erasure term is what distinguishes KDA from plain gated linear attention -- it actively manages state capacity by removing stale associations before writing new ones.
 
 **Mamba-3 parameterization:**
 
     h_t = A_bar_t h_{t-1} + B_bar_t (B_t * x_t)
 
 - h_t in C^{d_inner x d_state}: vector-valued state (complex via R_dyn)
-- Lambda_t = A_bar_t: discretized state transition (trapezoidal: (1 + dtA/2)/(1 - dtA/2))
+- Lambda_t = A_bar_t: discretized state transition (ZOH via mamba_ssm fused kernel; trapezoidal in manual fallback: (1 + dtA/2)/(1 - dtA/2))
 - Gamma_t = B_bar_t: discretized input coupling
 - X_t = B_t * x_t: gated input (bilinear B_gate)
 - Output: y_t = (h_t * C_t).sum() (readout via B_dot)
@@ -374,7 +375,7 @@ Ternary spikes (C_spike) applied before INT8 weight projections (C_quant):
 
     output = C_quant(W) @ C_spike(x)
 
-This is ternary input x INT8 weight = INT8 result via addition/subtraction/skip. At 42% firing rate, 58% of operations are skips (0 pJ). The remaining 42% are INT8 add/sub (~0.9 pJ). The expected operation cost is ~0.38 pJ, a 12x reduction from FP32 multiply.
+This is ternary input x INT8 weight = INT8 result via addition/subtraction/skip. At 42% firing rate, 58% of operations are skips (0 pJ). The remaining 42% are INT8 add/sub (~0.03 pJ). The expected operation cost is ~0.013 pJ, a ~350x reduction from FP32 MAC (4.6 pJ).
 
 ---
 
@@ -389,10 +390,10 @@ A Todorov block instantiates the CRBR framework twice (attention + MLP) with a r
 
 Attention path:
 
-    q = R_pos(C_spike?(W_q x))           # project, optionally spike, rotate
+    q = R_pos(W_q x)                      # project, rotate (Q spikes not yet implemented)
     k = R_pos(C_spike(W_k x))            # project, spike, rotate
     v = C_spike(W_v x)                   # project, spike
-    S_t = diag(alpha) S_{t-1} + beta_t B_outer(k_t, v_t)  # recurrence with B_outer
+    S_t = (I - beta_t k_t k_t^T) diag(alpha) S_{t-1} + beta_t B_outer(k_t, v_t)  # delta rule: erase then write
     o_t = B_dot(q_t, S_t)                # retrieval with B_dot
     output = C_spike?(W_o o_t)           # project, optionally spike
 
