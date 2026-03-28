@@ -43,7 +43,7 @@ Key results:
 2. Shared RoPE in MLA: d_R=32 shared across heads (not d_R*num_heads per-head)
    Source: DeepSeek V2/V3 (arxiv 2405.04434, 2412.19437)
 
-3. 3:1 linear-to-attention ratio: independently validated by Kimi, Qwen3-Next,
+3. 3:1 linear-to-attention ratio: adopted and validated by Kimi, Qwen3-Next,
    OLMo, and the systematic analysis paper (arxiv 2507.06457)
 
 4. Ternary spikes on KDA K/V paths: MI 1.275, CKA 0.913 validates that
