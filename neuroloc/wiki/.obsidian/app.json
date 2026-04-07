@@ -1,0 +1,10 @@
+{
+  "useMarkdownLinks": false,
+  "newLinkFormat": "shortest",
+  "showFrontmatter": true,
+  "defaultViewMode": "preview",
+  "foldHeading": true,
+  "foldIndent": true,
+  "readableLineLength": true,
+  "attachmentFolderPath": ".attachments"
+}

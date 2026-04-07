@@ -1,0 +1,1067 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[top=2.5cm,bottom=2.5cm,left=2.5cm,right=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{parskip}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{hyperref}
+\hypersetup{hidelinks}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textit{Neuroloc Research Guide}}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\titleformat{\section}{\Large\bfseries}{}{0em}{}
+\titleformat{\subsection}{\large\bfseries}{}{0em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries}{}{0em}{}
+
+\setlist[itemize]{topsep=4pt,itemsep=2pt,parsep=0pt}
+\setlist[enumerate]{topsep=4pt,itemsep=2pt,parsep=0pt}
+
+\begin{document}
+
+%% ============================================================
+%%  COVER PAGE
+%% ============================================================
+
+\thispagestyle{empty}
+\vspace*{6cm}
+\begin{center}
+{\Huge\bfseries Neuroloc}\\[0.8cm]
+{\Large A Research Guide to Computational Neuroscience\\[0.3cm]
+for Machine Learning Engineers}\\[2cm]
+{\large Deyan Todorov}\\[0.3cm]
+{\large Eptesicus Labs}\\[2cm]
+{\normalsize April 2026}
+\end{center}
+\newpage
+
+%% ============================================================
+%%  CONTENTS
+%% ============================================================
+
+\thispagestyle{empty}
+\section*{Contents}
+
+\begin{enumerate}[label=\Roman*.]
+  \item \textbf{Study Guide}
+    \begin{itemize}
+      \item The Brain in One Page
+      \item Neuroscience for ML Engineers
+        \begin{enumerate}[label=Part \arabic*:]
+          \item The Single Neuron
+          \item The Synapse
+          \item Sparsity
+          \item Memory and Learning
+          \item Oscillations and Coordination
+          \item Predictive Coding
+          \item What Matters Most for Todorov
+        \end{enumerate}
+      \item Mathematical Foundations
+    \end{itemize}
+  \item \textbf{Reference}
+    \begin{itemize}
+      \item Glossary
+    \end{itemize}
+  \item \textbf{Architecture Mapping}
+    \begin{itemize}
+      \item Todorov Biology Map
+    \end{itemize}
+  \item \textbf{Key Findings}
+    \begin{itemize}
+      \item 15 Adversarial Findings
+      \item Top 5 Interventions
+    \end{itemize}
+\end{enumerate}
+\newpage
+
+%% ============================================================
+%%  I. STUDY GUIDE
+%% ============================================================
+
+\section{I. Study Guide}
+
+%% ------------------------------------------------------------
+%%  THE BRAIN IN ONE PAGE
+%% ------------------------------------------------------------
+
+\subsection{The Brain in One Page}
+
+This is the 80/20 overview. It covers the 20\% of neuroscience that gives you 80\% of the understanding you need to design brain-inspired architectures.
+
+\subsubsection{The Hardware}
+
+The human brain has about 86 billion neurons connected by roughly 100 trillion synapses. It runs on about 20 watts---less than a laptop charger. For comparison, a 300M parameter transformer has 300 million ``neurons'' and uses about 200 watts per GPU. The brain is 286 times larger and 10 times more power-efficient.
+
+This efficiency gap is not about cleverness in software. It is about physics. Biological computation uses 10 femtojoules per synaptic operation. Silicon uses 4.6 picojoules per floating-point multiply at 45\,nm (and 0.3 picojoules at 5\,nm). Ternary operations cost about 0.001 picojoules at 5\,nm---closing the gap by 200--350$\times$.
+
+\subsubsection{The Neuron}
+
+A neuron is a cell that receives electrical inputs, integrates them over time, and fires a spike if the total exceeds a threshold.
+
+Think of a ReLU unit in a neural network. It takes a weighted sum of inputs and outputs zero if the sum is negative, or the sum itself if positive. A biological neuron does something similar but with two critical differences. First, it has a temporal state called the \textbf{membrane potential} (the voltage across the cell membrane, typically around $-65$\,mV at rest). Inputs accumulate in this state over time, like a leaky bucket that fills with each input and slowly drains between inputs. Second, its output is all-or-nothing: when the membrane potential crosses a threshold, the neuron fires a \textbf{spike} (also called an \textbf{action potential}), a brief ${\sim}1$\,ms electrical pulse. Then the membrane potential resets and the neuron is briefly unable to fire again. The simplest mathematical model of this behavior is the leaky integrate-and-fire (LIF) neuron.
+
+The spike is the fundamental unit of neural communication. It is binary: fire or not fire. The neuron does not output a continuous value like a transformer activation. Information is carried by which neurons spike, when they spike, and how often they spike. In Todorov, ternary spikes $\{-1, 0, +1\}$ extend this to three states: inhibit, silent, or excite.
+
+A neuron has three main parts. The \textbf{dendrites} (tree-like branches) receive inputs from other neurons. The \textbf{soma} (cell body) integrates these inputs and decides whether to spike. The \textbf{axon} (long cable) carries the spike to other neurons. Recent research shows that dendrites are not passive cables---they perform their own local computations, acting like a small neural network within the neuron.
+
+For ML engineers, the key takeaway: a biological neuron is an RNN cell with binary output. It has persistent state (membrane potential), a nonlinear threshold (spike), and temporal dynamics (leak, refractory period). This is fundamentally different from a feedforward ReLU unit, which has no memory of previous inputs.
+
+\subsubsection{The Synapse}
+
+A \textbf{synapse} is the connection point between two neurons. One neuron (presynaptic) sends a spike down its axon. When the spike arrives at the synapse, it triggers the release of chemical \textbf{neurotransmitters} (signaling molecules). These cross a tiny gap and bind to receptors on the receiving neuron (postsynaptic), causing a change in its membrane potential.
+
+In ML terms, a synapse is a weight in a weight matrix. But biological weights are different in two ways. First, they change based on activity during inference, not just during training. \textbf{Short-term plasticity} (lasting milliseconds to minutes) alters synaptic strength based on recent firing patterns. A synapse can get temporarily weaker (depression) or stronger (facilitation) depending on how fast the presynaptic neuron has been firing. Second, long-term weight changes follow local rules, not global backpropagation. The most important is \textbf{Hebbian learning}: ``neurons that fire together wire together.'' If neuron $A$ repeatedly causes neuron $B$ to fire, the synapse from $A$ to $B$ gets stronger. Mathematically, this is an outer product:
+\[
+  \Delta w = \eta \cdot x_{\mathrm{pre}} \cdot x_{\mathrm{post}}
+\]
+
+Synapses come in two types. \textbf{Excitatory} synapses (using glutamate as their neurotransmitter) push the postsynaptic neuron toward firing. \textbf{Inhibitory} synapses (using GABA) push it away from firing. A neuron is either excitatory or inhibitory---it cannot switch. This is called Dale's law.
+
+\subsubsection{The Cortex}
+
+The \textbf{cerebral cortex} is the thin (2--4\,mm) wrinkled sheet of neurons covering the brain. It handles perception, language, planning, motor control, and most of what we call cognition. About 80\% of cortical neurons are excitatory and 20\% are inhibitory. This 80/20 ratio is remarkably consistent across brain regions and species.
+
+The cortex is organized in six layers (L1--L6), stacked from the surface inward. Each layer has different cell types and connectivity patterns. Layer~4 receives sensory input from the thalamus. Layers~2/3 process and relay information between cortical areas. Layer~5 sends output to subcortical structures. Layer~6 sends feedback to the thalamus. This layered architecture is fundamentally different from transformer layers, which are functionally identical.
+
+Neurons in the cortex are organized in \textbf{cortical columns} (vertical groups of neurons spanning all 6 layers). Neurons within a column tend to respond to similar features. The column is sometimes called the ``repeating unit'' of cortical computation, though this analogy is debated.
+
+The cortex also has a repeating circuit motif called the \textbf{canonical microcircuit} (Douglas \& Martin 1989). It consists of a recurrent excitatory loop between layers, stabilized by inhibitory neurons. This circuit amplifies weak inputs (like a gain control) while keeping activity bounded.
+
+\subsubsection{How Information Flows}
+
+Sensory information enters the brain through specialized receptors (eyes, ears, skin). It passes through the \textbf{thalamus} (a relay station that also gates and filters signals) and reaches primary sensory cortex (V1 for vision, A1 for hearing). From there it flows through a hierarchy of cortical areas, from simple feature detectors to complex object representations.
+
+The brain is bidirectional. Feedforward connections carry sensory data upward through the hierarchy. Feedback connections carry predictions and contextual information downward. The \textbf{predictive coding} framework (Rao \& Ballard 1999) proposes that feedforward connections carry prediction errors, not raw data. Only the surprise---the difference between what was predicted and what was received---propagates upward.
+
+In a transformer, the residual stream is the sole channel for inter-layer communication. Information flows forward through the layers and accumulates additively. There is no feedback, no prediction error, and no gating by the thalamus. The residual stream is a shared bus, not a predictive hierarchy.
+
+\subsubsection{What Makes the Brain Different from a Transformer}
+
+\textbf{Sparsity.} At any given moment, only about 1--5\% of cortical neurons are active. The rest are silent. This extreme sparsity is an energy constraint: each spike costs energy, so the brain minimizes the number of spikes. In a dense transformer layer, 100\% of units are active for every input.
+
+\textbf{Communication.} Neurons communicate with spikes---discrete, all-or-nothing events. Transformers use continuous-valued activations. Spikes carry information in their timing and their identity (which neuron fired), not in their amplitude. This forces a different kind of information encoding.
+
+\textbf{Memory.} Synaptic weights change during processing, not just during training. Short-term plasticity adapts synapses on millisecond timescales. The brain effectively rewrites its program while running. Transformer weights are fixed at inference time.
+
+\textbf{Learning.} The brain uses local learning rules. Each synapse adjusts based on the activity of its two connected neurons, plus a global neuromodulatory signal (like dopamine for reward). There is no backpropagation of error gradients through the entire network.
+
+\textbf{Power.} 20 watts for 86 billion neurons versus 200+ watts per GPU for 300 million parameters. The gap is real but narrowing: ternary operations on modern silicon approach biological efficiency per operation. The bottleneck is data movement, not compute.
+
+%% ------------------------------------------------------------
+%%  NEUROSCIENCE FOR ML ENGINEERS
+%% ------------------------------------------------------------
+
+\subsection{Neuroscience for ML Engineers}
+
+The 20\% of neuroscience that explains 80\% of Todorov's design. Each section maps a biological concept to something you already know (transformers, attention, gradient descent), then shows where biology does something transformers cannot.
+
+\subsubsection{Part 1: The Single Neuron (The ``Unit'')}
+
+\textbf{Why this matters for your architecture:} you know what a ReLU unit does: multiply inputs by weights, sum, apply nonlinearity. A biological neuron does the same thing---but with temporal dynamics that transformers completely lack.
+
+\textbf{What you will learn:} the neuron's membrane equation, threshold-and-fire behavior, and how ATMN implements it.
+
+\textbf{Connect to what you know:} a ReLU unit is stateless. It produces the same output for the same input, regardless of history. A biological neuron is stateful. Its output depends on what happened at every previous timestep.
+
+\paragraph{The Membrane Potential.}
+
+The \textbf{membrane potential} ($V_m$) is the neuron's ``activation.'' But unlike a ReLU activation that is computed and discarded, $V_m$ persists across time. It accumulates input. It decays toward a resting value. It is the neuron's memory.
+
+The governing equation:
+\[
+  C_m \frac{dV}{dt} = -g_L(V - V_{\mathrm{rest}}) + I_{\mathrm{ext}}
+\]
+
+Each term has an ML translation:
+\begin{itemize}
+  \item $C_m$ (membrane capacitance): how quickly the neuron responds. High capacitance smooths rapid fluctuations, like momentum.
+  \item $g_L$ (leak conductance): the exponential decay rate. Without input, $V_m$ decays back to $V_{\mathrm{rest}}$ with time constant $\tau_m = C_m / g_L$ (typically 10--30\,ms in cortex).
+  \item $V_{\mathrm{rest}}$ (resting potential): the baseline activation (${\sim}{-65}$\,mV). The bias the neuron decays toward with no input.
+  \item $I_{\mathrm{ext}}$ (external current): the weighted sum of upstream activations.
+\end{itemize}
+
+The discrete-time form (Euler method, one step per token):
+\[
+  V_{t+1} = \left(1 - \frac{dt}{\tau_m}\right) V_t + \frac{dt}{\tau_m}\left(V_{\mathrm{rest}} + R \cdot I_t\right)
+\]
+
+This is a \textbf{leaky integrator}. $(1 - dt/\tau_m)$ controls how much previous state survives. With $\tau_m = 20$\,ms and $dt = 1$\,ms, 95\% persists per step. Similar to an LSTM forget gate, except the decay rate comes from physics rather than a learned sigmoid.
+
+\paragraph{Threshold and Spiking.}
+
+When $V_m$ crosses a threshold $V_{\mathrm{th}}$ (${\sim}{-50}$\,mV), the neuron fires a \textbf{spike}---a brief all-or-nothing pulse. $V_m$ then resets to $V_{\mathrm{reset}}$ (near $V_{\mathrm{rest}}$), and the neuron enters a brief \textbf{refractory period} where it cannot fire again. The neuron integrates evidence over time and, when the evidence exceeds threshold, commits to a discrete output.
+
+\paragraph{ATMN: Todorov's Neuron Model.}
+
+Todorov implements this as the ATMN (adaptive threshold membrane neuron) spike. The membrane update:
+\[
+  h_t = x_t + \frac{1}{\tau} u_{t-1}
+\]
+where $x_t$ is the input and $u_{t-1}$ is the carried-over membrane potential. The output is ternary ($\{-1, 0, +1\}$):
+\[
+  \mathrm{spikes} = \mathrm{sign}(h_t) \cdot \mathbf{1}[|h_t| > V_{\mathrm{th}}]
+\]
+where $V_{\mathrm{th}} = \exp(\texttt{threshold\_log})$ is a per-neuron learnable parameter. After firing, the membrane resets by subtraction: $u_t = h_t - \mathrm{spikes} \cdot V_{\mathrm{th}}$.
+
+This is a simplified leaky integrate-and-fire model. The key biological insight it captures: the neuron has memory between inputs. $V_m$ persists across timesteps. A sub-threshold input at time $t$ can combine with a sub-threshold input at time $t+1$ to produce a spike that neither could produce alone. This temporal integration is something a ReLU or GELU cannot do.
+
+The key simplifications: ATMN has no proper leak term (no exponential decay toward rest), and during training, the membrane potential resets to zero each batch. These are active areas of investigation.
+
+\subsubsection{Part 2: The Synapse (The ``Weight'')}
+
+\textbf{Why this matters for your architecture:} in a transformer, weights are fixed at inference. In biology, weights change while the network processes data. This is like having Adam running during inference, not just training.
+
+\textbf{What you will learn:} Hebbian learning, the outer product rule, and how KDA implements biological associative storage.
+
+\textbf{Connect to what you know:} you already know that attention computes $QK^\top$ to measure similarity, then uses the result to weight $V$. The biological version of this operation is Hebbian learning.
+
+\paragraph{The Hebbian Outer Product.}
+
+A \textbf{synapse} connects two neurons. Its \textbf{synaptic weight} $w_{ij}$ determines how strongly neuron $j$ influences neuron $i$. Hebb's rule (1949) is the simplest modification rule:
+\[
+  \Delta w = \eta \cdot x_{\mathrm{pre}} \cdot x_{\mathrm{post}}
+\]
+``Neurons that fire together wire together.'' For a population, this becomes $\Delta W = \eta \, \mathbf{x}_{\mathrm{post}} \mathbf{x}_{\mathrm{pre}}^\top$---an \textbf{outer product} that creates a rank-1 association between pre and post activity patterns.
+
+The KDA state update in Todorov is:
+\[
+  S_t = \mathrm{diag}(\alpha) \, S_{t-1} + \beta_t \, \mathbf{k}_t \mathbf{v}_t^\top
+\]
+The term $\mathbf{k}_t \mathbf{v}_t^\top$ is exactly the Hebbian outer product. It creates an association between the key (the ``address'') and the value (the ``content'') at each timestep. This is the most direct biological correspondence in Todorov's architecture.
+
+\paragraph{Beyond Simple Hebbian: Decay and Gating.}
+
+Pure Hebbian learning is unstable. If a synapse strengthens, it makes co-activation more likely, which strengthens it further. Weights grow without bound. Biology solves this with multiple mechanisms operating at different timescales:
+
+\begin{itemize}
+  \item \textbf{Short-term plasticity}: synaptic efficacy changes on the millisecond timescale. \textbf{Facilitation} (calcium accumulation) temporarily strengthens a synapse with repeated use. \textbf{Depression} (vesicle depletion) temporarily weakens it. These act as temporal filters on the signal.
+  \item \textbf{STDP} (spike-timing-dependent plasticity): the sign of the weight change depends on the timing of pre and post spikes. If pre fires before post (causal), the synapse strengthens. If post fires before pre (anti-causal), it weakens. This implements a form of causal inference.
+  \item \textbf{BCM theory}: a sliding threshold determines whether activity leads to strengthening or weakening. The threshold rises with recent activity, preventing runaway growth.
+\end{itemize}
+
+KDA maps to these stabilization mechanisms:
+\begin{itemize}
+  \item $\alpha$ (per-channel forgetting rate): each dimension of the state matrix decays independently. Old associations fade. This is closest to synaptic depression---activity-dependent decay of efficacy. $\alpha \sim 0.12$ initially means ${\sim}88\%$ of the state is erased each step.
+  \item $\beta_t$ (data-dependent write gate): a learned function of the input determines how strongly each token writes to memory. This resembles \textbf{neuromodulatory gating}---a ``third factor'' beyond pre and post activity that controls whether learning happens.
+\end{itemize}
+
+The key difference from ML: biological weights are local. Each synapse only sees its own pre and post activity. Backpropagation requires global error signals traveling backward through the entire network. Todorov uses backprop for training, side-stepping this problem. But its recurrent state update (the KDA rule) is local---each state matrix depends only on its own inputs.
+
+\subsubsection{Part 3: Sparsity (The ``Efficiency Trick'')}
+
+\textbf{Why this matters for your architecture:} your GPU activates 100\% of neurons every forward pass. The brain activates 1--5\%. This is not a limitation---it is the most important design principle in biological computation.
+
+\textbf{What you will learn:} why the brain is sparse, why Todorov is less sparse, and the tradeoff that connects them.
+
+\textbf{Connect to what you know:} dropout, mixture-of-experts, pruning---you already use sparsity. Biological sparsity is more extreme and more principled.
+
+\paragraph{The Metabolic Constraint.}
+
+The brain runs on about 20 watts. At any given moment, only 1--5\% of cortical neurons are active (Vinje and Gallant, 2000). Levy and Baxter (1996) showed the optimal coding level---maximizing information per unit energy---is approximately 6\%.
+
+\textbf{Sparse coding} (Olshausen and Field, 1996) formalizes this: represent each input with a small number of active neurons from a large population. Three benefits:
+\begin{enumerate}
+  \item \textbf{Energy efficiency}: fewer spikes means less metabolic cost.
+  \item \textbf{Noise robustness}: sparse codes are far apart in Hamming distance, so random noise is unlikely to push one code into another.
+  \item \textbf{Memory capacity}: for an associative memory storing patterns via outer products, capacity scales inversely with the square of the firing rate. Sparser codes store more patterns before interference corrupts retrieval.
+\end{enumerate}
+
+\paragraph{Todorov's Ternary Spikes.}
+
+Todorov quantizes activations to $\{-1, 0, +1\}$. With adaptive threshold $\alpha \cdot \mathrm{mean}(|x|)$ at $\alpha = 1.0$, about 41\% of dimensions are nonzero. This is far denser than the biological 1--5\%.
+
+The reason: the \textbf{straight-through estimator} (STE). The STE passes gradients through quantization as if it were the identity. At 5\% firing rate, 95\% of dimensions contribute near-zero gradients. Training becomes slow and unstable. Dead neurons never receive gradient signal to change. The validated range is 20--60\%.
+
+The tradeoff is clear:
+\begin{itemize}
+  \item \textbf{Biological sparsity} (1--5\%): optimized for energy and memory capacity. Possible because the brain does not use backpropagation. Learning rules are local and do not require gradient flow through the nonlinearity.
+  \item \textbf{Todorov sparsity} (${\sim}41\%$): optimized for gradient-based training stability. Provides compute reduction (ternary multiply-adds) and acts as a regularizer, but sacrifices the capacity benefits of extreme sparsity.
+\end{itemize}
+
+Spike health is monitored by three metrics: \textbf{mutual information} (MI $> 0.1$: how much input information survives quantization), \textbf{centered kernel alignment} (CKA $> 0.3$: whether representation geometry is preserved), and \textbf{firing rate} (target 20--60\%). At 267 million parameters, Todorov achieves MI $= 1.168$, CKA $= 0.732$, firing rate $= 40.8\%$.
+
+\subsubsection{Part 4: Memory and Learning (The ``Two Systems'')}
+
+\textbf{Why this matters for your architecture:} you have a KV cache for exact retrieval and a recurrent state for compressed memory. The brain has the same split: hippocampus for fast binding, cortex for slow learning.
+
+\textbf{What you will learn:} complementary learning systems theory, the Hopfield network connection, and how KDA/MLA implement the two-system architecture.
+
+\textbf{Connect to what you know:} a transformer's KV cache stores every token's key and value vectors. Retrieval is exact but costs $O(T^2)$ in sequence length $T$. A recurrent state (like an LSTM or SSM hidden state) compresses all of history into a fixed-size vector. Retrieval is $O(1)$ but lossy. The brain faces the same tradeoff.
+
+\paragraph{Complementary Learning Systems.}
+
+McClelland, McNaughton, and O'Reilly (1995) proposed two complementary memory systems:
+\begin{itemize}
+  \item The \textbf{hippocampus}: fast, episodic, pattern-separated. Stores individual experiences quickly via rapid LTP. Sparse codes (${\sim}2\text{--}5\%$ firing) keep memories distinct. Capacity is limited by interference.
+  \item The \textbf{neocortex}: slow, statistical, overlapping. Extracts shared structure across many experiences. Small per-experience modification prevents \textbf{catastrophic interference} (new learning destroying old knowledge).
+\end{itemize}
+
+\textbf{Memory consolidation} bridges them: during sleep, the hippocampus replays recently stored experiences, providing interleaved training data to the cortex.
+
+\paragraph{The Hopfield Network Connection.}
+
+A \textbf{Hopfield network} is an associative memory that stores patterns via outer products (the Hebbian rule) and retrieves them via pattern completion. Ramsauer et al.\ (2021) proved that modern Hopfield networks are mathematically equivalent to softmax attention. The attention operation is pattern completion in an associative memory.
+
+This creates a precise mapping:
+\begin{itemize}
+  \item \textbf{KDA} = classical Hopfield network. $S_t = \alpha \, S_{t-1} + \beta_t \, \mathbf{k}_t \mathbf{v}_t^\top$ writes rank-1 patterns. $\mathbf{q}_t^\top S_t$ retrieves by linear projection. Capacity limited by rank of $S$. $\alpha$ decay implements exponential forgetting.
+  \item \textbf{MLA} = modern Hopfield network (softmax attention). Every token stored in compressed KV cache. Capacity exponential in dimension. No forgetting.
+\end{itemize}
+
+The 75/25 split (18 KDA, 6 MLA) mirrors the biological asymmetry: most processing uses the cheap approximate system (KDA, $O(1)$). A minority uses the expensive exact system (MLA, $O(T^2)$).
+
+What Todorov lacks: consolidation. No mechanism transfers salient KDA state to permanent storage. In the brain, hippocampal replay during sleep provides this. Not a limitation at current context lengths (2048--8192 tokens). Would become a gap at 100K+.
+
+\subsubsection{Part 5: Oscillations and Coordination (The ``Clock'')}
+
+\textbf{Why this matters for your architecture:} transformers process all tokens in parallel. The brain uses oscillations to coordinate which neurons talk to which, and when. This is the biggest gap in current architectures.
+
+\textbf{What you will learn:} gamma and theta oscillations, communication through coherence, and how Mamba3's rotation relates (and does not relate) to biological rhythms.
+
+\textbf{Connect to what you know:} you know positional encoding---RoPE rotates query and key vectors by an angle proportional to position. Biological oscillations are also rotations. But they serve a fundamentally different purpose: gating communication between brain regions.
+
+\paragraph{Gamma Oscillations.}
+
+\textbf{Gamma oscillations} (30--100\,Hz) arise from excitatory-inhibitory interaction in local circuits. They create periodic windows (${\sim}10\text{--}30$\,ms) during which neurons can fire together. Neurons within the same gamma window are ``bound.'' Neurons in different windows are kept separate. This implements temporal multiplexing, like time-division multiplexing in telecommunications.
+
+\paragraph{Theta Oscillations and Nesting.}
+
+\textbf{Theta oscillations} (4--8\,Hz) are slower rhythms prominent in the hippocampus during memory encoding and retrieval. Each theta cycle (${\sim}125\text{--}250$\,ms) contains approximately 5--8 gamma cycles. This creates a nested temporal hierarchy: theta provides the ``sentence'' structure, gamma provides the ``word'' structure.
+
+\textbf{Theta-gamma coupling} allows the brain to maintain a sequence of 5--8 items in working memory, each bound to a different gamma cycle within a single theta cycle. This is the neural basis of the ``magical number seven'' in human working memory capacity.
+
+\paragraph{Communication Through Coherence.}
+
+Fries (2015) proposed \textbf{communication through coherence} (CTC): two brain regions communicate effectively only when their oscillations are phase-aligned. If they are in phase, spikes arrive when the receiving region is maximally excitable. If out of phase, spikes arrive during inhibition and are suppressed. The brain dynamically routes information by adjusting phase relationships---like a software-defined network where hardware is fixed but the routing table updates in real time.
+
+\paragraph{Mamba3's Complex Rotation.}
+
+Todorov's Mamba3 layers apply a rotation to the recurrent state at every timestep:
+\[
+  \theta = f_{\mathrm{rope}} \cdot t, \qquad
+  \mathrm{rotated} = \mathrm{complex\_multiply}\!\left(\mathrm{state},\; e^{i\theta}\right)
+\]
+Each of the 16 state dimension pairs rotates at its own learned frequency. Mathematically an oscillation. Functionally, most likely \textbf{positional encoding} for the recurrent state---encoding ``how many timesteps ago was this stored'' via phase, like RoPE encodes position in attention. The frequencies are fixed after training, do not modulate with input, and have no cross-frequency coupling or inter-layer coherence.
+
+The honest assessment: Mamba3 rotation captures the mathematical form of oscillations (rotation at a learned frequency) but not their computational function (dynamic routing, temporal multiplexing, binding). Phase-dependent gating between regions---the most powerful oscillatory mechanism---has no analog in Todorov.
+
+\subsubsection{Part 6: Predictive Coding (The ``Training Objective'')}
+
+\textbf{Why this matters for your architecture:} next-token prediction works. But the brain does something more principled: it predicts everything, everywhere, all at once.
+
+\textbf{What you will learn:} the predictive coding framework, precision weighting, and why Todorov's backprop-trained weights may already approximate what predictive coding would learn.
+
+\textbf{Connect to what you know:} you train with cross-entropy loss on the next token. The brain trains each cortical layer to predict the layer below it. The error signals are local, not global.
+
+\paragraph{The Prediction Error Hierarchy.}
+
+Rao and Ballard (1999) proposed predictive coding: each level of the cortical hierarchy maintains a generative model that predicts activity at the level below. The prediction is sent downward. Only the \textbf{prediction error}---the difference between the actual and predicted activity---propagates upward. The mathematical formulation:
+\[
+  \mathrm{error}_l = \mathrm{actual}_l - \mathrm{predicted}_l, \qquad
+  \mathrm{predicted}_l = f(\mathrm{representation}_{l+1})
+\]
+Each level receives only the surprise from the level below. Expected input is suppressed. The brain spends most of its bandwidth communicating what it does not expect, rather than what it does. This is an efficient coding strategy: predictable signals carry no new information.
+
+\paragraph{Precision Weighting.}
+
+Not all prediction errors are equally reliable. \textbf{Precision weighting} modulates how much the system trusts each error signal. High-precision errors drive large updates; low-precision errors are down-weighted. Friston (2005, 2010) showed this is equivalent to Bayesian inference under the free energy principle. In ML terms, precision weighting is learned loss scaling per feature dimension.
+
+\paragraph{The Key Convergence Result.}
+
+Millidge, Tschantz, and Buckley (2022) proved that predictive coding at convergence computes the same parameter gradients as backpropagation. This means:
+\begin{enumerate}
+  \item Todorov's backprop-trained weights already approximate what a predictive coding network would learn.
+  \item The difference is in forward dynamics (inference), not weight learning.
+  \item Predictive coding networks process input through iterative settling (multiple forward-backward passes per input). Todorov does one forward pass.
+\end{enumerate}
+
+The practical implication: no reason to switch Todorov from cross-entropy to predictive coding. The weights converge to the same solution. The biological advantage (local learning rules) is irrelevant when GPUs compute global gradients efficiently.
+
+Where Todorov does echo predictive coding: the KDA $\beta$ gate ($\beta_t = \sigma(\mathrm{beta\_proj}(x_t))$) modulates how strongly each token writes to memory. High $\beta$ = ``surprising, worth encoding.'' Low $\beta$ = ``expected, safely ignored.'' This resembles precision weighting, though it is computed from the input alone rather than from prediction error.
+
+\subsubsection{Part 7: What Matters Most for Todorov}
+
+The five biological insights with the highest impact on Todorov's architecture, ranked by how directly they influenced the design:
+
+\textbf{1.\ Recurrent associative memory.} KDA's outer product $\mathbf{k}_t \mathbf{v}_t^\top$ is the Hebbian storage rule. This is not an analogy. It is the same equation that Hopfield used in 1982, that the hippocampus uses for rapid binding, and that Hebb described in 1949. The $\alpha$ decay and $\beta$ gating are biological stabilization mechanisms (short-term depression and neuromodulatory gating) mapped to learned parameters. This is the strongest biology-to-architecture correspondence in Todorov.
+
+\textbf{2.\ Sparsity as a design principle.} Ternary spikes ($\{-1, 0, +1\}$) enforce a ${\sim}41\%$ firing rate. This is denser than biology (1--5\%) due to the STE gradient constraint, but it still provides quantization from 32-bit floats to 1.58 bits per dimension. Sparsity acts as both compute reduction and regularization. The adaptive threshold ($\alpha \cdot \mathrm{mean}(|x|)$) is a crude form of the divisive normalization found in every cortical area.
+
+\textbf{3.\ Adaptive thresholds.} Biological neurons adjust their excitability based on recent activity (homeostatic plasticity). Todorov's per-neuron learnable thresholds ($V_{\mathrm{th}} = \exp(\texttt{threshold\_log})$ in ATMN) serve a similar function: each dimension learns its own operating point. At 267M scale, this produces stable spike health metrics (MI $= 1.168$, CKA $= 0.732$, firing rate $= 40.8\%$) across training.
+
+\textbf{4.\ Complementary memory systems.} The KDA/MLA split mirrors the hippocampus/cortex split. KDA provides $O(1)$ recurrent memory with exponential decay (working memory). MLA provides $O(T^2)$ exact retrieval from compressed cache (reference memory). The 75/25 ratio allocates most computation to the cheap system, with a minority for exact retrieval when needed.
+
+\textbf{5.\ The missing pieces.} Three biological principles have no counterpart in Todorov:
+\begin{itemize}
+  \item \textbf{Oscillatory coordination}: the brain routes information dynamically through phase synchronization. Todorov's Mamba3 rotation is positional encoding, not communication gating.
+  \item \textbf{Consolidation}: the brain transfers memories from hippocampus to cortex via replay. Todorov has no mechanism to transfer salient KDA state to permanent storage.
+  \item \textbf{Dendritic computation}: biological neurons compute nonlinear functions on individual dendritic branches before summing at the cell body. Todorov neurons receive a single weighted sum, like a perceptron.
+\end{itemize}
+
+These gaps are not necessarily problems. They are the places where the next round of architecture improvements might come from, if the biological analogy holds at scale.
+
+%% ------------------------------------------------------------
+%%  MATHEMATICAL FOUNDATIONS
+%% ------------------------------------------------------------
+
+\subsection{Mathematical Foundations}
+
+A math primer for ML engineers entering computational neuroscience. Every equation here connects to something you already know from machine learning. The goal is not exhaustive coverage but the 20\% of neuroscience math that explains 80\% of Todorov's mechanisms.
+
+\subsubsection{Differential Equations for Neurons}
+
+You already know discrete updates. Every recurrent neural network computes $h_t = f(h_{t-1}, x_t)$. Biological neurons use continuous-time versions of the same thing. The difference: instead of stepping from $t$ to $t+1$, the neuron's state evolves according to a differential equation that describes how voltage changes at each instant.
+
+\paragraph{The Leaky Integrate-and-Fire Equation.}
+
+The simplest useful neuron model is the leaky integrate-and-fire (LIF). It describes a neuron's membrane potential $V$ over time:
+\[
+  C_m \frac{dV}{dt} = -g_L(V - V_{\mathrm{rest}}) + I_{\mathrm{ext}}
+\]
+
+Each term maps to an ML concept:
+\begin{itemize}
+  \item $C_m$ (membrane capacitance, measured in picofarads): controls how fast voltage changes for a given input. Smaller $C_m$ means faster response. ML analog: like a learning rate for the membrane potential. Large $C_m$ = slow updates, small $C_m$ = fast updates.
+  \item $g_L$ (leak conductance, measured in nanosiemens): controls how fast voltage drifts back toward rest. The neuron ``forgets'' its accumulated input. ML analog: the decay factor in an exponential moving average. High $g_L$ = fast forgetting, low $g_L$ = long memory.
+  \item $V_{\mathrm{rest}}$ (resting potential, about $-65$\,mV): the baseline voltage when no input arrives. The neuron returns to this value when left alone. ML analog: a bias term that the state decays toward.
+  \item $I_{\mathrm{ext}}$ (external current, measured in picoamperes): the input signal. In a network, this is the weighted sum of presynaptic spikes. ML analog: the linear combination $W \mathbf{x}$ that feeds into a neuron.
+  \item The spike rule: when $V$ exceeds a threshold $V_{\mathrm{th}}$ (about $-50$\,mV), the neuron fires a spike and resets to $V_{\mathrm{reset}}$ (about $-70$\,mV). ML analog: a step function followed by a state reset.
+\end{itemize}
+
+\paragraph{A Worked Example.}
+
+Consider a LIF neuron with $C_m = 20$\,pF, $g_L = 10$\,nS, $V_{\mathrm{rest}} = -65$\,mV, receiving constant current $I_{\mathrm{ext}} = 300$\,pA.
+
+At steady state, $dV/dt = 0$, so:
+\begin{align}
+  0 &= -g_L(V_{\mathrm{ss}} - V_{\mathrm{rest}}) + I_{\mathrm{ext}} \notag\\
+  V_{\mathrm{ss}} &= V_{\mathrm{rest}} + \frac{I_{\mathrm{ext}}}{g_L} \notag\\
+  V_{\mathrm{ss}} &= -65 + \frac{300}{10} = -65 + 30 = -35\;\text{mV} \notag
+\end{align}
+
+This exceeds any reasonable threshold (typically $-50$\,mV), so the neuron fires repeatedly. The time constant $\tau_m = C_m / g_L = 20/10 = 2$\,ms tells you how fast $V$ reaches steady state: after one $\tau_m$, it covers 63\% of the gap.
+
+\paragraph{The Discrete Approximation.}
+
+For simulation (and for understanding the connection to ML), discretize using the Euler method:
+\[
+  V[t{+}1] = V[t] + \frac{dt}{C_m}\bigl(-g_L(V[t] - V_{\mathrm{rest}}) + I[t]\bigr)
+\]
+
+This is just: new state = old state + step size $\times$ (leak + input). Identical in structure to a recurrent update with learnable decay.
+
+Rearrange the terms to make the ML connection explicit:
+\[
+  V[t{+}1] = \left(1 - \frac{dt \cdot g_L}{C_m}\right) V[t] + \frac{dt \cdot g_L}{C_m}\, V_{\mathrm{rest}} + \frac{dt}{C_m}\, I[t]
+\]
+
+The factor $(1 - dt \cdot g_L / C_m) = (1 - dt/\tau_m)$ is the decay coefficient. With $dt = 1$\,ms and $\tau_m = 2$\,ms, the decay is 0.5: the neuron retains half its previous voltage at each step.
+
+\paragraph{The ATMN Equation.}
+
+Todorov's ATMN spike neuron uses a simpler update:
+\[
+  h_t = x_t + \frac{1}{\tau}\, u_{t-1}
+\]
+where $x_t$ is the input and $u_{t-1}$ is the previous membrane potential. The key gap: ATMN has no leak term. The $1/\tau$ factor scales the carried-over potential, but it does not pull the voltage toward a resting value. Without leak, a neuron receiving sustained input accumulates potential without bound. A proposed fix adds an explicit leak:
+\[
+  h_t = (1 - \alpha)\, u_{t-1} + x_t
+\]
+where $\alpha$ is a learnable decay rate. This restores the LIF structure.
+
+\subsubsection{Hebbian Learning and Outer Products}
+
+You know the outer product from attention: $Q K^\top$ produces a matrix of pairwise similarities. Hebbian learning is the same operation applied to learning.
+
+\paragraph{The Hebb Rule.}
+
+Hebbian learning (Hebb 1949) states: neurons that fire together wire together. Mathematically:
+\[
+  \Delta w_{ij} = \eta \, x_i \, x_j
+\]
+where $w_{ij}$ is the connection strength from neuron $j$ to neuron $i$, $\eta$ is a learning rate, and $x_i, x_j$ are the activities of the two neurons. In matrix form:
+\[
+  \Delta W = \eta \, \mathbf{x} \mathbf{x}^\top
+\]
+
+This is a rank-1 outer product update. Each learning step adds a new pattern to the weight matrix. Store $N$ patterns by summing their outer products:
+\[
+  W = \sum_{n=1}^{N} \mathbf{x}_n \mathbf{x}_n^\top
+\]
+
+\paragraph{A Worked Example.}
+
+Store two patterns in a 4-neuron Hopfield network. Pattern~1: $\mathbf{x} = [+1, -1, +1, -1]$. Pattern~2: $\mathbf{x} = [+1, +1, -1, -1]$.
+
+\[
+  W = \begin{bmatrix}+1\\-1\\+1\\-1\end{bmatrix}
+      \begin{bmatrix}+1&-1&+1&-1\end{bmatrix}
+    + \begin{bmatrix}+1\\+1\\-1\\-1\end{bmatrix}
+      \begin{bmatrix}+1&+1&-1&-1\end{bmatrix}
+\]
+\[
+  W = \begin{bmatrix}
+    2 & 0 & 0 & -2 \\
+    0 & 2 & -2 & 0 \\
+    0 & -2 & 2 & 0 \\
+    -2 & 0 & 0 & 2
+  \end{bmatrix}
+\]
+
+Now probe with a corrupted version of pattern~1: $\mathbf{x}_{\mathrm{probe}} = [+1, -1, +1, 0]$ (last element missing). Retrieval:
+\[
+  \mathbf{y} = \mathrm{sign}(W \mathbf{x}_{\mathrm{probe}})
+             = \mathrm{sign}\!\bigl([2, -4, 4, -2]\bigr)
+             = [+1, -1, +1, -1]
+\]
+The network completes the pattern. This is pattern completion via the outer product association.
+
+\paragraph{KDA's State Update.}
+
+The KDA delta rule in Todorov performs the same operation:
+\[
+  S_t = \mathrm{diag}(\alpha) \, S_{t-1} + \beta_t \, \mathbf{k}_t \mathbf{v}_t^\top
+\]
+
+Translate each part:
+\begin{itemize}
+  \item $\mathrm{diag}(\alpha) \, S_{t-1}$: decay the old state. $\alpha$ is a per-channel forgetting rate. This prevents the state from growing unboundedly as more patterns are stored.
+  \item $\beta_t$: a data-dependent write gate. Some tokens write strongly ($\beta$ near~1), others weakly ($\beta$ near~0). Acts as ``this input matters, store it.''
+  \item $\mathbf{k}_t \mathbf{v}_t^\top$: the Hebbian outer product. Creates an association between the key (what to match on) and the value (what to retrieve).
+\end{itemize}
+
+Readout is $\mathbf{q}_t^\top S_t$: the query probes the associative memory for the stored value most similar to the current query. This is content-addressable retrieval, identical in structure to Hopfield pattern completion.
+
+The key difference from biological Hebbian learning: KDA's update modifies a recurrent state, not a weight matrix. The associations are transient (they decay with $\alpha$), not permanent. KDA is an associative memory, not a learning rule.
+
+\subsubsection{Energy Functions and Attractor Dynamics}
+
+You know loss functions. In neuroscience, the equivalent is an energy function that the network minimizes through its own dynamics, not through gradient descent.
+
+\paragraph{Hopfield Energy.}
+
+A network of $N$ binary neurons $\{-1, +1\}$ with symmetric weights $W$ has energy:
+\[
+  E = -\frac{1}{2} \sum_{i,j} w_{ij}\, x_i\, x_j
+\]
+In matrix form:
+\[
+  E = -\frac{1}{2}\, \mathbf{x}^\top W \mathbf{x}
+\]
+
+The network evolves by asynchronously updating each neuron: $x_i = \mathrm{sign}\!\left(\sum_j w_{ij}\, x_j\right)$. Each update decreases or maintains $E$ (proven by Hopfield 1982). The network slides downhill on the energy landscape until it reaches a local minimum. These minima are the stored patterns.
+
+\paragraph{A Worked Example.}
+
+Using the 4-neuron network from above ($W$ stores patterns $[+1,-1,+1,-1]$ and $[+1,+1,-1,-1]$):
+
+Energy of pattern~1:
+\[
+  E = -\frac{1}{2}\,
+      \begin{bmatrix}1&-1&1&-1\end{bmatrix}
+      W
+      \begin{bmatrix}1\\-1\\1\\-1\end{bmatrix}
+    = -\frac{1}{2}(2{+}2{+}2{+}2{+}2{+}2{+}2{+}2) = -8
+\]
+
+Energy of a random state $[+1,+1,+1,+1]$:
+\[
+  E = -\frac{1}{2}\,
+      \begin{bmatrix}1&1&1&1\end{bmatrix}
+      W
+      \begin{bmatrix}1\\1\\1\\1\end{bmatrix}
+    = 0
+\]
+
+The stored pattern has lower energy. The network dynamics flow from high-energy states toward low-energy stored patterns.
+
+\paragraph{The Connection to Softmax Attention.}
+
+Ramsauer et al.\ (2021) proved that softmax attention implements the update rule of a modern Hopfield network with exponential storage capacity:
+\[
+  \mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{d}}\right) V
+\]
+
+This is equivalent to one step of energy minimization in a continuous Hopfield network where the energy is:
+\[
+  E = -\log\!\left(\sum_n \exp\!\left(\mathbf{x}^\top \boldsymbol{\xi}_n\right)\right)
+\]
+
+The exponential function gives the modern Hopfield network capacity proportional to $2^{d/2}$, vastly exceeding the classical network's $0.138 N$ capacity. Todorov's MLA layers perform this computation: they are modern Hopfield networks retrieving from a compressed cache.
+
+\subsubsection{Information Theory Basics}
+
+You know cross-entropy loss: $L = -\sum_i y_i \log p_i$. In neuroscience, the same math measures how well neural codes represent inputs.
+
+\paragraph{Mutual Information.}
+
+Mutual information $I(X;Y)$ quantifies how much knowing $Y$ tells you about $X$:
+\[
+  I(X;Y) = H(X) - H(X|Y)
+\]
+where $H(X)$ is entropy (the total uncertainty about $X$) and $H(X|Y)$ is the uncertainty remaining after observing $Y$. If $Y$ perfectly predicts $X$, then $H(X|Y) = 0$ and MI equals the full entropy. If $Y$ is independent of $X$, MI is zero.
+
+\paragraph{Todorov's Spike MI.}
+
+Todorov measures MI between the continuous pre-spike activations ($X$) and the ternary spike outputs ($Y$). The ternary quantization maps a 32-bit float to one of three values: $\{-1, 0, +1\}$. The theoretical maximum MI is $\log_2(3) \approx 1.58$ bits per dimension (the entropy of a uniform ternary distribution).
+
+The achieved MI at 267M scale is 1.168 bits/dim. This means 74\% of the channel capacity is used: the spikes transmit 1.168 out of 1.58 possible bits per dimension. The threshold: MI $> 0.1$ means spikes carry useful information.
+
+\paragraph{CKA.}
+
+Centered kernel alignment measures whether two representations preserve the same similarity structure. If two inputs that are similar in the pre-spike space remain similar in the post-spike space, CKA is high.
+\[
+  \mathrm{CKA} = \frac{\|X^\top Y\|_F^2}{\|X^\top X\|_F \cdot \|Y^\top Y\|_F}
+\]
+
+CKA of 1.0 means perfect geometric preservation. CKA of 0 means the geometries are unrelated. Todorov targets CKA $> 0.3$ and achieves 0.732 at 267M scale. This confirms that the ternary quantization preserves the representational geometry despite compressing 32 bits to ${\sim}1.58$ bits per dimension.
+
+\paragraph{Firing Rate.}
+
+The fraction of neurons active at any time. Biology operates at 1--5\% in cortex. Todorov operates at ${\sim}41\%$. The gap exists because gradient flow through the straight-through estimator requires enough active neurons to provide gradient signal. Below ${\sim}20\%$, training becomes unstable. The 20--60\% target range balances information compression against gradient health.
+
+\subsubsection{Divisive Normalization}
+
+You use LayerNorm or RMSNorm in every transformer layer. The brain does something similar but with more structure.
+
+\paragraph{The Biological Equation.}
+
+Divisive normalization (Carandini and Heeger 2012) is called the ``canonical cortical computation'' because it appears in nearly every brain area:
+\[
+  r_i = \frac{c_i^n}{\sigma^n + \sum_j w_j\, c_j^n}
+\]
+
+Each term:
+\begin{itemize}
+  \item $c_i$: the driving input to neuron $i$.
+  \item $n$: an exponent (typically 2). Raises the input, creating a power-law nonlinearity.
+  \item $\sigma$: the semi-saturation constant. Prevents division by zero and controls the sensitivity curve. At low inputs ($c_i \ll \sigma$), the response is approximately $c_i^n / \sigma^n$ (linear in $c_i^n$). At high inputs ($c_i \gg \sigma$), the response saturates.
+  \item $\sum_j w_j\, c_j^n$: the normalization pool. A weighted sum of neighboring neurons' activities. Each neuron's output is divided by what its neighbors are doing. Strong neighbors suppress weaker ones.
+\end{itemize}
+
+\paragraph{A Worked Example.}
+
+Three neurons with inputs $\mathbf{c} = [10, 5, 2]$, $n = 2$, $\sigma = 3$, uniform weights $w = [1, 1, 1]$.
+\begin{align}
+  \mathrm{pool} &= 10^2 + 5^2 + 2^2 = 100 + 25 + 4 = 129 \notag\\
+  \mathrm{denom} &= 3^2 + 129 = 9 + 129 = 138 \notag\\[6pt]
+  r_1 &= 100 / 138 = 0.72 \notag\\
+  r_2 &= 25 / 138 = 0.18 \notag\\
+  r_3 &= 4 / 138 = 0.03 \notag
+\end{align}
+
+The strongest input captures 72\% of the total response. The weakest gets only 3\%. This is competitive gain control: strong signals dominate, weak signals are suppressed.
+
+\paragraph{Comparison to RMSNorm.}
+
+Todorov uses RMSNorm before each sublayer:
+\[
+  y_i = \frac{x_i}{\sqrt{\mathrm{mean}(x^2) + \epsilon}}
+\]
+
+RMSNorm is a special case of divisive normalization with $n = 2$, $\sigma = \epsilon$, and $w_j = 1/d$ for all $j$ (uniform pool across all dimensions). The differences:
+\begin{itemize}
+  \item No power function on the numerator: RMSNorm divides $x_i$ directly, not $x_i^n$.
+  \item No semi-saturation constant: $\epsilon$ is small ($10^{-6}$), unlike $\sigma$ which is a biologically meaningful parameter.
+  \item Uniform pool weights: RMSNorm normalizes by all dimensions equally. Biological pools are structured: nearby neurons contribute more, distant neurons contribute less.
+  \item The output is graded: RMSNorm produces a continuous scaled value. Divisive normalization with large $n$ approaches winner-take-all behavior (only the strongest input survives).
+\end{itemize}
+
+The ternary spike threshold ($\mathrm{threshold} = \alpha \cdot \mathrm{mean}(|x|)$) adds a second normalization step: the threshold adapts to the input scale, creating a population-relative selection. RMSNorm + ternary spikes together provide normalization (gain control) followed by sparse selection (thresholding).
+
+\newpage
+
+%% ============================================================
+%%  II. REFERENCE
+%% ============================================================
+
+\section{II. Reference}
+
+\subsection{Glossary}
+
+Every technical term used in this guide, defined in plain language. ML analogs noted where applicable.
+
+\bigskip
+
+\textbf{Action potential} --- a brief electrical pulse (${\sim}1$\,ms) that travels along a neuron's axon. It is all-or-nothing: either it fires fully or not at all. The defining output signal of a neuron. ML analog: like a binary activation (0 or 1), but with precise timing that carries information.
+
+\textbf{Adaptation} --- the gradual decrease in a neuron's firing rate during sustained stimulation. The neuron responds strongly to changes but weakly to steady input. Acts as a high-pass filter. ML analog: similar to learning rate decay, where the response to repeated identical inputs diminishes over time.
+
+\textbf{Apical dendrite} --- the long dendrite extending from a pyramidal neuron's cell body toward the cortical surface (layer~1). Receives top-down feedback from higher cortical areas. Its tip (the apical tuft) integrates contextual information from distant brain regions. ML analog: like a separate input pathway for contextual or top-down signals, distinct from the primary feedforward input.
+
+\textbf{Auto-associative network} --- a recurrent neural network that stores patterns as attractors and retrieves them from partial cues. The Hopfield network is the canonical example. Stores patterns using outer-product (Hebbian) weights: $W = \sum \mathbf{x}\mathbf{x}^\top$. ML analog: the direct ancestor of modern Hopfield networks, which are mathematically equivalent to softmax attention (Ramsauer et al.\ 2021).
+
+\textbf{Basal dendrite} --- short dendrites branching near a pyramidal neuron's cell body. Receive feedforward input from local neurons and thalamus. Together with the soma, they form the ``bottom-up'' integration zone. ML analog: like the standard input pathway in a neural network layer.
+
+\textbf{BCM theory} --- Bienenstock--Cooper--Munro theory (1982). A plasticity rule where the threshold between strengthening and weakening a synapse slides based on the postsynaptic neuron's recent activity. When the neuron has been very active, it becomes harder to strengthen synapses (the threshold rises). This prevents runaway excitation. ML analog: like adaptive learning rates that decrease when gradients are large (Adam, RMSProp).
+
+\textbf{Binding problem} --- the question of how the brain combines features processed in different brain areas (color in V4, motion in MT, shape in IT) into a unified percept. You see a ``red moving ball,'' not separate unbound features. Proposed solutions include temporal synchrony (gamma oscillations binding features) and attention (serial binding via the spotlight). ML analog: transformers solve this trivially with attention---all features are available to all heads. The binding problem arises from distributed processing without a shared representation.
+
+\textbf{Bilinear} --- a mathematical operation that is linear in each of its two inputs separately but not jointly. Examples: dot product, outer product, element-wise product, geometric product. All four appear in the CRBR framework as different parameterizations of the bilinear interaction $B$. ML analog: bilinear layers appear in gating mechanisms (SwiGLU), attention ($QK^\top$), and multiplicative interactions.
+
+\textbf{Burst firing} --- a neuron firing a rapid cluster of 2--5 spikes in quick succession, rather than single isolated spikes. Bursts carry different information than single spikes and are more reliably transmitted across synapses. In layer~5 pyramidal cells, bursts are triggered by coincident bottom-up and top-down input (BAC firing). ML analog: no direct equivalent. Burst vs single spike is like having two distinct output modes that downstream circuits can distinguish.
+
+\textbf{Calcium spike} --- a slow (${\sim}50\text{--}100$\,ms), large-amplitude dendritic spike generated by voltage-gated calcium channels, primarily in the apical tuft of layer~5 pyramidal neurons. Triggers burst firing when it coincides with somatic depolarization (BAC firing). ML analog: like a gating signal that amplifies the output when two conditions are met simultaneously.
+
+\textbf{Canonical microcircuit} --- a repeating circuit motif in the cortex (Douglas \& Martin 1989). Consists of excitatory neurons with recurrent connections, stabilized by inhibitory neurons. It amplifies weak inputs through recurrent excitation while keeping activity bounded through inhibition. ML analog: like a residual block with a gating mechanism that amplifies relevant signals and suppresses noise.
+
+\textbf{Cell assembly} --- a group of neurons that fire together because their mutual connections have been strengthened by Hebbian learning. Proposed by Hebb (1949) as the neural substrate of a concept or memory. Activation of part of the assembly triggers the rest (pattern completion). ML analog: similar to a learned feature representation where a distributed set of units activates together for a particular input pattern.
+
+\textbf{Cognitive map} --- the brain's internal representation of relational structure. Originally proposed for spatial environments (Tolman 1948, O'Keefe \& Nadel 1978). Now understood as a general mechanism for encoding abstract relationships---social hierarchies, task states, conceptual spaces. Implemented by the hippocampal-entorhinal system (place cells, grid cells). ML analog: like a learned embedding space where distances and directions encode relationships between entities.
+
+\textbf{Cortical column} --- a vertical group of neurons spanning all 6 cortical layers. Neurons within a column tend to respond to similar features (e.g., the same orientation in visual cortex). Approximately 80,000 neurons per mm$^2$. The ``repeating unit'' of cortical computation (Mountcastle 1957), though whether it is truly a discrete computational unit is debated. ML analog: loosely like a feature channel, where all layers jointly process one aspect of the input.
+
+\textbf{Cross-frequency coupling} --- the interaction between neural oscillations at different frequencies. The most common form is phase-amplitude coupling: the amplitude of fast oscillations (gamma, 30--100\,Hz) is modulated by the phase of slow oscillations (theta, 4--8\,Hz). This creates temporal windows for organizing information. ML analog: no direct equivalent. The closest analog would be multi-scale processing where fine-grained computations are organized by a slower scheduling signal.
+
+\textbf{Delta rule} --- a learning rule that updates weights based on the error between the desired and actual output: $\Delta w = \eta \cdot (\mathrm{target} - \mathrm{output}) \cdot \mathrm{input}$. In neuroscience, it refers to the error-correcting component of synaptic plasticity. In Todorov, the KDA delta rule uses error-correcting writes to a matrix-valued state: $S_t = \alpha \, S_{t-1} + \beta \, \mathbf{k} \mathbf{v}^\top$. ML analog: the delta rule is the foundation of gradient descent. The KDA delta rule is a recurrent generalization where the ``error correction'' happens within the hidden state at each timestep.
+
+\textbf{Dendrite} --- a tree-like branch extending from a neuron's cell body. Receives synaptic inputs from other neurons. A typical cortical pyramidal neuron has 5,000--10,000 synapses distributed across its dendritic tree. Dendrites are not passive cables---they perform local nonlinear computations. ML analog: like the input connections to a neuron, but with local processing before the signals reach the main computation.
+
+\textbf{Dendritic spike} --- a regenerative electrical event generated locally within a dendrite by voltage-gated ion channels. Three types exist: sodium spikes (fast, proximal), calcium spikes (slow, apical tuft), and NMDA spikes (sustained, basal/oblique branches). Each type performs different computation. ML analog: like a local activation function applied within a subnetwork before the results are combined at a higher level.
+
+\textbf{Divisive normalization} --- a computation where a neuron's response is divided by the pooled activity of a population: $r_i = c_i^n / (\sigma^n + \sum_j w_j\, c_j^n)$. Carandini and Heeger (2012) called it a ``canonical neural computation'' because it appears in nearly every sensory system. Implements gain control, contrast normalization, and attention. ML analog: LayerNorm and RMSNorm are mathematically similar (divide by a pool statistic), but use all neurons in the pool equally. Biological normalization uses learned, selective pools.
+
+\textbf{Dopamine} --- a neuromodulator released by neurons in the VTA and SNc. Encodes \textbf{reward prediction error} (RPE): the difference between expected and received reward. Fires above baseline for unexpected reward, at baseline for expected reward, below baseline for omitted expected reward. ML analog: the dopamine RPE signal is mathematically identical to the TD error in reinforcement learning: $\delta = r + \gamma V(s') - V(s)$.
+
+\textbf{E/I balance} --- the approximate balance between excitatory and inhibitory synaptic inputs to cortical neurons. About 80\% of cortical neurons are excitatory, 20\% inhibitory, but the total excitatory current is nearly cancelled by inhibitory current. This balance keeps firing rates low and irregular, enables gain control, and prevents seizures. ML analog: like the balance between positive and negative contributions in a normalized layer, keeping activations in a useful range.
+
+\textbf{Efficient coding} --- Barlow's (1961) hypothesis that sensory neurons encode information as efficiently as possible given metabolic and physical constraints. The neural code should maximize information per spike, per calorie, per neuron. Predicts sparse codes, decorrelated representations, and adaptation to input statistics. ML analog: like choosing an embedding dimension and quantization level that maximize information throughput under a compute budget.
+
+\textbf{Excitatory} --- a neuron or synapse that pushes the postsynaptic neuron toward firing. Excitatory neurons use glutamate as their neurotransmitter. About 80\% of cortical neurons are excitatory. ML analog: like a positive weight in a neural network.
+
+\textbf{Firing rate} --- the number of spikes a neuron produces per second, measured in Hz. Typical cortical firing rates are 1--20\,Hz, with most neurons below 5\,Hz. ML analog: like the activation magnitude of a unit, but quantized into discrete events over time.
+
+\textbf{Free energy principle} --- Friston's (2005/2010) proposal that all adaptive systems minimize variational free energy, an upper bound on surprise. Perception updates beliefs to match sensory data. Action changes the world to match beliefs. Subsumes predictive coding as a special case. ML analog: minimizing variational free energy is equivalent to maximizing the evidence lower bound (ELBO) in variational autoencoders.
+
+\textbf{GABA} --- gamma-aminobutyric acid, the main inhibitory neurotransmitter in the brain. Released by inhibitory interneurons. Opens chloride channels, making the postsynaptic neuron less likely to fire. ML analog: like a negative weight or a gating signal that suppresses activation.
+
+\textbf{Gamma oscillation} --- rhythmic neural activity at 30--100\,Hz, generated by the interaction between excitatory pyramidal cells and fast-spiking inhibitory interneurons. Associated with local computation: attention, feature binding, working memory. Each gamma cycle (${\sim}25$\,ms) acts as a computational window in which neurons compete to fire. ML analog: no direct equivalent. The closest analog is a discrete processing step in a sequence model, where computation happens within a fixed time window.
+
+\textbf{Global workspace} --- the shared communication medium in global workspace theory (Baars 1988). Specialized unconscious processors compete for access to the workspace. Information that enters the workspace is broadcast to all processors simultaneously, becoming ``conscious.'' ML analog: the transformer residual stream shares the topology (all layers access it) but lacks the dynamics (no ignition threshold, no competition for access, no capacity limit).
+
+\textbf{Grid cell} --- a neuron in the medial entorhinal cortex that fires in a regular hexagonal lattice pattern as an animal moves through space. Characterized by spacing (30--300\,cm), orientation, and phase. Provides the brain's metric coordinate system for space. Discovered by the Mosers (2005), Nobel Prize 2014. ML analog: like a periodic positional encoding, but in 2D with hexagonal symmetry.
+
+\textbf{Hebbian learning} --- the principle that ``neurons that fire together wire together'' (Hebb 1949). When a presynaptic neuron repeatedly causes a postsynaptic neuron to fire, the synapse between them strengthens. Mathematically: $\Delta w = \eta \, x_{\mathrm{pre}} \cdot x_{\mathrm{post}}$ (the outer product rule). ML analog: the outer product $\mathbf{k} \mathbf{v}^\top$ in linear attention and in KDA's delta rule is the same operation. Hebbian learning is the one genuine biological correspondence in Todorov.
+
+\textbf{Hippocampus} --- a brain structure in the medial temporal lobe, critical for forming new episodic memories and for spatial navigation. Contains place cells (CA1, CA3) and receives grid cell input from entorhinal cortex. Subregions perform distinct operations: dentate gyrus (pattern separation), CA3 (pattern completion / auto-associative memory), CA1 (comparison / novelty detection). ML analog: like a fast-learning, content-addressable memory system complementing the slow-learning distributed representations in the rest of the network.
+
+\textbf{Ignition} --- in global workspace theory, the sudden all-or-none transition from local unconscious processing to global conscious broadcast. Occurs when a feedforward signal plus top-down attention exceed a threshold, triggering a self-sustaining cascade of long-range recurrent activation. ML analog: no direct equivalent. The closest would be a hard thresholding or gating mechanism where weak signals are completely suppressed and strong signals trigger network-wide effects.
+
+\textbf{Inhibitory} --- a neuron or synapse that pushes the postsynaptic neuron away from firing. Inhibitory neurons use GABA as their neurotransmitter. About 20\% of cortical neurons are inhibitory. They come in multiple types: PV+ (fast, perisomatic), SST+ (sustained, dendritic), VIP+ (disinhibitory). ML analog: like a negative weight, or more precisely, like a gating mechanism that selectively suppresses certain computations.
+
+\textbf{Integrate-and-fire} --- a class of neuron models where the membrane potential integrates inputs over time and produces a spike when it crosses a threshold, then resets. The leaky integrate-and-fire (LIF) adds exponential decay of the membrane potential toward rest. ML analog: like an RNN cell with a threshold output function: $h_t = \mathrm{decay} \cdot h_{t-1} + \mathrm{input}_t$, output $= 1$ if $h_t > \mathrm{threshold}$ else $0$.
+
+\textbf{Interneuron} --- a neuron that connects to other neurons within a local circuit (not projecting to distant areas). In cortex, usually inhibitory. Three main types: PV+ basket cells (fast perisomatic inhibition, implements WTA), SST+ Martinotti cells (dendritic inhibition, gates top-down input), VIP+ cells (inhibit other inhibitory neurons, implements disinhibition). ML analog: PV+ interneurons are like a softmax or top-$k$ selection layer. VIP+ disinhibition is like a gating mechanism that selectively removes suppression.
+
+\textbf{Lateral inhibition} --- active neurons suppress their neighbors. First demonstrated in the horseshoe crab eye (Hartline \& Ratliff 1956). Enhances contrast and edges. In cortex, implemented by inhibitory interneurons. ML analog: like local competition in a softmax or top-$k$ operation, where activating one unit suppresses nearby units.
+
+\textbf{LIF} --- leaky integrate-and-fire. See integrate-and-fire.
+
+\textbf{LTP/LTD} --- long-term potentiation / long-term depression. The two directions of lasting synaptic weight change. LTP strengthens synapses (requires coincident pre- and postsynaptic activity, mediated by NMDA receptors and calcium). LTD weakens synapses (various mechanisms, including low-frequency stimulation, post-before-pre timing in STDP). ML analog: weight increase / weight decrease during training, but LTP/LTD are activity-dependent and happen continuously, not just during a training phase.
+
+\textbf{Membrane potential} --- the voltage difference across a neuron's cell membrane, typically about $-65$\,mV at rest. Inputs cause it to increase (excitatory) or decrease (inhibitory). When it crosses the threshold (${\sim}{-50}$\,mV), the neuron fires a spike. ML analog: like the pre-activation value in a neuron (the weighted sum before the activation function), but accumulated over time rather than computed fresh each forward pass.
+
+\textbf{Metaplasticity} --- plasticity of plasticity. The rules governing synaptic change are themselves modified by experience. BCM theory's sliding threshold is the best-known example: the threshold for LTP/LTD shifts based on recent activity history. ML analog: like meta-learning or adaptive learning rate schedules (Adam), where the learning process itself adapts based on training history.
+
+\textbf{Mutual information} --- a measure of how much information one variable carries about another. Used primarily as a spike health metric: MI between spike patterns and input patterns measures whether the spikes are informative about the input (MI $> 0.1$ is healthy). ML analog: MI is the same concept in information theory and ML. Todorov tracks spike MI as a diagnostic for whether ternary quantization preserves useful information.
+
+\textbf{NMDA} --- N-methyl-D-aspartate, a type of glutamate receptor. Requires both presynaptic glutamate release and postsynaptic depolarization to open (a biological AND gate). This coincidence detection property makes it the molecular basis of Hebbian learning. Also generates sustained dendritic plateau potentials (NMDA spikes) that enable branch-level computation. ML analog: like a multiplicative gate that requires two conditions to be met simultaneously.
+
+\textbf{Neuromodulation} --- the regulation of neural circuit properties by diffuse chemical signals (dopamine, acetylcholine, norepinephrine, serotonin). Unlike synaptic transmission (point-to-point), neuromodulators broadcast to large brain regions and change how circuits process information rather than directly exciting or inhibiting neurons. ML analog: like global hyperparameters (learning rate, temperature, exploration rate) that are dynamically adjusted based on task state. Doya (2002) mapped dopamine to reward signal, acetylcholine to learning rate, norepinephrine to exploration, serotonin to discount factor.
+
+\textbf{Normalization} --- in neuroscience, this usually refers specifically to divisive normalization, not batch/layer/group normalization.
+
+\textbf{Oscillation} --- rhythmic fluctuation in neural activity. Key frequency bands: theta (4--8\,Hz, memory, navigation), gamma (30--100\,Hz, local computation, attention). Oscillations organize neural computation in time: they create windows for spike timing, coordinate distant brain regions, and multiplex different types of information. ML analog: no direct equivalent in standard architectures. RoPE applies rotations at fixed frequencies to position embeddings, which is mathematically similar ($\mathrm{SO}(2)$ rotation) but computationally different (positional encoding, not temporal coordination).
+
+\textbf{Outer product} --- the product of two vectors yielding a matrix: $\mathbf{x}\mathbf{y}^\top$, where element $(i,j) = x_i y_j$. The fundamental operation in Hebbian associative memory: stores the association between key $\mathbf{x}$ and value $\mathbf{y}$ as a rank-1 matrix. ML analog: the outer product $\mathbf{k}\mathbf{v}^\top$ appears in KDA's delta rule ($S_t = \alpha \, S_{t-1} + \beta \, \mathbf{k}\mathbf{v}^\top$) and is the key-value binding in linear attention. It is the most direct biological-to-ML correspondence in Todorov.
+
+\textbf{Pattern completion} --- retrieving a complete stored pattern from a partial or noisy cue. The defining computation of auto-associative networks (Hopfield networks). Implemented biologically in hippocampal area CA3. Present a fragment and the network fills in the rest by flowing to the nearest attractor in its energy landscape. ML analog: like masked language modeling (predicting missing tokens from context), but implemented via recurrent attractor dynamics rather than feedforward computation.
+
+\textbf{Place cell} --- a hippocampal neuron (CA1/CA3) that fires when an animal is at a specific location in an environment. Discovered by O'Keefe \& Dostrovsky (1971), Nobel Prize 2014. Each place cell has a ``place field'' (${\sim}30$\,cm in rat) where it fires at high rate and is silent elsewhere. The population of place cells maps the entire environment. ML analog: like a learned positional embedding that activates for a specific location, but with one-hot-like sparsity (only a few place cells active at any position).
+
+\textbf{Plasticity} --- the ability of synapses to change their strength. Encompasses short-term plasticity (milliseconds to minutes), Hebbian plasticity (seconds to hours), and homeostatic plasticity (hours to days). Plasticity is how the brain learns and adapts. ML analog: weight updates during training, but biological plasticity also occurs during inference and operates through local rules rather than global backpropagation.
+
+\textbf{Population coding} --- encoding information in the joint activity of a group of neurons, not in any single neuron. A population of $N$ noisy neurons can represent a stimulus more accurately than any individual neuron. Information is extracted by downstream ``decoder'' neurons that read out the population activity. ML analog: like a learned embedding where the representation is distributed across many dimensions, and meaning comes from the pattern of activation, not any single dimension.
+
+\textbf{Precision weighting} --- in predictive coding and the free energy principle, precision (inverse variance) determines how much influence a prediction error has. High-precision errors are trusted and drive updates. Low-precision errors are ignored. ML analog: like the attention weights in a transformer---precision determines which errors matter, just as attention determines which tokens matter. Also related to uncertainty weighting in multi-task learning.
+
+\textbf{Predictive coding} --- a theory of cortical function where each level of a hierarchy maintains a model that predicts the activity below. Only prediction errors propagate upward. Feedback connections carry predictions downward. The brain does not process raw input---it processes surprise. ML analog: next-token prediction in language models is superficially similar (both predict), but predictive coding is bidirectional (top-down predictions + bottom-up errors), uses errors rather than raw inputs, and operates within the architecture, not just as a training objective.
+
+\textbf{Receptive field} --- the region of sensory space (e.g., the visual field) that a neuron responds to. V1 neurons have small, oriented receptive fields resembling Gabor filters. Higher cortical areas have progressively larger and more complex receptive fields. ML analog: directly analogous to the receptive field of a CNN filter---the patch of input that influences a given unit's activation.
+
+\textbf{Recurrent} --- a neural circuit where outputs feed back as inputs, creating a loop. The cortex is heavily recurrent: feedback connections are at least as numerous as feedforward connections. Recurrence enables memory (persistent activity), prediction (generative models), and attractor dynamics (pattern completion). ML analog: like RNN or state-space model hidden states, where previous outputs influence current computation.
+
+\textbf{Reward prediction error} --- the difference between received and expected reward: $\mathrm{RPE} = r_{\mathrm{received}} - r_{\mathrm{expected}}$. Encoded by dopamine neurons (Schultz 1997). Positive RPE (unexpected reward) drives learning. Negative RPE (missing expected reward) drives extinction. ML analog: identical to the TD error in reinforcement learning.
+
+\textbf{RoPE (biological analog)} --- rotary position embedding in transformers applies complex-valued rotations to encode token position. The biological analog is the oscillatory activity in the entorhinal cortex and hippocampus, where position is encoded by the phase of oscillations. Both use rotation ($\mathrm{SO}(2)$ symmetry) to represent position, but the biological version involves network-generated oscillations, not fixed frequency embeddings.
+
+\textbf{Sharp wave ripple} --- a brief (50--100\,ms) high-frequency (100--250\,Hz) oscillation in the hippocampus. Occurs during quiet rest and slow-wave sleep. Associated with memory replay: recently experienced sequences are replayed at compressed timescale during ripples, driving memory consolidation from hippocampus to cortex. ML analog: like experience replay in reinforcement learning, where stored experiences are replayed to train the network during off-policy periods.
+
+\textbf{Soma} --- the cell body of a neuron. Contains the nucleus and integrates synaptic inputs from dendrites. The site of spike initiation (at the axon hillock). ML analog: the summation and activation function of a neural network unit.
+
+\textbf{Sparse coding} --- representing information using a small fraction of available neurons (Olshausen \& Field 1996). An overcomplete dictionary of features is learned such that any input activates only a few features. Minimizes the reconstruction error plus an $L_1$ sparsity penalty. Applying sparse coding to natural images produces Gabor-like filters matching V1 receptive fields. ML analog: like a sparse autoencoder or dictionary learning with $L_1$ regularization. Todorov's ternary spikes achieve ${\sim}41\%$ firing rate, much denser than biological sparse coding (1--10\%).
+
+\textbf{Spike} --- see action potential. The all-or-nothing electrical pulse that neurons use to communicate. In Todorov, extended to ternary: $\{-1, 0, +1\}$.
+
+\textbf{STDP} --- spike-timing-dependent plasticity (Bi \& Poo 1998). A form of Hebbian learning where the sign and magnitude of synaptic change depend on the precise timing between pre- and postsynaptic spikes. Pre-before-post (causal): synapse strengthens (LTP). Post-before-pre (anti-causal): synapse weakens (LTD). Implements causal inference at the synapse level. ML analog: no direct equivalent in standard ML. The timing dependence has no parallel in gradient-based learning.
+
+\textbf{Synapse} --- the junction between two neurons where chemical or electrical signals pass. Presynaptic neuron releases neurotransmitter, which binds to receptors on the postsynaptic neuron, changing its membrane potential. The brain has roughly 100 trillion synapses. ML analog: a connection with a weight in a neural network.
+
+\textbf{Synaptic scaling} --- a homeostatic mechanism where all excitatory synapses on a neuron are multiplicatively scaled up or down to maintain a target firing rate (Turrigiano 1998). Operates on hours-to-days timescale. Prevents runaway excitation from Hebbian learning while preserving relative weight structure. ML analog: like weight normalization or batch normalization---a stabilizing mechanism that keeps activations in a useful range without disrupting the learned structure.
+
+\textbf{Ternary spike} --- Todorov's extension of the biological binary spike to three values: $\{-1, 0, +1\}$. Produced by: $\mathrm{output} = \mathrm{sign}(x) \cdot \mathbf{1}[|x| > \mathrm{threshold}]$. The threshold adapts to input statistics: $\mathrm{threshold} = \alpha \cdot \mathrm{mean}(|x|)$. At $\alpha = 1.0$, produces ${\sim}41\%$ firing rate (59\% silent). Provides 1.58 bits per dimension vs 32 bits for FP32. ML analog: a form of extreme quantization that forces sparse information representation.
+
+\textbf{Thalamus} --- a subcortical structure that relays and gates sensory information to the cortex. Every sense except smell passes through the thalamus before reaching cortex. It is not a passive relay: it can filter, amplify, or suppress signals. First-order relays pass sensory input to cortex. Higher-order relays route information between cortical areas. The reticular nucleus (TRN) acts as an inhibitory gate. ML analog: like a learned routing or gating mechanism that controls which information reaches the processing layers.
+
+\textbf{Theta oscillation} --- rhythmic neural activity at 4--8\,Hz, dominant in the hippocampus during active exploration and memory encoding. Organizes gamma oscillations and spike timing. The theta-gamma ratio may determine working memory capacity (${\sim}7$ items). Different phases of each theta cycle serve different functions (encoding vs retrieval). ML analog: no direct equivalent. The closest analog is the concept of a ``processing step'' in which multiple sub-computations (gamma cycles) are organized by a slower scheduling signal.
+
+\textbf{Threshold} --- the membrane potential at which a neuron fires a spike (typically ${\sim}{-50}$\,mV in cortical neurons). Once crossed, the spike is inevitable and follows a stereotyped trajectory. In real neurons, the threshold is not fixed---it depends on recent firing history, rate of depolarization, and neuromodulatory state. In Todorov, the threshold is adaptive: $\mathrm{threshold} = \alpha \cdot \mathrm{mean}(|x|)$, where $\alpha$ is learnable. ML analog: like the bias term in a ReLU that determines the activation threshold, but adaptive and data-dependent.
+
+\textbf{WTA (winner-take-all)} --- a competitive selection operation where the most active neuron (or $k$ most active neurons) suppresses all others. Implemented by lateral inhibition through inhibitory interneurons. Enforces sparse coding by allowing only the strongest responses to survive. ML analog: argmax (hard WTA) or softmax (soft WTA). Top-$k$ selection in sparse mixture-of-experts is a direct $k$-WTA implementation.
+
+\newpage
+
+%% ============================================================
+%%  III. ARCHITECTURE MAPPING
+%% ============================================================
+
+\section{III. Architecture Mapping}
+
+\subsection{Todorov Biology Map}
+
+Master reference mapping every Todorov component to its biological analog. For each component: what it does in Todorov, what it maps to in biology, what the mapping gets wrong, and how deep the correspondence runs.
+
+\subsubsection{KDA}
+
+KDA is a delta-rule recurrent layer that maintains a matrix-valued associative memory. 18 of 24 layers (75\%) are KDA.
+
+\paragraph{State update.}
+\[
+  S_t = \mathrm{diag}(\alpha)\, S_{t-1} + \beta_t\, \mathbf{k}_t \mathbf{v}_t^\top
+\]
+\begin{itemize}
+  \item \textbf{Hebbian learning}: the outer product $\mathbf{k}_t \mathbf{v}_t^\top$ is the classical Hebbian association rule. This is the most direct biological correspondence in the entire architecture.
+  \item \textbf{Short-term plasticity}: $\alpha$ decay resembles synaptic depression (activity-dependent decay of synaptic efficacy).
+  \item Not STDP: no timing dependence. $\mathbf{k}$ and $\mathbf{v}$ come from the same timestep. STDP requires comparing activity at different times.
+\end{itemize}
+
+\paragraph{$\alpha$ (channel-wise forgetting rate).}
+$\alpha = \sigma(\alpha_{\mathrm{log}})$. Homeostatic plasticity: prevents state saturation, maintains bounded activity. Different channels decay at different rates, allowing a hierarchy of memory timescales. Not neuromodulation: $\alpha$ is per-channel and fixed after training. Biological neuromodulation is a small number of global, dynamic signals that change moment-to-moment.
+
+\paragraph{$\beta$ (data-dependent write gate).}
+$\beta_t = \sigma(\mathrm{beta\_proj}(x_t))$. Acetylcholine system: input-dependent gating of memory encoding. High $\beta$ = encoding mode (write to state), low $\beta$ = preservation mode (read from state). The closest biological analog to any parameter in Todorov. Mapping gap: $\beta$ sees only the current token $x_t$. Biological ACh is driven by global signals (novelty, uncertainty, task demands). $\beta$ has no access to global state.
+
+\paragraph{Readout.}
+$\mathbf{o}_t = \mathbf{q}_t^\top S_t$. Pattern completion: content-addressable retrieval from associative memory, identical in structure to Hopfield network recall. Mapping gap: KDA readout is linear (one matrix-vector multiply). Hopfield recall uses iterative convergence with attractor dynamics. KDA has no error correction.
+
+\subsubsection{MLA}
+
+MLA performs softmax attention over compressed per-token representations. 6 of 24 layers (25\%).
+
+\paragraph{Softmax attention.}
+\[
+  \mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{d}}\right) V
+\]
+Pattern completion: Ramsauer et al.\ (2021) proved softmax attention is the update rule of a modern Hopfield network with exponential capacity $2^{d/2}$. Not selective attention: MLA computes information retrieval (finding relevant past tokens). Biological attention computes resource allocation (directing processing to relevant stimuli). Different problems.
+
+\paragraph{KV compression.}
+$\mathbf{c}_{\mathrm{kv}} = W_{\mathrm{down}}(\mathbf{x})$, projecting $d_{\mathrm{model}} \to d_c = 128$. Hippocampal memory: hippocampal indexing theory (Teyler and DiScenna 1986) proposes that the hippocampus stores compressed pointers to cortical patterns, not full patterns. MLA's compressed latent $\mathbf{c}_{\mathrm{kv}}$ is a compressed index to the full token representation. Mapping gap: hippocampal indices are stored through rapid synaptic modification (LTP). MLA stores $\mathbf{c}_{\mathrm{kv}}$ in a passive cache with no learning.
+
+\paragraph{Full cache (no forgetting).}
+MLA retains every token until the context limit. No decay, no consolidation, no transfer to a slower system. The absence of forgetting is an engineering advantage, not a biological principle.
+
+\paragraph{25\% allocation.}
+The 3:1 ratio comes from ML benchmarks (Kimi, Qwen3, OLMo independently converged on ${\sim}75/25$). The resemblance to biological attention's sparsity is coincidental.
+
+\subsubsection{Mamba3}
+
+Mamba3 is a state-space model with complex rotation and data-dependent discretization. 3 of 24 layers (at positions 4, 12, 20).
+
+\paragraph{State evolution.}
+$\mathbf{h}_t = \bar{A}_t \, \mathbf{h}_{t-1} + \bar{B}_t \, B_t \, \mathbf{x}_t$. Leaky integrate-and-fire: discretized linear ODE with decay ($\bar{A}$) and input drive ($\bar{B} \cdot \mathbf{x}$). The state decays exponentially toward zero while accumulating input. Structurally identical to a population of LIF neurons without spikes. Mapping gap: Mamba3 uses negative real eigenvalues (stable exponential decay). LIF neurons spike and reset. Mamba3 has no threshold, no spike, no reset.
+
+\paragraph{Complex rotation.}
+$\theta = f_{\mathrm{rope}} \cdot t$. $\mathrm{SO}(2)$ rotation at learned frequencies, producing oscillatory state dynamics. 16 dimension pairs, each oscillating at its own frequency. Mapping gap: biological gamma arises from network dynamics (E--I interaction). Mamba3's $f_{\mathrm{rope}}$ is a static parameter, not an emergent network property. The rotation likely serves as positional encoding (RoPE for the recurrent state), not as an oscillatory mechanism.
+
+\paragraph{Data-dependent discretization.}
+$dt = \mathrm{softplus}(\mathrm{dt\_proj}(\mathbf{x}) + \mathrm{dt\_bias})$. Partial analog to norepinephrine adaptive gain: $dt$ modulates how strongly the input drives the state. Mapping gap: $dt$ affects the decay rate ($\bar{A}$) but not the rotation frequency ($f_{\mathrm{rope}}$). Biological neuromodulation affects both.
+
+\subsubsection{SwiGLU}
+
+SwiGLU is the feedforward layer. Applied at every layer (all 24).
+
+\paragraph{Multiplicative gating.}
+$\mathrm{SiLU}(W_{\mathrm{gate}}(\mathbf{x})) \odot W_{\mathrm{up}}(\mathbf{x})$. Dendritic computation: multiplicative interaction between two independent transformations of the input. Analogous to NMDA receptor coincidence detection (requires both presynaptic glutamate and postsynaptic depolarization). Mapping gaps (high): SwiGLU uses one gate for the entire hidden dimension; pyramidal neurons have ${\sim}30\text{--}50$ independent dendritic branches. Both paths receive the same input $\mathbf{x}$; biological dendritic gating involves different sources (feedforward via basal dendrites, feedback via apical tuft).
+
+\paragraph{Hidden dimension expansion.}
+$d_{\mathrm{model}} \to {\sim}2.75 \cdot d_{\mathrm{model}} \to d_{\mathrm{model}}$. Two-layer neuron model: Poirazi et al.\ (2003) showed a pyramidal neuron is computationally equivalent to a two-layer network with ${\sim}30\text{--}50$ hidden units. SwiGLU's expand-process-compress pattern is the same architecture. Mapping gap: the expansion ratios differ by orders of magnitude ($2.75\times$ vs ${\sim}1000\times$). Biology creates independent subunits; SwiGLU creates one shared space.
+
+\paragraph{GP self-interaction.}
+$\mathrm{out} + \mathrm{gp\_proj}(\mathrm{GP}(W_L(\mathbf{x}),\, W_R(\mathbf{x})))$. PGA can express rotations, translations, reflections (the operations underlying spatial computation). $\mathcal{G}(3,0,1)$ is a superset of $\mathrm{SE}(2)$. Mapping gap: connection is weak to nonexistent at implementation level. PGA is a self-interaction (both inputs from same $\mathbf{x}$), not path integration (accumulating velocity over time). The GP likely functions as a structured bilinear mixer, not a spatial computation module.
+
+\subsubsection{Ternary Spikes}
+
+Ternary quantization of activations to $\{-1, 0, +1\}$. Applied to KDA $K$ and $V$ projections (18 layers).
+
+\paragraph{Quantization.}
+$\mathrm{sign}(x) \cdot \mathbf{1}[|x| > \mathrm{threshold}]$. Sparse coding: biological neurons produce discrete spikes from continuous input. Mapping gap: biological spikes are binary (fire or not), not ternary. The $+1/-1$ distinction maps loosely to excitation/inhibition but individual neurons are either excitatory or inhibitory (Dale's law), never both.
+
+\paragraph{Adaptive threshold.}
+$\mathrm{threshold} = \alpha \cdot \mathrm{mean}(|x|)$. Divisive normalization: the threshold adapts to the population mean activation, a crude form of gain control. Mapping gap (high): one scalar threshold for all neurons. Biological divisive normalization computes per-neuron or per-pool normalization.
+
+\paragraph{${\sim}41\%$ firing rate.}
+Not energy-efficient coding: cortical neurons fire at 1--5\%. The optimal rate for bits-per-joule is ${\sim}6\%$. Todorov's 41\% is 4--40$\times$ denser than biology. The gap exists because the STE gradient requires active neurons for gradient flow.
+
+\paragraph{STE backward pass.}
+No biological analog. STE is an engineering workaround: treat the non-differentiable quantization as identity during backpropagation. Biology uses local plasticity rules (Hebbian, STDP), not backpropagated gradients.
+
+\subsubsection{ATMN}
+
+ATMN adds temporal dynamics to ternary spikes via membrane potential integration. Implemented, not yet validated at scale.
+
+\paragraph{Membrane potential.}
+$h_t = x_t + \frac{1}{\tau}\, u_{t-1}$. Leaky integrate-and-fire: temporal integration of input over time. Mapping gap (high): no leak term. The LIF's $-g_L(V - V_{\mathrm{rest}})$ drives voltage back toward rest. ATMN's $1/\tau$ scales the carried-over potential but does not decay it toward a resting value.
+
+\paragraph{Per-neuron threshold.}
+$V_{\mathrm{th}} = \exp(\mathrm{threshold\_log})$. Loosely analogous to the adaptive exponential integrate-and-fire model: each neuron has its own firing threshold, allowing feature-specific sparsity. Mapping gap (low): biological thresholds are modulated dynamically; ATMN's threshold is static after training.
+
+\paragraph{Reset by subtraction.}
+$u_t = h_t - \mathrm{spikes} \cdot V_{\mathrm{th}}$. After firing, the membrane potential is reduced by the threshold value. Residual potential carries over. Biologically plausible. Mapping gap: none significant. This is a faithful implementation of soft reset.
+
+\paragraph{Training reset.}
+Membrane potential = zeros at each forward pass. No biological analog. This is the most significant departure. Biological neurons never ``reset between batches.'' The batch reset eliminates temporal dynamics during training, making ATMN a per-token threshold function rather than a temporal integrator.
+
+\subsubsection{Geometric Product}
+
+$\mathcal{G}(3,0,1)$ projective geometric algebra self-interaction. Additive after SwiGLU down projection.
+
+\paragraph{PGA algebraic structure.}
+Grid cells and path integration: the spatial navigation system operates in $\mathrm{SE}(2)$ (translations + rotations). PGA encodes $E(3)$, a superset. Grid cells implement representations of the translation group (Gao et al.\ 2021). The mathematical language is shared. Mapping gap (fundamental): PGA is a self-interaction ($f(\mathbf{x}, \mathbf{x})$), not path integration (accumulating velocity signals over time). The periodicity that defines grid cells (hexagonal firing patterns) is absent from PGA.
+
+\paragraph{Structured bilinear mixing.}
+16 components via Cayley table. No specific biological analog. The GP computes 16 specific bilinear combinations of its inputs with signs and targets dictated by the algebra. Validated: spike MI all-time high 1.311 with GP active. Not validated: whether geometric structure specifically (vs generic bilinear) drives the improvement.
+
+\subsubsection{RMSNorm}
+
+Root mean square normalization before every sublayer.
+
+\[
+  y_i = \gamma_i \cdot \frac{x_i}{\sqrt{\mathrm{mean}(x^2) + \epsilon}}
+\]
+
+Divisive normalization: division by pooled population activity. RMSNorm is a special case: uniform pool weights ($w_j = 1/d$ for all $j$), no power law (linear numerator), no semi-saturation constant ($\epsilon \ll 1$). Mapping gap: RMSNorm pools all dimensions equally. Biological divisive normalization uses structured pools (nearby neurons contribute more). RMSNorm is global and uniform; biology is local and weighted.
+
+\subsubsection{Residual Stream}
+
+The sole inter-layer communication channel: $\mathbf{x}_{l+1} = \mathbf{x}_l + f_l(\mathrm{RMSNorm}(\mathbf{x}_l))$.
+
+Global workspace theory: the residual stream is functionally a shared workspace. It is the only communication channel. Information from any layer is available to all subsequent layers. Mapping gap (critical): no ignition threshold. GWT's defining feature is a nonlinear, all-or-none broadcast event. The residual stream always broadcasts everything. No capacity limit (GWT holds ${\sim}4$ items; the residual stream carries the full $d_{\mathrm{model}}$ vector). No write selectivity (every layer writes unconditionally). Verdict: the residual stream is a shared bus, not a global workspace.
+
+\subsubsection{RoPE}
+
+Rotation applied to $Q$ and $K$ in KDA and MLA layers.
+
+Theta oscillations: RoPE produces periodic modulation of query-key similarity as a function of relative position. This creates a pattern where nearby tokens interact differently than distant tokens, loosely analogous to theta phase precession. Mapping gap: RoPE is a fixed, deterministic function of position. Theta oscillations are dynamic, modulated by behavior, and emerge from network dynamics. The periods in RoPE are geometric ($2\pi i / d$); theta is a single ${\sim}7$\,Hz rhythm.
+
+\subsubsection{Layer Schedule}
+
+(KDA, KDA, KDA, Mamba3, KDA, KDA, KDA, MLA) $\times 3$. The architecture's 3:1 ratio (75\% KDA, 25\% other).
+
+Cortical column: cortex has a canonical microcircuit repeated across areas, with different neuron types at fixed proportions. The 3:1 ratio echoes this structural regularity. Mapping gap: the ratio comes from ML engineering benchmarks, not neuroscience. Cortical layers process in parallel (all layers simultaneously active). Todorov layers process in serial (one after another). Cortical layers have heterogeneous connectivity. Todorov layers all see the same residual stream.
+
+\subsubsection{Spike Health Metrics}
+
+MI, CKA, and firing rate monitoring.
+
+\begin{itemize}
+  \item \textbf{Mutual information} (MI $> 0.1$): efficient coding. MI measures how much input information survives quantization. Equivalent to measuring the rate-distortion tradeoff of the spike code. MI of 1.168 at 267M scale = 74\% channel utilization.
+  \item \textbf{CKA} ($> 0.3$): population coding. CKA measures whether the geometry (similarity structure) of representations is preserved through quantization. High CKA = a linear decoder trained on pre-spike data also works on post-spike data.
+  \item \textbf{Firing rate} (20--60\%): energy-efficient coding. The fraction of active neurons. Biology targets 1--5\% for energy efficiency. Todorov targets 20--60\% for gradient health. The 41\% operating point maximizes MI while maintaining stable STE gradients.
+  \item \textbf{Missing metrics}: noise correlations (not measured, could limit information capacity below per-dimension MI estimate) and inter-neuron redundancy (not measured, high per-dimension MI with redundant neurons = inefficient code).
+\end{itemize}
+
+\subsubsection{The CRBR Framework}
+
+The unified theory: every layer instantiates $z_t = Q(R(B(C(x_t),\, C(h_{t-1}))))$.
+
+\begin{itemize}
+  \item $C$ (compression): ternary spikes, latent projection, gating --- sparse coding, efficient coding. The brain compresses information through sparse activation.
+  \item $B$ (bilinear interaction): outer product, dot product, geometric product --- Hebbian learning, pattern completion. The brain stores and retrieves via bilinear operations.
+  \item $R$ (rotational structure): RoPE, complex dynamics, PGA rotors --- grid cells, theta oscillations. Periodic structure encodes position and temporal relationships.
+  \item $Q$ (output quantization): ternary spike output --- sparse coding. Discrete output enforces information bottleneck.
+\end{itemize}
+
+The framework unifies the components but no single biological system implements all four stages in this order. The composition $C$--$B$--$R$--$Q$ is an engineering abstraction, not a biological circuit.
+
+\newpage
+
+%% ============================================================
+%%  IV. KEY FINDINGS
+%% ============================================================
+
+\section{IV. Key Findings}
+
+\subsection{15 Adversarial Findings}
+
+The following findings emerged from systematic adversarial analysis of Todorov's biological claims. Each finding identifies where the biology-to-architecture mapping is genuine, shallow, or misleading.
+
+\begin{enumerate}
+
+\item \textbf{KDA outer product is genuine Hebbian learning.} The $\mathbf{k}_t \mathbf{v}_t^\top$ update is the same rank-1 association rule used in Hopfield networks (1982) and biological synaptic plasticity. This is not an analogy---it is the same equation. The strongest biological correspondence in the architecture.
+
+\item \textbf{$\alpha$ decay is not neuromodulation.} $\alpha$ is per-channel and fixed after training. Biological neuromodulation (dopamine, acetylcholine) is global and dynamic. $\alpha$ is closer to synaptic depression (passive, channel-specific decay) than to active neuromodulatory control.
+
+\item \textbf{$\beta$ gate is the closest analog to acetylcholine.} Data-dependent write gating ($\beta_t = \sigma(\mathrm{beta\_proj}(x_t))$) controls memory encoding based on input. But $\beta$ sees only local input; biological ACh is driven by global signals (novelty, uncertainty, task demands).
+
+\item \textbf{Ternary spikes violate Dale's law.} Each ``neuron'' can produce $-1$ or $+1$, switching between excitation and inhibition. Biological neurons are exclusively excitatory or inhibitory. The ternary scheme is better understood as signed sparse coding than as biological spiking.
+
+\item \textbf{41\% firing rate is 8--40$\times$ denser than biology.} Cortical neurons fire at 1--5\%. The gap exists because the STE requires active neurons for gradient flow. This is a genuine tradeoff: gradient trainability vs biological capacity and energy efficiency.
+
+\item \textbf{ATMN lacks the leak term.} The LIF equation's $-g_L(V - V_{\mathrm{rest}})$ drives voltage back toward rest. ATMN's $1/\tau$ scales carried-over potential but provides no decay toward baseline. Without leak, sustained input causes unbounded accumulation.
+
+\item \textbf{ATMN batch reset destroys temporal dynamics.} Resetting membrane potential to zero each forward pass eliminates the temporal integration that defines biological neurons. During training, ATMN functions as a per-token threshold, not a temporal integrator.
+
+\item \textbf{SwiGLU is a single-branch neuron.} Pyramidal neurons have ${\sim}30\text{--}50$ independent dendritic branches performing independent nonlinear gating. SwiGLU uses one gate for the entire hidden dimension. The mapping captures the principle (multiplicative gating) but misses the structure (independent subunits).
+
+\item \textbf{GP self-interaction is not path integration.} PGA self-interaction ($f(\mathbf{x}, \mathbf{x})$) computes static bilinear combinations. Grid cell path integration accumulates velocity signals over time. The mathematical language ($\mathrm{SE}(2)$, rotations, translations) is shared, but the computation is fundamentally different. The critical experiment (GP vs random bilinear control) has not been run.
+
+\item \textbf{Mamba3 rotation is positional encoding, not oscillatory coordination.} Learned frequencies are static, do not modulate with input, and have no cross-frequency coupling or inter-layer coherence. Biological gamma oscillations dynamically route information through phase synchronization.
+
+\item \textbf{The residual stream is a shared bus, not a global workspace.} No ignition threshold, no capacity limit (${\sim}4$ items in GWT), no competition for access. The topology (shared medium accessible by all layers) matches, but the dynamics do not.
+
+\item \textbf{MLA is information retrieval, not selective attention.} MLA computes which past tokens are relevant to the current query. Biological attention computes which stimuli receive processing resources. The mathematical operation (softmax over similarities) is the same; the computational problem is different.
+
+\item \textbf{No consolidation mechanism.} The brain transfers memories from hippocampus to cortex via sleep replay. Todorov has no mechanism to transfer salient KDA state to permanent storage. Not a limitation at 2K--8K tokens. Would become a gap at 100K+.
+
+\item \textbf{No dendritic computation.} Biological neurons compute nonlinear functions on individual dendritic branches before summing at the cell body (${\sim}30\text{--}50$ independent subnetworks per neuron). Todorov neurons receive a single weighted sum.
+
+\item \textbf{No oscillatory coordination.} Phase-dependent gating between regions---the most powerful biological mechanism for dynamic routing---has no analog in the architecture. This is the largest gap between Todorov and biological neural computation.
+
+\end{enumerate}
+
+\subsection{Top 5 Interventions}
+
+Ranked by expected impact on architecture quality, conditioned on the biological analogy holding at scale.
+
+\begin{enumerate}
+
+\item \textbf{Add leak term to ATMN.} Replace $h_t = x_t + \frac{1}{\tau}\, u_{t-1}$ with $h_t = (1 - \alpha)\, u_{t-1} + x_t$ where $\alpha$ is learnable. Restores LIF structure. Expected to improve temporal dynamics without harming gradient flow. Low implementation risk.
+
+\item \textbf{Remove batch reset in ATMN.} Carry membrane potential across batches during training (with gradient detach at batch boundaries). Required for ATMN to function as a temporal integrator rather than a per-token threshold. Medium implementation risk (potential training instability).
+
+\item \textbf{Run GP vs random bilinear control.} The critical missing experiment. Compare the geometric product's algebraic structure against a random bilinear layer with matched parameter count. If the random control matches GP performance, the algebraic structure is not contributing and can be simplified. Zero implementation risk.
+
+\item \textbf{Multi-branch SwiGLU.} Replace the single gate with ${\sim}4\text{--}8$ independent gates, each controlling a subset of the hidden dimension. Moves SwiGLU closer to biological dendritic computation (independent subunits with separate nonlinearities). Medium implementation risk, moderate parameter overhead.
+
+\item \textbf{Phase-dependent inter-layer gating.} Add learned oscillatory gating between layers, where the ``phase'' of each layer modulates how strongly it writes to the residual stream. Addresses the largest biological gap (oscillatory coordination) but is the most speculative intervention. High implementation risk, novel mechanism with no precedent in ML.
+
+\end{enumerate}
+
+\end{document}
