@@ -188,8 +188,11 @@ this is the flat reference catalog. for guided navigation, start at [[start_here
 - simulations/spatial/ (1 script: grid_cell_model)
 - simulations/consciousness/ (1 script: ignition_dynamics)
 
-## knowledge (1 article)
+## knowledge (4 articles)
 - knowledge/neuroscience_research_2026.md -- curated peer-reviewed neuroscience research library (2020-2026), 16 papers across dendritic computation, cortical microcircuits, memory systems, energy constraints, attention, oscillations
+- knowledge/perception_and_consciousness_research.md -- curated research library on perception, consciousness, attention, embodiment, and time at the cognitive level, 30+ sources from helmholtz to cogitate 2025
+- knowledge/decision_and_emotion_research.md -- curated research library on decision making, emotion, reward, intuition, social cognition, and rationality, 25+ sources across evidence accumulation, somatic markers, dopamine, heuristics, theory of mind, predictive brain
+- knowledge/memory_systems_research.md -- curated cognitive and systems-level memory research library, 25 sources across spatial memory, episodic/semantic, working memory, reconsolidation, expertise, prospective memory, cross-species memory
 
 ## statistics
 - total mechanism articles: 61
@@ -200,5 +203,5 @@ this is the flat reference catalog. for guided navigation, start at [[start_here
 - total entity notes: 33
 - total comparison articles: 13
 - total concept articles: 7
-- total knowledge articles: 1
+- total knowledge articles: 4
 - last updated: 2026-04-08

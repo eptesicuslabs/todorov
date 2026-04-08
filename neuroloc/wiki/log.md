@@ -1,5 +1,68 @@
 # neuroloc operation log
 
+## 2026-04-08 memory systems research library created | 1 knowledge article
+
+new knowledge article:
+- knowledge/memory_systems_research.md: curated library of 25 sources on how biological memory works at the cognitive and systems level, organized across 7 domains
+
+coverage:
+- spatial memory and the method of loci (5 sources): yates 1966 (method of loci exploits hippocampal spatial indexing), foer 2011 (competitive memorizers encode via spatial narratives), maguire et al. 2000 (taxi drivers show enlarged posterior hippocampi), dresler et al. 2017 (40 days loci training doubles recall, reshapes networks), engel de abreu et al. 2021 (loci improvements last 4+ months)
+- episodic vs semantic memory (5 sources): tulving 1972/1983 (episodic/semantic distinction), nadel & moscovitch 1997 (multiple trace theory, hippocampus permanently required), moscovitch et al. 2016 (trace transformation theory), mcclelland et al. 1995 (complementary learning systems), sherman et al. 2024 (opposing representations colocated in ca1)
+- working memory (4 sources): miller 1956 (7 plus/minus 2 chunks), cowan 2001 (true capacity is 4), baddeley & hitch 1974/2000 (multi-component model), ericsson & kintsch 1995 (long-term working memory)
+- memory reconsolidation (3 sources + replication note): nader et al. 2000 (retrieved memories require protein synthesis), schiller et al. 2010 (fear update within reconsolidation window), sevenster et al. 2014 (prediction error gates destabilization)
+- expertise and chunking (3 sources): de groot 1946/1978 (chess masters recall game positions), chase & simon 1973 (50,000-100,000 chunked patterns), neural efficiency hypothesis
+- prospective memory and mental time travel (4 sources): bartlett 1932 (memory is constructive), suddendorf & corballis 2007 (episodic memory and future simulation share one substrate), addis et al. 2007 (remembering and imagining activate same dmn), schacter 2012 (memory errors are features of a simulation system)
+- memory across species (5 sources): clayton & dickinson 1998 (scrub jay what-where-when), jozet-alves et al. 2013 (cuttlefish episodic-like memory without hippocampus), wilson & mcnaughton 1994 (hippocampal replay during sleep), dragoi & tonegawa 2011 (hippocampal preplay), gershman et al. 2025 (hippocampus as key-value cam)
+
+relevance to todorov section summarizes:
+- validated: kda delta rule as cam (gershman et al. 2025), read-modify-write cycle (reconsolidation), 3:1 kda-to-mla as episodic/semantic asymmetry, ternary spikes as chunking, rope as spatial addressing
+- challenged: no replay mechanism, cowan-like working memory bottleneck via query heads, untested separation/completion duality in kda state, no offline preplay mode
+- future phases: replay-based consolidation during inference, query head count experiments, separation/completion probes
+
+index.md updated: knowledge section now 4 articles, statistics updated
+
+## 2026-04-08 decision and emotion research library created | 1 knowledge article
+
+new knowledge article:
+- knowledge/decision_and_emotion_research.md: curated library of 25+ sources on decision making, emotion, reward, intuition, social cognition, and rationality relevant to building a neural computer
+
+coverage:
+- evidence accumulation and decision (5 entries): ratcliff 1978/2008 (drift-diffusion model), shadlen & newsome 2001 (lip ramping), gold & shadlen 2007 (complete decision circuit), thura & cisek 2017 (urgency gating), speed-accuracy tradeoff dynamics
+- emotion as computation (5 entries): damasio 1994 (somatic markers), damasio 1999 (layered self), ledoux 1996/2015 (survival circuits), barrett 2017 (constructed emotion), craig 2003 (interoception)
+- reward and motivation (4 entries): schultz, dayan & montague 1997 (td prediction error), berridge & robinson 1998 (wanting vs liking), padoa-schioppa & assad 2006 (subjective value in ofc), basal ganglia action selection
+- intuition and insight (4 entries): jung-beeman et al. 2004 (gamma burst before insight), bowden & beeman 1998 (coarse semantic coding), dijksterhuis & nordgren 2006 (unconscious thought theory), bowers et al. 1990 (two-stage intuition)
+- social cognition (5 entries): rizzolatti et al. 1996 (mirror neurons), hickok 2014 (mirror neuron critique), saxe & kanwisher 2003 (rtpj and theory of mind), premack & woodruff 1978 (theory of mind coined), dunbar 1992/1998 (social brain hypothesis)
+- the predictive brain (4 entries): rao & ballard 1999 (predictive coding), friston 2010 (free energy principle), botvinick et al. 2001 (acc conflict monitoring), active inference
+- rationality and heuristics (5 entries): tversky & kahneman 1974 (heuristics and biases), kahneman 2011 (system 1/2), gigerenzer et al. 1999 (ecological rationality), gigerenzer & brighton 2009 (less-is-more), dayan & daw 2008 (model-based vs model-free)
+
+relevance to todorov section summarizes:
+- reinforced: accumulate-to-bound as fundamental computation, compression improves generalization (gigerenzer less-is-more matches ternary spike rationale), fast/slow duality maps to 3:1 kda:mla ratio, reward is multidimensional
+- challenged: fixed thresholds miss urgency dynamics (thura & cisek), single recurrent state limits social computation (theory of mind), constructed emotion challenges modular design
+- phase 6+: somatic markers as learned biases, theory of mind / multi-agent, active inference training objective, metacognitive conflict monitoring
+
+index.md updated: knowledge section expanded to 3 articles, statistics updated
+
+## 2026-04-08 perception and consciousness research library created | 1 knowledge article
+
+new knowledge article:
+- knowledge/perception_and_consciousness_research.md: curated library of 30+ sources on perception, consciousness, attention, embodiment, and time at the cognitive level
+
+coverage:
+- perception as construction (7 sources): helmholtz 1866 (unconscious inference), gregory 1970 (illusions as failed hypotheses), rao & ballard 1999 (predictive coding), friston 2010 (free energy principle), seth 2021 (controlled hallucination), clark 2016 (surfing uncertainty), hohwy 2013 (predictive mind)
+- visual processing (4 sources): ungerleider & mishkin 1982 (two streams), goodale & milner 1992 (dorsal = "how"), kanwisher et al. 1997 (fusiform face area), yamins & dicarlo 2016 (deep nets match it cortex)
+- consciousness theories (8 sources): chalmers 1995/1996 (hard problem), baars 1988 / dehaene 2014 (global workspace), tononi 2004/2016 (iit), cogitate 2025 (adversarial test, both theories partially fail), lau & rosenthal 2011 (higher-order), lamme 2006 (recurrent processing), damasio 1999/2010 (embodied consciousness), metzinger 2003/2009 (transparent self-model)
+- attention (4 sources): broadbent 1958 (early filter), treisman & gelade 1980 (feature integration), posner & petersen 1990 (three networks), desimone & duncan 1995 (biased competition)
+- embodied cognition (3 sources): varela et al. 1991 (enactivism), clark & chalmers 1998 (extended mind), clark 2008 (supersizing the mind)
+- time perception (3 sources): james 1890 (specious present), eagleman 2008 (postdictive construction), buonomano 2017 (dual timing systems)
+- synesthesia and unusual perception (2 sources): ramachandran & hubbard 2001 (cross-activation), weiskrantz 1974 (blindsight)
+
+relevance to todorov section summarizes:
+- structural analogs present: generative inference (next-token = unconscious inference), recurrence (lamme prerequisite), global broadcast (residual stream), attentional bottleneck (ternary spikes)
+- structural absences: embodiment (no sensors/effectors/body), temporal structure (single uniform mechanism), self-monitoring (no self-representation), binding by attention (not needed -- features never spatially distributed)
+- conclusion: cognitive level becomes relevant at phase 6+; current findings counsel epistemic humility about cognitive claims
+
+index.md updated: knowledge section count updated to 2, new article listed
+
 ## 2026-04-08 neuroscience research library created | 1 knowledge article
 
 new knowledge article:
