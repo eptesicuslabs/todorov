@@ -175,6 +175,105 @@ simulation you plan to build or improve:
 5. **validation**: run the simulation, check results against expectations,
    launch documentator to verify outputs.
 
+### kaggle execution
+
+all brian2 simulations run on CPU and fit within kaggle's free tier. for
+pytorch-based experiments (BCM-like alpha, GP vs bilinear, integration
+circuits), use the kaggle T4 GPU.
+
+**kaggle setup:**
+- kernel: `dttdrv/todorov-autoresearch`
+- auth: read `~/.kaggle/kaggle.json`, set `KAGGLE_API_TOKEN` env var
+  BEFORE importing the kaggle package (it auto-authenticates on import)
+- always use `acc="NvidiaTeslaT4"` in kernels_push
+- use `scripts/kaggle_exec.py` for push/poll/pull (the mcp-server-kaggle
+  package is BROKEN -- do not use it)
+
+**working pattern:**
+```
+KAGGLE_API_TOKEN="KGAT_..." python -u scripts/kaggle_exec.py [script.py] [timeout_min]
+```
+
+**kaggle quirks:**
+- `kernels_status()` returns 404 for ~60s after push on new kernels
+- `kernels_output()` returns the LAST COMPLETED run, not the current one
+- no streaming log API -- view live output on kaggle.com UI only
+- always reuse the existing kernel `dttdrv/todorov-autoresearch`
+
+**what runs where:**
+- brian2 CPU simulations (track A upgrades): kaggle CPU, no GPU needed
+- pytorch bridge experiments (track C: BCM alpha, GP control): kaggle T4
+- integration circuits (track B): depends on framework -- brian2 on CPU,
+  pytorch on T4
+- the brian2 constraint: < 10 min per simulation, pip install brian2 only
+
+**t4 limitations (from prior runs):**
+- triton 3.3+ dropped sm_75 (T4) support. pin torch==2.6.0 + triton==3.2.0
+  if using flash-linear-attention
+- T4 lacks bf16 tensor cores: use fp16 for all fla kernels
+- 16GB VRAM. budget accordingly for pytorch experiments
+
+### eara ultra loop protocol
+
+when running experiment sequences (particularly track C bridge validations),
+you MUST follow the eara ultra loop protocol defined in
+`scripts/autoresearch_loop.md`. this is the same protocol used for all
+todorov architecture experiments.
+
+**what eara ultra is:** an autonomous experiment loop with mandatory
+subagent verification at every step. it prevents the agent from pushing
+broken code, running confounded experiments, or wasting GPU time on
+untested changes. the protocol exists because a previous agent (run_009)
+skipped pre-push checks and pushed code with a shape mismatch bug and a
+confounded experimental design.
+
+**the loop state machine:**
+```
+INIT -> ANALYZE -> HYPOTHESIZE -> IMPLEMENT -> PRE_CHECK ->
+MEASURE -> GATE_CHECK -> DECIDE -> KEEP or DISCARD ->
+LOG -> POST_ANALYSIS -> TERMINATE_CHECK -> (ANALYZE or DONE)
+```
+
+**pre-push phase (before ANY kaggle push):**
+1. REPORT: document the change, hypothesis, expected outcome
+2. RESEARCH AGENT [separate subagent]: verify technical assumptions,
+   API shapes, GPU compatibility, published benchmarks
+3. PLAN COMPLIANCE AGENT [separate subagent]: verify changes follow
+   CLAUDE.md spec and current phase plan
+4. SELF-CRITIQUE AGENT [separate subagent]: review for crash risks
+   (shapes, imports, memory, API breaking changes)
+5. SMOKE TEST AGENT [separate subagent]: write and run a targeted
+   test for the changed code paths
+6. CODE QUALITY AGENT [separate subagent]: review code quality,
+   spec compliance, evidence requirements
+7. FIX: apply all fixes from agents 2-6
+8. REVIEW GATE: all 5 agent artifacts must exist and pass
+9. AGENT COUNT GATE: verify exactly 5 subagent dispatches occurred
+
+**post-completion phase (after results return):**
+- launch 4 PARALLEL agents: analysis, research grounding, plan
+  compliance, documentation
+- INVESTIGATION agents if ANY anomaly found
+- update all docs (STATUS_BOARD.md, program_status.yaml, wiki)
+
+**critical rules:**
+- steps 2-6 are each a SEPARATE SUBAGENT. you cannot do them inline.
+  you cannot combine them. each produces a named artifact.
+- never push without all pre-push agents passing
+- never queue multiple kaggle runs simultaneously
+- always run investigation agents on anomalies
+- the protocol config is in `eara.yaml` at the repo root
+
+**rationalization halt signals (if you think any of these, STOP):**
+- "this change is too small to need verification"
+- "I already tested this manually"
+- "the subagents will just slow things down"
+- "I can combine steps 2 and 3 to save time"
+- "this obviously works"
+
+these thoughts are protocol violations. the protocol exists because
+agents who thought these things pushed broken code.
+
 ### secondary mission: project research
 
 your primary job is simulations. however, if your research uncovers findings
