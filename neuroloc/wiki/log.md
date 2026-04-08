@@ -1,5 +1,27 @@
 # neuroloc operation log
 
+## 2026-04-08 seven domain knowledge libraries created | 7 knowledge articles
+
+new knowledge articles:
+- knowledge/sleep_and_dreaming_research.md: curated library of 9 sources on sleep stages as computational operations
+- knowledge/cerebellum_research.md: curated library of 7 sources on the cerebellum as computational organ
+- knowledge/neurogenesis_and_plasticity_research.md: curated library of 11 sources on adult neurogenesis, structural plasticity, and critical periods
+- knowledge/language_in_the_brain_research.md: curated library of 8 sources on biological language processing
+- knowledge/glial_computation_research.md: curated library of 9 sources on glial cells as active computational participants
+- knowledge/autonomic_and_interoception_research.md: curated library of 10 sources on the body-brain interface
+- knowledge/connectomics_and_wiring_research.md: curated library of 10 sources on brain wiring architecture
+
+coverage:
+- sleep and dreaming (9 sources): tononi & cirelli shy (nrem slow-wave synaptic renormalization), de vivo et al. 2017 (~18% synapse shrinkage via 3d em), buzsaki 2015 (swr replay at 10-20x compression), walker rem emotional processing, cai et al. 2009 (rem creative recombination), hobson & friston 2012 (dreaming as generative model optimization), deperrois et al. 2022 (adversarial dreaming gan-like model), van dongen 2003 (attention fails first under sleep deprivation, subjects unaware), voss et al. 2014 (40 hz frontal gamma causally sufficient for lucid dreaming), xie et al. 2013 (glymphatic clearance 2x faster during sleep)
+- cerebellum (7 sources): marr 1969 (expansion recoding, pattern recognition), albus 1971 (ltd learning rule, cmac), wolpert, miall & kawato 1998 (forward models predicting 100-200ms ahead), buckner 2013 (80% maps to association cortex), schmahmann 1998 (cerebellar cognitive affective syndrome), herculano-houzel 2010 (4.2:1 cerebellar-cortical neuron ratio), the only clearly identified supervised error signal (climbing fiber ltd)
+- neurogenesis and plasticity (11 sources): spalding et al. 2013 (c-14 birth dating, ~700 new neurons/day), frisen et al. 2025 (definitive confirmation resolving sorrells controversy), sahay et al. 2011 (neurogenesis improves pattern separation), frankland et al. 2013/2014 (neurogenesis causes forgetting, infantile amnesia), holtmaat & svoboda 2009 (5-15% daily spine turnover), xu et al. 2009 and yang et al. 2009 (learning stabilizes specific spines within hours), hensch 2005 (pv+ maturation closes critical periods), maya vetencourt et al. 2008 (fluoxetine reopens adult plasticity), maguire 2000 and woollett 2011 (taxi driver hippocampal growth, longitudinal causal confirmation)
+- language in the brain (8 sources): hickok & poeppel 2007 (dual-stream model), fedorenko 2010/2024 (language network dissociable from executive function), kutas & hillyard 1980 (n400 as prediction violation), saffran et al. 1996 (statistical learning by 8-month-olds), motor theory (somatotopic activation real but not necessary), petitto et al. 2000 (sign language uses same network), winawer et al. 2007 (sapir-whorf russian blues: real but narrow effects)
+- glial computation (9 sources): azevedo et al. 2009 (glia:neuron ratio is 1:1 not 10:1), araque et al. 1999 (tripartite synapse), henneberger et al. 2010 (astrocytes gate ltp via d-serine), de ceglia et al. 2023 (subpopulation-specific gliotransmission), mckenzie et al. 2014 (myelination required for new learning), fields 2015 (activity-dependent myelination as second learning system), stevens et al. 2007 (complement-mediated synapse elimination), schafer et al. 2012 (activity-dependent microglial pruning), wang et al. 2020 (microglia mediate forgetting), bergles et al. 2000 (opcs receive synaptic input)
+- autonomic and interoception (10 sources): craig 2002/2009 (insula as body-state map), vagus 80% afferent, bravo et al. 2011 (gut microbiome changes brain gaba via vagus), garfinkel et al. 2014 (cardiac cycle gates threat perception), sterling & eyer 1988 (allostasis), barrett 2017 (constructed emotion as active inference), melzack & wall 1965 (gate control theory), melzack 1999 (neuromatrix), damasio 1994/1996 (somatic markers), porges 1995 / grossman 2023 (polyvagal theory: clinically useful but empirically contested)
+- connectomics and wiring (10 sources): white et al. 1986 (c. elegans 302 neurons), dorkenwald et al. 2024 (drosophila 139k neurons flywire), watts & strogatz 1998 (small-world networks), van den heuvel & sporns 2011 (rich-club hubs), chklovskii et al. 2002/2004 (wiring optimization predicts cortical maps), levy & calvert 2021 (communication costs 35x computation), sparse connectivity 1-20% as energy-optimal, song et al. 2005 (non-random connectivity: 4x bidirectional excess, lognormal synapse strength), seeman et al. 2018 (human excitatory connectivity 2.5x higher than mouse)
+
+index.md updated: knowledge section expanded from 4 to 11 articles, statistics updated
+
 ## 2026-04-08 memory systems research library created | 1 knowledge article
 
 new knowledge article:

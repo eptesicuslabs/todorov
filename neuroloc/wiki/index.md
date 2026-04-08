@@ -188,11 +188,18 @@ this is the flat reference catalog. for guided navigation, start at [[start_here
 - simulations/spatial/ (1 script: grid_cell_model)
 - simulations/consciousness/ (1 script: ignition_dynamics)
 
-## knowledge (4 articles)
+## knowledge (11 articles)
 - knowledge/neuroscience_research_2026.md -- curated peer-reviewed neuroscience research library (2020-2026), 16 papers across dendritic computation, cortical microcircuits, memory systems, energy constraints, attention, oscillations
 - knowledge/perception_and_consciousness_research.md -- curated research library on perception, consciousness, attention, embodiment, and time at the cognitive level, 30+ sources from helmholtz to cogitate 2025
 - knowledge/decision_and_emotion_research.md -- curated research library on decision making, emotion, reward, intuition, social cognition, and rationality, 25+ sources across evidence accumulation, somatic markers, dopamine, heuristics, theory of mind, predictive brain
 - knowledge/memory_systems_research.md -- curated cognitive and systems-level memory research library, 25 sources across spatial memory, episodic/semantic, working memory, reconsolidation, expertise, prospective memory, cross-species memory
+- knowledge/sleep_and_dreaming_research.md -- curated research library on sleep stages as computational operations, 9 sources across SHY synaptic renormalization, SWR replay, REM emotional processing, dreaming as generative model optimization, sleep deprivation, lucid dreaming, glymphatic clearance
+- knowledge/cerebellum_research.md -- curated research library on the cerebellum as computational organ, 7 sources across expansion recoding (marr-albus), forward models, cerebellar cognition, scaling laws, supervised error signal
+- knowledge/neurogenesis_and_plasticity_research.md -- curated research library on adult neurogenesis, structural plasticity, and critical periods, 11 sources across hippocampal neurogenesis, pattern separation, forgetting, spine turnover, critical period closure, pharmacological reopening, experience-dependent growth
+- knowledge/language_in_the_brain_research.md -- curated research library on biological language processing, 8 sources across dual-stream architecture, fedorenko language network, N400 prediction, statistical learning, motor theory, sign language, linguistic relativity
+- knowledge/glial_computation_research.md -- curated research library on glial cells as active computational participants, 9 sources across glia:neuron ratio, tripartite synapse, astrocytic LTP gating, gliotransmission, activity-dependent myelination, microglial pruning, active forgetting, OPC synaptic input
+- knowledge/autonomic_and_interoception_research.md -- curated research library on body-brain interface, 10 sources across insular interoception, vagus nerve, gut-brain axis, cardiac gating, allostasis, gate control theory, neuromatrix, somatic markers, polyvagal theory
+- knowledge/connectomics_and_wiring_research.md -- curated research library on brain wiring architecture, 10 sources across complete connectomes (C. elegans, drosophila), small-world topology, rich-club hubs, wiring optimization, communication costs, sparse connectivity, non-random connectivity, human vs mouse cortex
 
 ## statistics
 - total mechanism articles: 61
@@ -203,5 +210,5 @@ this is the flat reference catalog. for guided navigation, start at [[start_here
 - total entity notes: 33
 - total comparison articles: 13
 - total concept articles: 7
-- total knowledge articles: 4
+- total knowledge articles: 11
 - last updated: 2026-04-08
