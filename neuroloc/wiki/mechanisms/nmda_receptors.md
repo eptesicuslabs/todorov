@@ -150,10 +150,10 @@ what matters: cross-source gating could improve context-dependent processing by 
 - Mayer, M.L., Westbrook, G.L., and Guthrie, P.B. (1984). Voltage-dependent block by Mg2+ of NMDA responses in spinal cord neurones. Nature, 309(5965), 261-263.
 - Nowak, L., Bregestovski, P., Ascher, P., Herbet, A., and Prochiantz, A. (1984). Magnesium gates glutamate-activated channels in mouse central neurones. Nature, 307(5950), 462-465.
 - Collingridge, G.L., Kehl, S.J., and McLennan, H. (1983). Excitatory amino acids in synaptic transmission in the Schaffer collateral-commissural pathway of the rat hippocampus. Journal of Physiology, 334, 33-46.
-- Morris, R.G., Anderson, E., Lynch, G.S., and Bhatt, M. (1986). Selective impairment of learning and blockade of long-term potentiation by an N-methyl-D-aspartate receptor antagonist, AP5. Nature, 319(6056), 774-776.
+- Morris, R.G., Anderson, E., Lynch, G.S., and Baudry, M. (1986). Selective impairment of learning and blockade of long-term potentiation by an N-methyl-D-aspartate receptor antagonist, AP5. Nature, 319(6056), 774-776.
 - Schiller, J., Major, G., Koester, H.J., and Schiller, Y. (2000). NMDA spikes in basal dendrites of cortical pyramidal neurons. Nature, 404(6775), 285-289.
 - Polsky, A., Mel, B.W., and Schiller, J. (2004). Computational subunits in thin dendrites of pyramidal cells. Nature Neuroscience, 7(6), 621-627.
-- Antic, S.D., Zhou, W.L., Moore, A.R., Short, S.M., and Bhatt, D. (2010). The decade of the dendritic NMDA spike. Journal of Neuroscience Research, 88(14), 2991-3001.
+- Antic, S.D., Zhou, W.L., Moore, A.R., Short, S.M., and Ikonomu, K.D. (2010). The decade of the dendritic NMDA spike. Journal of Neuroscience Research, 88(14), 2991-3001.
 - Olney, J.W. and Farber, N.B. (1995). Glutamate receptor dysfunction and schizophrenia. Archives of General Psychiatry, 52(12), 998-1007.
 - Javitt, D.C. and Zukin, S.R. (1991). Recent advances in the phencyclidine model of schizophrenia. American Journal of Psychiatry, 148(10), 1301-1308.
 - Harris, E.W. and Cotman, C.W. (1986). Long-term potentiation of guinea pig mossy fiber responses is not blocked by N-methyl-D-aspartate antagonists. Neuroscience Letters, 70(1), 132-137.

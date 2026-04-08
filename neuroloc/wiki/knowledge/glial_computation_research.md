@@ -28,7 +28,7 @@ confidence: high. the anatomical relationship is well-established. the functiona
 
 ### astrocytes gate ltp via d-serine
 
-henneberger, c., papouin, t., bhatt, d. k., & bhatt, d. k. (2010). long-term potentiation depends on release of d-serine from astrocytes. *nature*, 463, 232-236.
+henneberger, c., papouin, t., oliet, s. h. r., & rusakov, d. a. (2010). long-term potentiation depends on release of d-serine from astrocytes. *nature*, 463, 232-236.
 
 key finding: long-term potentiation (ltp) at hippocampal ca3-ca1 synapses requires d-serine released by astrocytes. d-serine is a co-agonist at the nmda receptor -- the receptor cannot open (and therefore ltp cannot be induced) without both glutamate (from the presynaptic neuron) and d-serine (from the astrocyte). clamping astrocytic calcium (which prevents d-serine release) blocked ltp. exogenous d-serine rescued ltp when astrocytic signaling was blocked. this means that the astrocyte effectively gates whether a synapse can undergo long-term plasticity.
 
@@ -40,7 +40,7 @@ confidence: high. clear causal demonstration with rescue experiment. the nmda re
 
 ### subpopulation-specific gliotransmission
 
-de ceglia, r., bhatt, d. k., bhatt, d. k., bhatt, d. k., bhatt, d. k., bhatt, d. k., bhatt, d. k., & bhatt, d. k. (2023). specialized astrocyte subpopulations regulate sensory processing. *nature*, 621, 120-129.
+de ceglia, r. et al. (2023). specialized astrocytes mediate glutamatergic gliotransmission in the cns. *nature*, 622, 120-129.
 
 key finding: the longstanding debate about whether astrocytes release gliotransmitters (some groups could replicate it, others could not) was partially resolved by the discovery that only specific subpopulations of astrocytes in specific brain regions are gliotransmission-competent. using single-cell rna sequencing and calcium imaging, this study identified molecularly distinct astrocyte subtypes with different gliotransmitter release capabilities. this explains the field's replication problems: results depend on which astrocyte subpopulation is studied, and bulk approaches average across functionally distinct types.
 
@@ -74,7 +74,7 @@ confidence: high. review synthesizing extensive evidence for activity-dependent 
 
 ### complement-mediated synapse elimination
 
-stevens, b., allen, n. J., vazquez, l. E., howell, g. R., bhatt, d. K., bhatt, d. K., bhatt, d. K., bhatt, d. K., bhatt, d. K., bhatt, d. K., bhatt, d. K., & barres, b. A. (2007). the classical complement cascade mediates cns synapse elimination. *cell*, 131(6), 1164-1178.
+stevens, b. et al. (2007). the classical complement cascade mediates cns synapse elimination. *cell*, 131(6), 1164-1178.
 
 key finding: microglia eliminate synapses during development via the classical complement cascade. weak or inactive synapses are tagged with complement proteins (c1q, c3), which serve as "eat me" signals for microglia. microglia recognize these tags via complement receptor cr3 and phagocytose the tagged synapses. this molecular mechanism explains how the brain selectively eliminates ~50% of synapses during postnatal development while preserving the strongest and most active connections. knockout of c1q or c3 results in excessive synaptic connectivity and epileptic activity.
 
@@ -84,7 +84,7 @@ confidence: high. the complement-microglia pruning pathway is well-established a
 
 ### microglia refine circuits through activity-dependent pruning
 
-schafer, d. P., lehrman, e. K., kautzman, a. G., bhatt, d. K., bhatt, d. K., bhatt, d. K., bhatt, d. K., bhatt, d. K., bhatt, d. K., bhatt, d. K., bhatt, d. K., & bhatt, d. K. (2012). microglia sculpt postnatal neural circuits in an activity and complement-dependent manner. *neuron*, 74(4), 691-705.
+schafer, d. p., lehrman, e. k., kautzman, a. g., et al. (2012). microglia sculpt postnatal neural circuits in an activity and complement-dependent manner. *neuron*, 74(4), 691-705.
 
 key finding: using high-resolution imaging of the developing visual system, this study showed that microglia preferentially engulf synapses from the less active eye during ocular dominance development. when neural activity was blocked in one eye, microglia increased phagocytosis of that eye's synapses while sparing the active eye's synapses. this demonstrates that microglial pruning is not random but precisely targeted based on relative neural activity -- it implements a competitive, activity-dependent selection process.
 
@@ -94,7 +94,7 @@ confidence: high. elegant experimental design combining activity manipulation wi
 
 ### microglia mediate forgetting
 
-wang, c., bhatt, d. K., bhatt, d. K., bhatt, d. K., bhatt, d. K., bhatt, d. K., bhatt, d. K., bhatt, d. K., & bhatt, d. K. (2020). microglia mediate forgetting via complement-dependent synaptic elimination. *science*, 367(6478), 688-694.
+wang, c. et al. (2020). microglia mediate forgetting via complement-dependent synaptic elimination. *science*, 367(6478), 688-694.
 
 key finding: microglia actively mediate forgetting of established memories in adult mice through complement-dependent synapse elimination. inhibiting microglial phagocytosis or complement signaling in the hippocampus preserved memories that would otherwise be forgotten over time. this demonstrates that forgetting is not simply passive decay of synaptic connections but an active, microglia-driven process that removes specific synapses encoding specific memories. the same complement pathway used for developmental pruning is repurposed in adults for memory clearance.
 
@@ -106,7 +106,7 @@ confidence: high. causal manipulation (microglial inhibition, complement knockou
 
 ### opcs receive synaptic input
 
-bergles, d. E., roberts, j. D. B., bhatt, d. K., & bhatt, d. K. (2000). glutamatergic synapses on oligodendrocyte precursor cells in the hippocampus. *nature*, 405, 187-191.
+bergles, d. e., roberts, j. d. b., somogyi, p., & jahr, c. e. (2000). glutamatergic synapses on oligodendrocyte precursor cells in the hippocampus. *nature*, 405, 187-191.
 
 key finding: oligodendrocyte precursor cells (opcs) -- the progenitor cells that differentiate into myelinating oligodendrocytes -- receive direct synaptic input from neurons. these are bona fide synapses with vesicular release, postsynaptic receptors, and measurable synaptic currents. this was unexpected because opcs were considered passive precursors waiting to differentiate, not active participants in neural circuits. the synaptic input from neurons to opcs provides a mechanism for activity-dependent myelination: opcs can "listen" to neural activity and preferentially myelinate active axons.
 

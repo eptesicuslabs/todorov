@@ -36,7 +36,7 @@ confidence: high. review synthesizing decades of compartmental modeling and expe
 
 ### dendritic mechanisms for in vivo neural computations
 
-fischer, l. f., soto-albors, r. m., buck, f., & bhatt, d. k. (2022). dendritic mechanisms for in vivo neural computations and behavior. *journal of neuroscience*, 42(45), 8460-8472. doi: 10.1523/JNEUROSCI.1132-22.2022
+fischer, l. f. et al. (2022). dendritic mechanisms for in vivo neural computations and behavior. *journal of neuroscience*, 42(45), 8460-8472. doi: 10.1523/JNEUROSCI.1132-22.2022
 
 key finding: in vivo two-photon calcium imaging of l5 pyramidal tuft dendrites during motor behavior reveals dynamic, compartment-specific computations. individual dendritic branches show independent calcium transients correlated with distinct behavioral variables. this confirms that compartmentalized dendritic processing is not an in vitro artifact but operates during active behavior.
 
@@ -68,7 +68,7 @@ confidence: high. optogenetic silencing and electrophysiology in mouse v1. cavea
 
 ### the logic of recurrent circuits in primary visual cortex
 
-oldenburg, i. a., hendricks, w. d., handy, g., shamardani, k., bhaskaran, s., & bhatt, d. (2024). the logic of recurrent circuits in the primary visual cortex. *nature neuroscience*. doi: 10.1038/s41593-024-01640-y
+oldenburg, i. a. et al. (2024). the logic of recurrent circuits in the primary visual cortex. *nature neuroscience*. doi: 10.1038/s41593-024-01640-y
 
 key finding: recurrent amplification vs suppression in v1 depends on the joint space-orientation product of connected neurons. neurons within ~30 um spatial proximity with matching orientation preference amplify each other; mismatched neurons or distant neurons suppress. this provides quantitative rules for when recurrence helps vs hurts.
 
@@ -100,7 +100,7 @@ confidence: high. large-scale silicon probe recordings with precise swr detectio
 
 ### interleaved replay prevents catastrophic forgetting
 
-golden, c. e. m., saxena, a., gonzalez, c., & bhatt, d. (2025). interleaved replay of novel and familiar memory traces during slow-wave sleep prevents catastrophic forgetting. *pmc12262399*.
+golden, r. et al. (2025). interleaved replay of novel and familiar memory traces during slow-wave sleep prevents catastrophic forgetting. *pmc12262399*.
 
 key finding: during slow-wave sleep, novel memories replay at down-to-up transitions of the slow oscillation, while familiar memories replay during mid-up phase. this temporal segregation within the slow oscillation cycle prevents interference between new and old memories. interleaving novel and familiar traces is necessary to prevent catastrophic forgetting.
 
@@ -206,7 +206,7 @@ confidence: medium-high. optogenetic and pharmacological theta disruption with b
 
 ### cross-frequency coupling in communication through coherence
 
-gonzalez, o. c., sohal, v. s., bhatt, d. k., & bhaskaran, s. (2020). communication through coherence by means of cross-frequency coupling. *neuroscience*, 449, 157-164. doi: 10.1016/j.neuroscience.2020.09.030
+gonzalez, j. et al. (2020). communication through coherence by means of cross-frequency coupling. *neuroscience*, 449, 157-164. doi: 10.1016/j.neuroscience.2020.09.030
 
 key finding: communication through coherence (ctc) between brain regions relies on cross-frequency coupling, not just within-band synchrony. inter-hemispheric gamma synchrony depends on theta phase alignment -- gamma coherence is highest when local theta phases are matched. this creates a gated communication channel: information flows only when oscillatory phases permit.
 

@@ -62,9 +62,9 @@ confidence: high. in vivo imaging with longitudinal tracking of identified spine
 
 ### learning stabilizes specific spines within hours
 
-xu, t., yu, x., perlik, a. j., tobin, w. f., bhatt, d. k., bhatt, d. k., bhatt, d. k., bhatt, d. k., bhatt, d. k., bhatt, d. k., bhatt, d. k., bhatt, d. k., & bhatt, d. k. (2009). rapid formation and selective stabilization of synapses for enduring motor memories. *nature*, 462, 915-919.
+xu, t. et al. (2009). rapid formation and selective stabilization of synapses for enduring motor memories. *nature*, 462, 915-919.
 
-yang, g., pan, f., & bhatt, d. k. (2009). stably maintained dendritic spines are associated with lifelong memories. *nature*, 462, 920-924.
+yang, g., pan, f., & gan, w. b. (2009). stably maintained dendritic spines are associated with lifelong memories. *nature*, 462, 920-924.
 
 key finding: motor skill learning in mice causes rapid formation of new dendritic spines on layer 5 pyramidal neurons within hours of training. critically, a subset of these new spines (~25-35%) is selectively stabilized and persists for months to the lifetime of the animal, while the remaining new spines are eliminated within days. the stabilized spines are preferentially maintained even when neighboring pre-existing spines are pruned, suggesting an active selection process. different motor skills form spines on different dendritic branches, providing a structural basis for storing multiple non-interfering memories.
 

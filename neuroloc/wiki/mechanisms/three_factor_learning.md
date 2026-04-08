@@ -112,8 +112,8 @@ however, three-factor rules represent a potential path for replacing the STE in 
 ## key references
 
 - Gerstner, W., Lehmann, M., Liakoni, V., Corneil, D. & Brea, J. (2018). Eligibility traces and plasticity on behavioral time scales: experimental support of neoHebbian three-factor learning rules. Frontiers in Neural Circuits, 12, 53.
-- Yagishita, S., Hayashi-Takagi, A., Ellis-Davies, G. C. R., Urakubo, H., Ishii, S. & Bhatt, D. H. (2014). A critical time window for dopamine actions on the structural plasticity of dendritic spines. Science, 345(6204), 1616-1620.
-- He, K., Huertas, M., Hong, S. Z., Bhatt, D. H., Bhatt, D. K. & Bhatt, D. (2015). Distinct eligibility traces for LTP and LTD in cortical synapses. Neuron, 88(3), 528-538.
+- Yagishita, S., Hayashi-Takagi, A., Ellis-Davies, G. C. R., Urakubo, H., Ishii, S. & Kasai, H. (2014). A critical time window for dopamine actions on the structural plasticity of dendritic spines. Science, 345(6204), 1616-1620.
+- He, K., Huertas, M., Hong, S. Z., Tie, X., Hell, J. W., Shouval, H. & Kirkwood, A. (2015). Distinct eligibility traces for LTP and LTD in cortical synapses. Neuron, 88(3), 528-538.
 - Bellec, G., Scherr, F., Subramoney, A., Hajek, E., Salaj, D., Legenstein, R. & Maass, W. (2020). A solution to the learning dilemma for recurrent networks of spiking neurons. Nature Communications, 11, 3625.
 - Williams, R. J. (1992). Simple statistical gradient-following algorithms for connectionist reinforcement learning. Machine Learning, 8(3-4), 229-256.
 - Fremaux, N., Sprekeler, H. & Gerstner, W. (2010). Functional requirements for reward-modulated spike-timing-dependent plasticity. Journal of Neuroscience, 30(40), 13326-13337.

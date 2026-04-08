@@ -106,5 +106,5 @@ these are architectural constraints, not learned homeostatic responses. a BCM-li
 - Turrigiano, G. G. (2008). The self-tuning neuron: synaptic scaling of excitatory synapses. Cell, 135(3), 422-435.
 - Turrigiano, G. G. (2012). Homeostatic synaptic plasticity: local and global mechanisms for stabilizing neuronal function. Cold Spring Harbor Perspectives in Biology, 4(1), a005736.
 - Abbott, L. F. & Nelson, S. B. (2000). Synaptic plasticity: taming the beast. Nature Neuroscience, 3, 1178-1183.
-- Desai, N. S., Rutherford, L. C. & Bhatt, D. H. (1999). BDNF regulates the intrinsic excitability of cortical neurons. Learning & Memory, 6(3), 284-291.
+- Desai, N. S., Rutherford, L. C. & Turrigiano, G. G. (1999). BDNF regulates the intrinsic excitability of cortical neurons. Learning & Memory, 6(3), 284-291.
 - Stellwagen, D. & Malenka, R. C. (2006). Synaptic scaling mediated by glial TNF-alpha. Nature, 440(7087), 1054-1059.

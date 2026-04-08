@@ -92,7 +92,7 @@ subsequent single-channel recordings (Neher and Sakmann, Nobel 1991) confirmed t
 
 ## challenges and counter-arguments
 
-1. **channel independence assumption is wrong.** the model assumes Na+ and K+ channels gate independently. recent evidence (Bhatt et al. 2005, Bhatt et al. 2019, Naundorf et al. 2006) shows that Na+ and K+ gating variables are correlated, particularly during high-frequency firing. the interdependence of sodium and potassium gating variables means the m, h, n factorization is an approximation, not a physical truth.
+1. **channel independence assumption is wrong.** the model assumes Na+ and K+ channels gate independently. recent evidence (Naundorf et al. 2006) shows that Na+ and K+ gating variables are correlated, particularly during high-frequency firing. the interdependence of sodium and potassium gating variables means the m, h, n factorization is an approximation, not a physical truth.
 
 2. **the model is fit to one preparation.** all original parameters come from the squid giant axon at 6.3 C. mammalian cortical neurons have different channel densities, different temperature dependencies, and additional channel types (Ca2+, HCN, A-type K+, etc.) not present in the original model. applying the 1952 parameters to cortical neurons is physically meaningless; each neuron type requires its own parameter fit.
 
@@ -161,5 +161,4 @@ what matters for 300M scale: the leak term and refractory period are the most co
 - Hodgkin, A.L. and Huxley, A.F. (1952). The dual effect of membrane potential on sodium conductance in the giant axon of Loligo. Journal of Physiology, 116(4), 497-506.
 - Gerstner, W., Kistler, W.M., Naud, R., and Paninski, L. (2014). Neuronal Dynamics: From Single Neurons to Networks and Models of Cognition. Cambridge University Press. Chapter 2.
 - Naundorf, B., Wolf, F., and Volgushev, M. (2006). Unique features of action potential initiation in cortical neurons. Nature, 440(7087), 1060-1063.
-- Bhatt, D.K., Bhatt, R.K., and Bhatt, D.L. (2019). Interdependence of sodium and potassium gating variables in the Hodgkin-Huxley model. arXiv:2402.16711.
 - Bean, B.P. (2007). The action potential in mammalian central neurons. Nature Reviews Neuroscience, 8(6), 451-465.

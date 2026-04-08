@@ -115,9 +115,9 @@ disruption of E/I balance is implicated in epilepsy (excess excitation), autism 
 
 - markram, h. et al. (2004). interneurons of the neocortical inhibitory system. nature reviews neuroscience, 5(10), 793-807.
 - pi, h. j. et al. (2013). cortical interneurons that specialize in disinhibitory control. nature, 503(7477), 521-524.
-- tremblay, r., lee, s. & bhatt, d. k. (2016). GABAergic interneurons in the neocortex: from cellular properties to circuits. neuron, 91(3), 521-539.
+- tremblay, r., lee, s. & rudy, b. (2016). GABAergic interneurons in the neocortex: from cellular properties to circuits. neuron, 91(3), 521-539.
 - van vreeswijk, c. & sompolinsky, h. (1996). chaos in neuronal networks with balanced excitatory and inhibitory activity. science, 274(5293), 1724-1726.
-- pfeffer, c. k., xue, m., he, m., huang, z. j. & bhatt, d. k. (2013). inhibition of inhibition in visual cortex: the logic of connections between molecularly distinct interneurons. nature neuroscience, 16(8), 1068-1076.
+- pfeffer, c. k., xue, m., he, m., huang, z. j. & scanziani, m. (2013). inhibition of inhibition in visual cortex: the logic of connections between molecularly distinct interneurons. nature neuroscience, 16(8), 1068-1076.
 
 ## see also
 

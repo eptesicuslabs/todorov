@@ -79,7 +79,7 @@ within the signaling budget, the harris et al. (2012) revised breakdown (for gre
 - action potential propagation: ~17%
 - resting potentials (neuronal + glial): ~15%
 
-a separate analysis by yu et al. (2021) found that communication (axonal action potentials, synaptic transmission) consumes 35x more energy than computation (**postsynaptic integration** -- the summation of inputs at the cell body) in human cortex. the cortex allocates ~71% of its ATP to communication, ~2% to computation, and ~27% to maintenance and growth.
+a separate analysis by levy & calvert (2021) found that communication (axonal action potentials, synaptic transmission) consumes 35x more energy than computation (**postsynaptic integration** -- the summation of inputs at the cell body) in human cortex. the cortex allocates ~71% of its ATP to communication, ~2% to computation, and ~27% to maintenance and growth.
 
 ML analog: this 35:1 communication-to-computation ratio mirrors the "memory wall" in modern ML hardware, where data movement (DRAM reads, inter-chip communication) dominates energy over arithmetic.
 
@@ -125,7 +125,7 @@ third, the budget focuses almost exclusively on grey matter signaling and undere
 - harris, j. j., jolivet, r. & attwell, d. (2012). synaptic energy use and supply. neuron, 75(5), 762-777.
 - lennie, p. (2003). the cost of cortical computation. current biology, 13, 493-497.
 - engl, e. & attwell, d. (2015). non-signalling energy use in the brain. journal of physiology, 593(16), 3417-3429.
-- yu, y., herman, p., bhatt, d. k., bhatt, d. k. & bhatt, d. k. (2021). communication consumes 35 times more energy than computation in the human cortex, but both costs are needed to predict synapse number. PNAS, 118(18), e2008173118.
+- levy, w. b. & calvert, v. g. (2021). communication consumes 35 times more energy than computation in the human cortex, but both costs are needed to predict synapse number. PNAS, 118(18), e2008173118.
 
 ## see also
 

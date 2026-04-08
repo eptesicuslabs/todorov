@@ -156,7 +156,7 @@ what matters: the XOR result (Gidon et al. 2020) suggests that adding branch-lev
 - Major, G., Larkum, M.E., and Schiller, J. (2013). Active properties of neocortical pyramidal neuron dendrites. Annual Review of Neuroscience, 36, 1-24.
 - Polsky, A., Mel, B.W., and Schiller, J. (2004). Computational subunits in thin dendrites of pyramidal cells. Nature Neuroscience, 7(6), 621-627.
 - Gidon, A., Zolnik, T.A., Fidzinski, P., Bolduan, F., Papoutsi, A., Poirazi, P., Holtkamp, M., Vida, I., and Larkum, M.E. (2020). Dendritic action potentials and computation in human layer 2/3 cortical neurons. Science, 367(6473), 83-87.
-- Larkum, M.E., Zhu, J.J., and Bhatt, D. (1999). A new cellular mechanism for coupling inputs arriving at different cortical layers. Nature, 398(6725), 338-341.
+- Larkum, M.E., Zhu, J.J., and Sakmann, B. (1999). A new cellular mechanism for coupling inputs arriving at different cortical layers. Nature, 398(6725), 338-341.
 - Stuart, G., Spruston, N., Sakmann, B., and Hausser, M. (1997). Action potential initiation and backpropagation in neurons of the mammalian CNS. Trends in Neurosciences, 20(3), 125-131.
 - Golding, N.L. and Spruston, N. (1998). Dendritic sodium spikes are variable triggers of axonal action potentials in hippocampal CA1 pyramidal neurons. Neuron, 21(5), 1189-1200.
-- Nevian, T., Larkum, M.E., Bhatt, D., Polsky, A., Schiller, J. (2007). Properties of basal dendrites of layer 5 pyramidal neurons: a direct patch-clamp recording study. Nature Neuroscience, 10(2), 206-214.
+- Nevian, T., Larkum, M.E., Polsky, A., Schiller, J. (2007). Properties of basal dendrites of layer 5 pyramidal neurons: a direct patch-clamp recording study. Nature Neuroscience, 10(2), 206-214.

@@ -156,7 +156,7 @@ what matters: the apical amplification framework suggests that context-dependent
 - Larkum, M.E., Zhu, J.J., and Sakmann, B. (1999). A new cellular mechanism for coupling inputs arriving at different cortical layers. Nature, 398(6725), 338-341.
 - Larkum, M. (2013). A cellular mechanism for cortical associations: an organizing principle for the cerebral cortex. Trends in Neurosciences, 36(3), 141-151.
 - Lisman, J.E. (1997). Bursts as a unit of neural information: making unreliable synapses reliable. Trends in Neurosciences, 20(3), 38-43.
-- Shai, A.S., Anastassiou, C.A., Bhatt, D., and Koch, C. (2015). Physiology of layer 5 pyramidal neurons in mouse primary visual cortex: coincidence detection through bursting. PLoS Computational Biology, 11(3), e1004090.
+- Shai, A.S., Anastassiou, C.A., Larkum, M.E., and Koch, C. (2015). Physiology of layer 5 pyramidal neurons in mouse primary visual cortex: coincidence detection through bursting. PLoS Computational Biology, 11(3), e1004090.
 - Murayama, M., Perez-Garci, E., Nevian, T., Bock, T., Senn, W., and Larkum, M.E. (2009). Dendritic encoding of sensory stimuli controlled by deep cortical interneurons. Nature, 457(7233), 1137-1141.
 - Suzuki, M. and Larkum, M.E. (2020). General anesthesia decouples cortical pyramidal neurons. Cell, 180(4), 666-676.
 - Xu, N.L., Harnett, M.T., Williams, S.R., Huber, D., O'Connor, D.H., Svoboda, K., and Magee, J.C. (2012). Nonlinear dendritic integration of sensory and motor input during an active sensing task. Nature, 492(7428), 247-251.

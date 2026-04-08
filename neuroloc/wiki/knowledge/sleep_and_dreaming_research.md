@@ -108,7 +108,7 @@ confidence: high for the causal relationship between frontal 40 hz gamma and luc
 
 ### the brain's waste clearance system operates during sleep
 
-xie, l., kang, h., xu, q., chen, m. j., liao, y., thiyagarajan, m., o'donnell, j., christensen, d. j., nicholson, c., iliff, j. j., takano, t., deane, r., & bhatt, d. k. (2013). sleep drives metabolite clearance from the adult brain. *science*, 342(6156), 373-377.
+xie, l. et al. (2013). sleep drives metabolite clearance from the adult brain. *science*, 342(6156), 373-377.
 
 key finding: the glymphatic system -- a brain-wide paravascular pathway for cerebrospinal fluid (csf) circulation -- operates primarily during sleep. interstitial space expands by ~60% during sleep (or anesthesia), increasing convective flow of csf through brain tissue and accelerating clearance of metabolic waste products including amyloid-beta (a hallmark of alzheimer's disease). clearance of amyloid-beta was 2x faster during sleep than wake. the expansion of interstitial space is driven by reduced norepinephrine from the locus coeruleus during sleep, which causes astrocytic volume reduction.
 

@@ -160,7 +160,7 @@ critical gaps identified in [[neuron_models_to_atmn]]:
 - Abbott, L.F. (1999). Lapicque's introduction of the integrate-and-fire model neuron (1907). Brain Research Bulletin, 50(5-6), 303-304.
 - Gerstner, W., Kistler, W.M., Naud, R., and Paninski, L. (2014). Neuronal Dynamics: From Single Neurons to Networks and Models of Cognition. Cambridge University Press. Chapter 1.
 - Brunel, N. (2000). Dynamics of sparsely connected networks of excitatory and inhibitory spiking neurons. Journal of Computational Neuroscience, 8(3), 183-208.
-- Jolivet, R., Lewis, T.J., and Bhatt, D.K. (2004). Period-to-period variability of neural activity in the visual cortex. Journal of Neurophysiology, 92, 959-976.
+- Jolivet, R., Lewis, T.J., and Gerstner, W. (2004). Period-to-period variability of neural activity in the visual cortex. Journal of Neurophysiology, 92, 959-976.
 - Rauch, A., La Camera, G., Luscher, H.R., Senn, W., and Fusi, S. (2003). Neocortical pyramidal cells respond as integrate-and-fire neurons to in vivo-like input currents. Journal of Neurophysiology, 90(3), 1598-1612.
 - Azouz, R. and Gray, C.M. (2000). Dynamic spike threshold reveals a mechanism for synaptic coincidence detection in cortical neurons in vivo. Proceedings of the National Academy of Sciences, 97(14), 8110-8115.
 - Burkitt, A.N. (2006). A review of the integrate-and-fire neuron model: I. Homogeneous synaptic input. Biological Cybernetics, 95(1), 1-19.

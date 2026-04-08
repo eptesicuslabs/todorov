@@ -123,7 +123,7 @@ the two-layer neuron model has been validated by:
 
 3. Losonczy and Magee (2006), who demonstrated supralinear integration in oblique dendrites of CA1 neurons with branch-specific nonlinearities.
 
-4. computational studies by Mel (1994) and Archie and Bhatt (2008) extending the principle to different neuron types and morphologies.
+4. computational studies by Mel (1994) and Archie and Mel (2000) extending the principle to different neuron types and morphologies.
 
 the model is more controversial at the quantitative level: whether the exact number of effective hidden units matches the number of dendritic branches, whether branches are truly independent (or interact through the main trunk), and whether the sigmoidal approximation captures the full range of dendritic nonlinearities.
 
@@ -194,5 +194,5 @@ what matters: the two-layer neuron predicts that multiple independent nonlinear 
 - Polsky, A., Mel, B.W., and Schiller, J. (2004). Computational subunits in thin dendrites of pyramidal cells. Nature Neuroscience, 7(6), 621-627.
 - Mel, B.W. (1994). Information processing in dendritic trees. Neural Computation, 6(6), 1031-1085.
 - Losonczy, A. and Magee, J.C. (2006). Integrative properties of radial oblique dendrites in hippocampal CA1 pyramidal neurons. Neuron, 50(2), 291-307.
-- Jadi, M.P., Behabadi, B.F., Poleg-Polsky, A., Schiller, J., and Bhatt, D. (2012). An augmented two-layer model captures nonlinear analog spatial integration effects in pyramidal neuron dendrites. Proceedings of the IEEE, 102(5), 782-798.
-- Archie, K.A. and Bhatt, D. (2008). A model for intradendritic computation of binocular disparity. Nature Neuroscience, 3(1), 54-63.
+- Jadi, M.P., Behabadi, B.F., Poleg-Polsky, A., and Mel, B.W. (2014). An augmented two-layer model captures nonlinear analog spatial integration effects in pyramidal neuron dendrites. Proceedings of the IEEE, 102(5), 782-798.
+- Archie, K.A. and Mel, B.W. (2000). A model for intradendritic computation of binocular disparity. Nature Neuroscience, 3(1), 54-63.
