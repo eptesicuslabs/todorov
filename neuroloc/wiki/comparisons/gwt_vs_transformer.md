@@ -28,7 +28,7 @@ the comparison matters because if the residual stream IS a global workspace, the
 
 **GWT**: the defining feature of the workspace is selectivity. most processing remains unconscious (local, modular, never broadcast). only the information that wins the competition and triggers ignition enters the workspace. the TRN (see [[thalamocortical_loops]]) provides subcortical gating. attention (see [[selective_attention]]) provides the top-down bias that determines what ignites. the workspace is a bottleneck: it forces the system to select.
 
-**transformer**: the residual stream has no selectivity for writes. every layer contributes to the stream unconditionally. for reads, attention layers (MLA in todorov, 6/24 layers) perform selective retrieval via softmax attention -- they selectively weight past information. KDA layers (18/24) perform content-addressable retrieval from their recurrent state. but neither mechanism prevents a layer from writing its output to the stream.
+**transformer**: the residual stream has no selectivity for writes. every layer contributes to the stream unconditionally. for reads, attention layers (MLA in todorov, 3/24 layers) perform selective retrieval via softmax attention -- they selectively weight past information. KDA layers (18/24) perform content-addressable retrieval from their recurrent state. but neither mechanism prevents a layer from writing its output to the stream.
 
 **verdict**: the transformer has selective reading (attention) but non-selective writing. GWT requires selective writing (only ignited content enters the workspace). this is a fundamental architectural difference. in the transformer, the residual stream accumulates everything -- there is no mechanism to keep information OUT of the stream.
 

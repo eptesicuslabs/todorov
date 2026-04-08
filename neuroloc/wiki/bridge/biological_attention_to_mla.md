@@ -23,7 +23,7 @@ critically, biological attention is a MODULATION of ongoing processing, not a se
 
 ## the current todorov implementation
 
-### MLA (src/layers/mla.py) -- 6/24 layers (25%)
+### MLA (src/layers/mla.py) -- 3/24 layers (12.5%)
 
 MLA performs softmax attention over compressed per-token representations:
 
@@ -73,13 +73,13 @@ these are different computational problems:
 - information retrieval constructs new representations (weighted sum of values)
 - resource allocation modulates existing representations (gain control on sensory processing)
 
-## the adversarial analysis: is MLA's 25% allocation biologically analogous?
+## the adversarial analysis: is MLA's 12.5% allocation biologically analogous?
 
 ### the surface analogy
 
 biological attention is sparse: ~4 items are attended out of thousands of available stimuli. the brain uses strong attentional modulation infrequently relative to its total processing -- most neurons most of the time are not strongly attention-modulated.
 
-MLA is 25% of layers (6/24). this is a minority of the total computation. the 3:1 ratio (KDA:MLA) means most processing is non-attentional (KDA).
+MLA is 12.5% of layers (3/24). this is a minority of the total computation. the schedule (KDA,KDA,KDA,Mamba3,KDA,KDA,KDA,MLA) x 3 means most processing is non-attentional (KDA).
 
 surface reading: MLA is rare like attention is rare. both are minority systems.
 
@@ -89,9 +89,9 @@ this analogy fails on three axes.
 
 **axis 1: level of sparsity.** biological attention is sparse at the ITEM level: out of all stimuli in the visual field, ~4 are attended. MLA is sparse at the LAYER level: out of 24 layers, 6 use softmax attention. but WITHIN each MLA layer, attention is NOT sparse: every query attends to every key position with nonzero weight (full softmax). biological attention produces near-zero processing of unattended items. MLA produces nonzero influence from every past token. these are different kinds of sparsity operating at different levels.
 
-**axis 2: modularity vs modulation.** MLA is a MODULE: 6 specific layers at fixed positions in the processing hierarchy. you can point to exactly which layers "do attention." biological attention is a MODULATION: any cortical area can be attention-modulated at any time. there is no fixed layer that "does attention" -- V1, V4, IT, PFC can all be attention-modulated depending on task demands. the architectural concept of "some layers are attention layers" has no biological counterpart.
+**axis 2: modularity vs modulation.** MLA is a MODULE: 3 specific layers at fixed positions in the processing hierarchy. you can point to exactly which layers "do attention." biological attention is a MODULATION: any cortical area can be attention-modulated at any time. there is no fixed layer that "does attention" -- V1, V4, IT, PFC can all be attention-modulated depending on task demands. the architectural concept of "some layers are attention layers" has no biological counterpart.
 
-**axis 3: origin of the ratio.** the 3:1 (KDA:MLA) ratio was derived from ML engineering benchmarks. Kimi, Qwen3, and OLMo independently converged on approximately 75% recurrent / 25% attention as the optimal ratio for language modeling performance. this ratio was NOT derived from biological principles. the convergence across ML labs suggests it reflects a compute-accuracy tradeoff for autoregressive language modeling, not a biological constraint. the similarity to biological attention's sparsity is coincidental, not mechanistic.
+**axis 3: origin of the ratio.** the layer ratio was derived from ML engineering benchmarks. Kimi, Qwen3, and OLMo independently converged on approximately 75% recurrent / 12.5% SSM / 12.5% attention as the optimal ratio for language modeling performance. this ratio was NOT derived from biological principles. the convergence across ML labs suggests it reflects a compute-accuracy tradeoff for autoregressive language modeling, not a biological constraint. the similarity to biological attention's sparsity is coincidental, not mechanistic.
 
 ### what IS biologically analogous in todorov?
 

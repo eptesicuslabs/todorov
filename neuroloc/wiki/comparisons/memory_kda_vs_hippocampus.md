@@ -2,7 +2,7 @@
 
 ## the question
 
-todorov's architecture has two memory systems: KDA (kernel delta attention, 18/24 layers) and MLA (multi-head latent attention, 6/24 layers). the hippocampus is the brain's fast episodic memory system. is KDA analogous to hippocampal memory? is the KDA+MLA split analogous to the complementary learning systems (hippocampus + neocortex)?
+todorov's architecture has two memory systems: KDA (kernel delta attention, 18/24 layers) and MLA (multi-head latent attention, 3/24 layers). the hippocampus is the brain's fast episodic memory system. is KDA analogous to hippocampal memory? is the KDA+MLA split analogous to the complementary learning systems (hippocampus + neocortex)?
 
 ## dimension 1: learning speed
 
@@ -72,7 +72,7 @@ these are hippocampal properties (fast retrieval, content-addressable, pattern c
 
 these are closer to a classical associative memory with limited capacity -- more like a working memory buffer than like the hippocampus.
 
-**but the ratio is inverted**: KDA is 75% of layers (dominant), MLA is 25% (minority). in biology, the hippocampus is a tiny fraction of the neocortex. if MLA is the hippocampal analog, then todorov has a tiny hippocampus (MLA, 25%) and a large neocortex (KDA, 75%). this ratio at least matches the biological architecture -- but only if we accept the inverted mapping (MLA=hippocampus, KDA=neocortex).
+**but the ratio is inverted**: KDA is 75% of layers (dominant), MLA is 12.5% (minority). in biology, the hippocampus is a tiny fraction of the neocortex. if MLA is the hippocampal analog, then todorov has a tiny hippocampus (MLA, 12.5%) and a large neocortex (KDA, 75%). this ratio at least matches the biological architecture -- but only if we accept the inverted mapping (MLA=hippocampus, KDA=neocortex).
 
 the inverted mapping also fails, because:
 - the neocortex learns slowly by adjusting weights. KDA does not learn -- it computes
@@ -96,7 +96,7 @@ the strongest case for the CLS analogy:
 1. **functional complementarity is real**: KDA and MLA DO complement each other. KDA handles recent context efficiently (constant-cost recurrence), MLA handles the full history precisely (exact attention). this functional split -- "fast approximate" vs "slow exact" -- resembles the hippocampus (fast binding) vs cortex (slow integration) split, even if the mechanisms differ
 2. **the absence of consolidation may be a feature**: biological CLS evolved because the organism has limited time for a single computation (a forward pass). a GPU has effectively unlimited computation time per token. the "need" for consolidation arises from the biological constraint of finite processing time per experience, which does not apply to autoregressive models that process one token at a time
 3. **training IS consolidation**: during training (not inference), gradient updates modify both KDA and MLA weights based on all training data. this is the "slow neocortical learning" -- many repetitions gradually shaping weight structure. the distinction between training (slow, many examples) and inference (fast, one-shot computation) parallels the CLS distinction
-4. **the ratio argument works under inversion**: if MLA (25%) is the hippocampal fast-retrieval system and KDA (75%) is the neocortical slow-state system, the ratio matches biology
+4. **the ratio argument works under inversion**: if MLA (12.5%) is the hippocampal fast-retrieval system and KDA (75%) is the neocortical slow-state system, the ratio matches biology
 
 the rebuttal: (1) functional complementarity without consolidation is just "two modules with different tradeoffs," which describes every hybrid architecture. (2) the absence of consolidation means there is no mechanism for KDA's transient memories to become permanent, which is the CORE function of CLS. (3) training-as-consolidation applies to ALL neural networks, not just those with KDA+MLA, making the analogy trivially true and therefore uninformative. (4) the ratio argument requires accepting the inverted mapping, which creates its own problems (KDA has no slow learning, MLA has no fast learning).
 

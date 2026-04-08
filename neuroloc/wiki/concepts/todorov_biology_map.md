@@ -31,7 +31,7 @@ biological analogs:
 
 ## MLA (src/layers/mla.py)
 
-MLA performs softmax attention over compressed per-token representations. 6 of 24 layers (25%).
+MLA performs softmax attention over compressed per-token representations. 3 of 24 layers (12.5%).
 
 biological analogs:
 
@@ -48,7 +48,7 @@ biological analogs:
 - **full cache (no forgetting)**
   -> NOT [[memory_consolidation]]: MLA retains every token until the context limit. no decay, no consolidation, no transfer to a slower system. the absence of forgetting is an engineering advantage, not a biological principle
 
-- **25% allocation (6/24 layers)**
+- **12.5% allocation (3/24 layers)**
   -> NOT biologically derived. the 3:1 ratio comes from ML benchmarks (Kimi, Qwen3, OLMo independently converged on ~75/25). the resemblance to biological attention's sparsity is coincidental
   -> see [[biological_attention_to_mla]] and [[cortical_microcircuit_to_layer_schedule]]
 

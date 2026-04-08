@@ -269,7 +269,7 @@ MLA does not fit the semi-separable recurrence. It stores per-token compressed r
 
 This is O(t^2) in context length, O(t * d_c) in memory. The compression C_latent reduces the memory constant but not the scaling class.
 
-The architectural principle: recurrent layers (KDA, Mamba-3) accumulate and compress the history into fixed-size states. The attention layer (MLA) performs exact attention over lossy-compressed per-token representations — the softmax-weighted sum is exact, but the K/V vectors it operates on are rank-d_c approximations of the full representations. The 3:1 ratio allocates 75% of depth to accumulation and 25% to compressed-exact retrieval.
+The architectural principle: recurrent layers (KDA, Mamba-3) accumulate and compress the history into fixed-size states. The attention layer (MLA) performs exact attention over lossy-compressed per-token representations — the softmax-weighted sum is exact, but the K/V vectors it operates on are rank-d_c approximations of the full representations. the layer schedule allocates 75% of depth to recurrent accumulation (KDA), 12.5% to continuous dynamics (Mamba3), and 12.5% to compressed-exact retrieval (MLA).
 
 ### 5.3 DSA as sparse MLA
 

@@ -78,7 +78,7 @@ these are different operations solving different problems. the terminological ov
 
 MLA performs softmax attention over compressed per-token representations (see src/layers/mla.py). it computes explicit attention weights, performs content-based retrieval, and constructs new representations from aggregated information. this is closer to transformer attention than to biological attention. MLA is a retrieval mechanism, not a selective gating mechanism.
 
-however, MLA has one property that biological attention shares: it is the minority system (3/24 layers = 12.5% of layers, not 25% as initially stated since the 3:1 ratio means 18 KDA + 6 MLA = 24 total, with MLA at 6/24 = 25%). the brain uses selective attention sparingly relative to total processing -- most cortical computation proceeds without strong attentional modulation. in this narrow sense, MLA's minority allocation echoes biological attention's sparsity.
+however, MLA has one property that biological attention shares: it is the minority system (3/24 layers = 12.5%). the schedule is (KDA,KDA,KDA,Mamba3,KDA,KDA,KDA,MLA) x 3 = 18 KDA + 3 Mamba3 + 3 MLA. the brain uses selective attention sparingly relative to total processing -- most cortical computation proceeds without strong attentional modulation. in this narrow sense, MLA's minority allocation echoes biological attention's sparsity.
 
 but this analogy is shallow. within each MLA layer, attention is applied to ALL tokens (full softmax). there is no capacity limit, no competition, no suppression of losing tokens. biological attention is sparse at the ITEM level (few items attended). MLA is sparse at the LAYER level (few layers use attention) but dense at the token level (all tokens attended within each layer). these are different kinds of sparsity.
 
@@ -100,9 +100,9 @@ the strongest biological analog for attention in todorov is arguably not in any 
 
 ## the 25% allocation question
 
-is MLA's 25% layer allocation analogous to biological attention's sparsity?
+is MLA's 12.5% layer allocation analogous to biological attention's sparsity?
 
-**the analogy**: biological attention IS sparse -- you attend to ~4 items out of thousands. the brain uses strong attentional modulation rarely relative to total processing. most cortical neurons most of the time are not strongly attention-modulated. MLA is 25% of layers. both are minority systems.
+**the analogy**: biological attention IS sparse -- you attend to ~4 items out of thousands. the brain uses strong attentional modulation rarely relative to total processing. most cortical neurons most of the time are not strongly attention-modulated. MLA is 12.5% of layers. both are minority systems.
 
 **the disanalogy**: within each MLA layer, attention is NOT sparse. every query attends to every key (full softmax). biological attention's sparsity is at the item level (few items win the competition). MLA's sparsity is at the architectural level (few layers use this computation type). these are different dimensions of sparsity.
 

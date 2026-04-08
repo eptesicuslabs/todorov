@@ -54,7 +54,7 @@ properties:
 - stores exact per-token compressed latent c_kv in a cache. every token is preserved
 - softmax attention: O(T^2) retrieval over ALL stored tokens. this IS a modern Hopfield network update (Ramsauer et al. 2021)
 - compression: d_model -> d_c (e.g., 1024 -> 128) = ~8x KV compression. per-token cache cost is d_c + d_R = 128 + 32 = 160 floats
-- 6/24 layers = minority retrieval system (25%)
+- 3/24 layers = minority retrieval system (12.5%)
 - no forgetting: stores everything until context limit. no decay, no interference at the storage level
 - RoPE applied to a shared low-rank rope projection (d_R = 32), reducing positional encoding cost
 

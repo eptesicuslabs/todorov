@@ -31,7 +31,7 @@ the mechanism: FP32 multiplication requires a 24-bit mantissa multiplier (24x24 
 
 in the todorov architecture (267M params, 24 layers):
 - KDA layers (18/24 layers): K and V projections are spiked (2 out of 4 projections: K, V, Q, O)
-- MLA layers (6/24 layers): no ternary spikes (full-precision dot-product attention)
+- MLA layers (3/24 layers): no ternary spikes (full-precision dot-product attention)
 - SwiGLU FFN (all 24 layers): no ternary spikes (gate, up, down projections in FP16/FP32)
 
 the STE training constraint: ternary quantization is applied in the forward pass, but gradients flow through the STE as if quantization were the identity. all weight updates and gradient computations use full precision. the energy saving from ternary spikes exists ONLY at inference time.
