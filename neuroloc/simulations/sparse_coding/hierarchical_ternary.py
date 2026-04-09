@@ -143,7 +143,7 @@ def main():
     for d in D_VALUES:
         bpds = [np.mean([t["hierarchical_bpd"] for t in all_trials if t["d"] == d and t["k_fraction"] == k]) for k in K_FRACTIONS]
         ax3.plot(K_FRACTIONS, bpds, marker="o", label=f"d={d}")
-    ax3.axhline(y=1.58, color="red", linestyle="--", alpha=0.3, label="standard ternary (1.58)")
+    ax3.axhline(y=1.39, color="red", linestyle="--", alpha=0.3, label="standard ternary at 41% (~1.39)")
     ax3.set_xlabel("k-wta fraction")
     ax3.set_ylabel("bits per dimension")
     ax3.set_title("compression ratio")

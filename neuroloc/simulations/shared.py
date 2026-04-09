@@ -94,7 +94,7 @@ def parameter_hash(parameters: dict[str, Any]) -> str:
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()[:16]
 
 
-def mean_confidence_interval(values: Any, confidence_level: float = 0.95) -> dict[str, Any]:
+def mean_confidence_interval(values: Any, confidence_level: float = 0.95, bounds: tuple[float, float] | None = None) -> dict[str, Any]:
     array = np.asarray(values, dtype=float)
     array = array[np.isfinite(array)]
     count = int(array.size)
@@ -103,12 +103,16 @@ def mean_confidence_interval(values: Any, confidence_level: float = 0.95) -> dic
     mean = float(np.mean(array))
     std = float(np.std(array, ddof=1)) if count > 1 else 0.0
     if count > 1 and std > 0:
-        interval = stats.ttest_1samp(array, popmean=0.0).confidence_interval(confidence_level=confidence_level)
-        low = float(interval.low)
-        high = float(interval.high)
+        se = std / np.sqrt(count)
+        t_crit = float(stats.t.ppf((1 + confidence_level) / 2, count - 1))
+        low = mean - t_crit * se
+        high = mean + t_crit * se
     else:
         low = mean
         high = mean
+    if bounds is not None:
+        low = max(low, bounds[0])
+        high = min(high, bounds[1])
     return {"n": count, "mean": mean, "std": std, "ci95": {"low": low, "high": high}}
 
 
@@ -150,6 +154,46 @@ def paired_difference_stats(reference: Any, test: Any, seed: int) -> dict[str, A
             }
         )
     return summary
+
+
+def independent_difference_stats(group_a: Any, group_b: Any, seed: int) -> dict[str, Any]:
+    a = np.asarray(group_a, dtype=float)
+    b = np.asarray(group_b, dtype=float)
+    a = a[np.isfinite(a)]
+    b = b[np.isfinite(b)]
+    mean_diff = float(np.mean(b) - np.mean(a))
+    if a.size > 1 and b.size > 1:
+        permutation = stats.permutation_test(
+            (a, b),
+            statistic=lambda x, y: np.mean(y) - np.mean(x),
+            permutation_type="independent",
+            n_resamples=1999,
+            alternative="two-sided",
+            random_state=np.random.default_rng(seed),
+        )
+        t_result = stats.ttest_ind(b, a, equal_var=False)
+        pooled_std = float(np.sqrt((np.var(a, ddof=1) + np.var(b, ddof=1)) / 2))
+        effect = mean_diff / pooled_std if pooled_std > 0 else None
+        return {
+            "n_a": int(a.size),
+            "n_b": int(b.size),
+            "mean_a": float(np.mean(a)),
+            "mean_b": float(np.mean(b)),
+            "mean_difference": mean_diff,
+            "p_value_permutation": float(permutation.pvalue),
+            "p_value_ttest": float(t_result.pvalue),
+            "effect_size_d": effect,
+        }
+    return {
+        "n_a": int(a.size),
+        "n_b": int(b.size),
+        "mean_a": float(np.mean(a)) if a.size > 0 else None,
+        "mean_b": float(np.mean(b)) if b.size > 0 else None,
+        "mean_difference": mean_diff,
+        "p_value_permutation": None,
+        "p_value_ttest": None,
+        "effect_size_d": None,
+    }
 
 
 def discrete_mutual_information(x: Any, y: Any) -> float | None:

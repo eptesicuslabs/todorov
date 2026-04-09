@@ -98,12 +98,19 @@ def quaternion_product(a, b):
     return out
 
 
-def run_trial(rng, method, d_model, d_mv, n_samples, noise_sigma):
-    x = rng.standard_normal((n_samples, d_model))
-
-    W_left = rng.standard_normal((d_model, d_mv)) * 0.02
-    W_right = rng.standard_normal((d_model, d_mv)) * 0.02
-    W_out = rng.standard_normal((d_mv, d_model)) * 0.02
+def run_trial(rng, method, d_model, d_mv, n_samples, noise_sigma, shared_data=None):
+    if shared_data is not None:
+        x = shared_data["x"]
+        W_left = shared_data["W_left"]
+        W_right = shared_data["W_right"]
+        W_out = shared_data["W_out"]
+        B_random = shared_data["B_random"]
+    else:
+        x = rng.standard_normal((n_samples, d_model))
+        W_left = rng.standard_normal((d_model, d_mv)) * 0.02
+        W_right = rng.standard_normal((d_model, d_mv)) * 0.02
+        W_out = rng.standard_normal((d_mv, d_model)) * 0.02
+        B_random = rng.standard_normal((d_mv, d_mv, d_mv)) * 0.02
 
     a = x @ W_left
     b = x @ W_right
@@ -120,7 +127,6 @@ def run_trial(rng, method, d_model, d_mv, n_samples, noise_sigma):
     elif method == "quaternion":
         interaction = quaternion_product(a, b)
     elif method == "random_bilinear":
-        B_random = rng.standard_normal((d_mv, d_mv, d_mv)) * 0.02
         interaction = np.einsum("ni,nj,ijk->nk", a, b, B_random)
     elif method == "elementwise":
         interaction = a * b
@@ -167,10 +173,17 @@ def main():
     all_trials = []
 
     for noise in NOISE_LEVELS:
-        for method in methods:
-            for trial in range(TRIALS):
-                trial_rng = child_rng(rng)
-                result = run_trial(trial_rng, method, D_MODEL, D_MV, N_SAMPLES, noise)
+        for trial in range(TRIALS):
+            trial_rng = child_rng(rng)
+            shared_data = {
+                "x": trial_rng.standard_normal((N_SAMPLES, D_MODEL)),
+                "W_left": trial_rng.standard_normal((D_MODEL, D_MV)) * 0.02,
+                "W_right": trial_rng.standard_normal((D_MODEL, D_MV)) * 0.02,
+                "W_out": trial_rng.standard_normal((D_MV, D_MODEL)) * 0.02,
+                "B_random": trial_rng.standard_normal((D_MV, D_MV, D_MV)) * 0.02,
+            }
+            for method in methods:
+                result = run_trial(trial_rng, method, D_MODEL, D_MV, N_SAMPLES, noise, shared_data=shared_data)
                 result["trial"] = trial
                 all_trials.append(result)
 

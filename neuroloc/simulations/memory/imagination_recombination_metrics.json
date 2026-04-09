@@ -1,12 +1,12 @@
 {
   "schema_version": "neuroloc.sim.metrics/v1",
   "run": {
-    "run_id": "imagination_recombination_20260409_092449",
+    "run_id": "imagination_recombination_20260409_104020",
     "simulation_name": "imagination_recombination",
     "status": "completed",
-    "started_at_utc": "2026-04-09T09:24:49Z",
-    "finished_at_utc": "2026-04-09T09:25:08Z",
-    "duration_sec": 19.372337579727173
+    "started_at_utc": "2026-04-09T10:40:20Z",
+    "finished_at_utc": "2026-04-09T10:40:37Z",
+    "duration_sec": 17.487147092819214
   },
   "environment": {
     "python_version": "3.14.2",
@@ -15,7 +15,7 @@
     "platform": "Windows-11-10.0.26220-SP0",
     "cpu": "AMD64 Family 25 Model 116 Stepping 1, AuthenticAMD",
     "script_path": "neuroloc/simulations/memory/imagination_recombination.py",
-    "git_commit": "9710bc2d8538401d4a6a8b56bbac30cb35500376",
+    "git_commit": "1de5138dfa56b19c244136c24009d5e9d9e035f2",
     "git_dirty": true
   },
   "configuration": {

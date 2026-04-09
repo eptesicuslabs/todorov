@@ -98,16 +98,15 @@ def corrupt_ternary(rng, pattern, fraction):
     n_corrupt = int(n * fraction)
     indices = rng.choice(n, size=n_corrupt, replace=False)
     for idx in indices:
-        corrupted[idx] = rng.choice([-1, 0, 1])
+        current = corrupted[idx]
+        options = [v for v in [-1, 0, 1] if v != current]
+        corrupted[idx] = rng.choice(options)
     return corrupted
 
 
 def overlap(retrieved, original):
     n = len(original)
-    nz = np.sum(original != 0)
-    if nz == 0:
-        return 0.0
-    return float(np.dot(retrieved, original) / nz)
+    return float(np.dot(retrieved, original) / n)
 
 
 def exact_match(retrieved, original):
