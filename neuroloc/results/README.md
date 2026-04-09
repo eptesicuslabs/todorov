@@ -11,10 +11,13 @@ centralized index of all experiment results. raw data (json metrics + figures) l
 | 003 | 2026-04-08 | leak vs carry | single_neuron/lif_fi_curve.py | tradeoff: leak retains more, carry more stable | validated |
 | 004 | 2026-04-09 | bcm adaptive alpha | plasticity/bcm_alpha_pilot.py | gamma=0.5 reduces norm std by 0.70 (p=0.001) | validated |
 | 005 | 2026-04-09 | gp vs bilinear | spatial/gp_vs_bilinear_pilot.py | pga no advantage at random init (p=0.001 against) | validated |
-| 006 | 2026-04-09 | capacity scaling | memory/capacity_scaling.py | binary saturates at alpha=0.08-0.10 with 5% corruption | running |
+| 006 | 2026-04-09 | capacity scaling | memory/capacity_scaling.py | binary saturates at alpha=0.08-0.10 with 5% corruption | validated |
 | 007 | 2026-04-09 | hierarchical ternary | sparse_coding/hierarchical_ternary.py | 10% k-wta = 0.56 bits/dim, CKA 0.71 | validated |
 | 008 | 2026-04-09 | imagination recombination | memory/imagination_recombination.py | recombined overlap 0.93, random -0.02, novelty 7.5% | validated |
 | 009 | 2026-04-09 | sparse topology | cortical_microcircuit/sparse_topology.py | random sparse beats small-world for retrieval | validated |
+| 010 | 2026-04-09 | rate coded spike | prototypes/rate_coded_spike.py | binary 1.0 vs ternary 0.72 vs rate 0.82 cosine at p=10 | validated |
+| 011 | 2026-04-09 | linoss dynamics | prototypes/linoss_dynamics.py | oscillatory vs exponential decay retention comparison | validated |
+| 012 | 2026-04-09 | forward learning | prototypes/forward_learning.py | gradient descent 0.97 vs one-shot hebbian 0.92 cosine at n=50 | validated |
 
 ## metrics locations
 
@@ -29,6 +32,9 @@ all json metrics follow the neuroloc.sim.metrics/v1 schema (defined in simulatio
 - sparse_coding/hierarchical_ternary_metrics.json
 - memory/imagination_recombination_metrics.json
 - cortical_microcircuit/sparse_topology_metrics.json
+- prototypes/rate_coded_spike_metrics.json
+- prototypes/linoss_dynamics_metrics.json
+- prototypes/forward_learning_metrics.json
 
 ## standalone publishable components
 

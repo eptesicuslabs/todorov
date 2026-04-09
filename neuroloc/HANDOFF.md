@@ -31,18 +31,19 @@ Read `CLAUDE.md` at the repo root. The critical rules:
 
 ```
 neuroloc/
-  wiki/              Obsidian vault -- 141 markdown articles
+  wiki/              Obsidian vault -- 185 markdown articles
     mechanisms/      61 articles on biological neural computation
     bridge/          18 documents mapping biology to Todorov source code
     comparisons/     13 side-by-side analyses (biological vs artificial)
     concepts/        7 introductory and reference articles
     entities/        33 researcher and lab notes
-    knowledge/       13 ML architecture research files (copied from Todorov)
+    knowledge/       39 ML architecture and neuroscience research files
     synthesis/       5 cross-domain integration articles
+    tests/           5 test records + 1 index
     Home.md          Vault home page with navigation links
     index.md         Flat reference catalog of all articles
     log.md           Chronological operation log (append-only)
-  simulations/       18 Brian2 + Python scripts organized by domain
+  simulations/       28 Brian2 + Python scripts organized by domain
   print/             5 print-ready markdown files (cleaned for PDF)
   raw/               Immutable source material (never modify)
   init.md            Project overview and current state
@@ -98,7 +99,7 @@ glossary (55 terms with ML analogs), notation.
 
 ### Simulations (neuroloc/simulations/)
 
-18 scripts across 15 domains. Most use Brian2. Each runs standalone on CPU
+28 scripts across 17 domains. Most use Brian2. Each runs standalone on CPU
 in under 10 minutes. Each outputs PNG figures. Each has a README.md.
 Zero comments in code.
 

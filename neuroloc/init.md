@@ -17,8 +17,8 @@ and the top interventions are validated.
 
 ```
 neuroloc/
-  wiki/           obsidian vault (141 articles)
-  simulations/    brian2 + pytorch scripts (18)
+  wiki/           obsidian vault (185 articles)
+  simulations/    brian2 + pytorch scripts (28)
   raw/            immutable source material
   init.md         this file
 ```
@@ -27,13 +27,14 @@ neuroloc/
 
 open `neuroloc/wiki/` as an obsidian vault. start at Home.md.
 
-- mechanisms/ -- 56 articles on biological neural computation
-- bridge/ -- 16 documents mapping biology to todorov source code
+- mechanisms/ -- 61 articles on biological neural computation
+- bridge/ -- 18 documents mapping biology to todorov source code
 - comparisons/ -- 13 side-by-side analyses (bio vs artificial)
 - concepts/ -- 7 introductory articles (start here if new)
 - entities/ -- 33 researcher/lab notes
-- knowledge/ -- 13 ML architecture research files (from todorov)
-- synthesis/ -- cross-domain integration (empty, populated later)
+- knowledge/ -- 39 ML architecture and neuroscience research files
+- synthesis/ -- 5 cross-domain integration articles
+- tests/ -- 5 test records + 1 index
 
 reading order for newcomers:
 1. concepts/start_here.md
@@ -82,12 +83,15 @@ KDA (k_t * v_t^T) mirrors Hebbian learning at the mathematical level.
 
 ## current state
 
-- 56 mechanism articles with hooks, inline definitions, ML analogs
-- 16 bridge documents with adversarial analysis and implementation specs
+- 61 mechanism articles with hooks, inline definitions, ML analogs
+- 18 bridge documents with adversarial analysis and implementation specs
 - 13 comparison articles
 - 7 introductory/concept articles
 - 33 entity notes
-- 18 simulations
+- 39 knowledge articles
+- 5 synthesis articles
+- 5 test records
+- 28 simulations across 17 domains
 - 1124 wikilinks, 0 broken links, 0 duplicate filenames
 - 15 articles had missing challenges sections (retrofitted)
 

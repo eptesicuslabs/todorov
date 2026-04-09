@@ -33,7 +33,7 @@ improves n-body dynamics prediction by 29% at zero compute overhead.
 
 neuroloc (`neuroloc/`) is the biological grounding research phase.
 it maps 61 biological neural computation mechanisms to todorov's CRBR
-framework through an obsidian wiki (153 articles), 18 brian2 simulations,
+framework through an obsidian wiki (185 articles), 28 simulations,
 and a 32-page printed guide.
 
 key finding: 14 of 15 biological analogies in the architecture are

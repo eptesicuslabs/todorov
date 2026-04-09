@@ -41,7 +41,8 @@ where:
 - h is the accumulated memory state
 - C is compression: select the important parts, discard the rest.
   implemented as competitive selection (top-k by magnitude) producing
-  sparse ternary values {-1, 0, +1}
+  sparse rate-coded values (survivors keep their continuous magnitude,
+  the rest are zero). this is NOT ternary -- values are continuous.
 - B is mixing: combine the compressed input with compressed memory.
   outer product (creates associations), element-wise product (gates),
   or structured bilinear map (geometric relationships)
@@ -211,93 +212,85 @@ these three capabilities emerge from the same core operation:
 - memory = remember mode (write input to memory state)
 - prediction = predict mode (compare input against expectation)
 
-## open research questions (to be resolved by experimentation)
+## research questions -- ANSWERED by experiments (2026-04-09)
 
-1. what learning rule? backprop works but isn't the final answer.
-   local rules (three-factor, eligibility traces) are biological but
-   don't scale yet. hybrid? something new? resolve by testing.
+1. **learning rule**: ANSWERED. backprop for v1. one-shot hebbian gives
+   90% of optimal for free (experiment 012). delta rule = gradient descent
+   for linear layers. the unified learning hypothesis (forward-pass-as-
+   learning) is an untested conjecture requiring prediction error and
+   runtime-adaptive thresholds not yet in the architecture.
 
-2. what compression level? ternary activations are proven. ternary
-   weights need testing. hierarchical ternary (0.37 bits/dim) needs
-   testing. how much compression can you do before quality degrades?
+2. **compression level**: ANSWERED. rate-coded k-WTA at 10% = 0.56 bits/dim,
+   CKA 0.71. at 20% = 0.92 bits/dim, CKA 0.81. the tradeoff is smooth
+   and predictable (experiment 007). novel: no prior work on k-WTA +
+   rate-coded activation compression with CKA validation.
 
-3. what is the right memory capacity? how large should the state
-   matrix be? how often should consolidation run? what rank for
-   SVD snapshots? resolve by scaling experiments.
+3. **memory capacity**: ANSWERED. binary hopfield saturates at alpha=0.08-0.10
+   with 5% corruption. ternary has ~5x lower practical capacity (experiment
+   006). delta rule erasure is mandatory for practical capacity. recurrent
+   state alone cannot provide eidetic memory -- exact retrieval mode (MLA
+   function) needed for long-range recall.
 
-4. how does imagination quality scale? does the recombination
-   operation produce useful novel scenarios at scale, or does it
-   produce noise? test by measuring whether imagined scenarios
-   improve prediction accuracy.
+4. **imagination quality**: ANSWERED. recombined queries produce structured
+   interpolation (cosine 0.93), not noise. random queries produce -0.02.
+   novelty rate 7.5% (experiment 008). imagination via outer-product
+   recombination is functional.
 
-5. optimal sparse connectivity pattern? random sparsity, structured
-   sparsity, learned sparsity? what fraction of connections is
-   optimal for the compute-communication tradeoff?
+5. **connectivity**: ANSWERED. small-world beats random sparse at 50%
+   density when connection counts are matched (experiment 009, corrected).
+   at lower densities, random sparse shows higher overlap. use small-world
+   BETWEEN processing stages, random sparse WITHIN each memory unit.
 
-## resolution plan for open questions
+## exact retrieval as a mode (replacing separate MLA module)
 
-each open question gets a kaggle experiment + research subagent in parallel.
-answers fold back into this blueprint, converting it to a working spec.
+the formal impossibility result (wen et al. ICLR 2025) proves pure recurrence
+cannot solve associative recall perfectly beyond a retrieval horizon. the
+solution is NOT a separate MLA module but a MODE of the same operation:
 
-**Q1: learning rule**
-- experiment: implement three-factor learning on the pattern completion
-  simulation. compare learning speed and final quality vs backprop at
-  matched parameter count. kaggle CPU.
-- research: search for 2024-2026 papers on scalable local learning rules.
-  eligibility traces at 100M+ params. any breakthroughs?
+- when the mode signal indicates retrieval is needed and the recurrent state
+  cannot provide a confident answer (high prediction error on retrieval),
+  the operation switches to exact attention over consolidated snapshots
+- consolidated snapshots are compressed summaries of past recurrent state,
+  stored periodically (every N steps)
+- this is functionally equivalent to MLA but implemented as a mode, not
+  a separate layer type
+- the retrieval mode uses dot-product attention over the snapshot bank,
+  which is O(T/N) in the number of snapshots, not O(T) per token
 
-**Q2: compression level**
-- experiment: hierarchical ternary (0.37 bits/dim) on the existing
-  todorov 6M architecture. measure BPB degradation vs standard ternary.
-  kaggle T4.
-- research: search for ternary weight papers at LLM scale. bitnet,
-  1-bit LLMs, any quality-preserving full-ternary results?
+## implementation sequencing (mandatory -- do NOT bundle)
 
-**Q3: memory capacity**
-- experiment: scale the pattern completion pilot from 200 to 10K neurons.
-  measure capacity curve. when does the outer-product memory saturate?
-  kaggle CPU.
-- research: modern hopfield network capacity results. exponential vs
-  polynomial capacity. what determines the practical limit?
+each feature is validated in isolation before combination. this follows
+the phase 5 sequencing protocol from CLAUDE.md.
 
-**Q4: imagination quality**
-- experiment: implement controlled recombination on the associative
-  memory pilot. store 100 patterns. recombine fragment pairs. measure
-  whether recombinations are plausible (high cosine with nearest stored
-  pattern) vs noise. kaggle CPU.
-- research: search for computational creativity papers. generative
-  recombination quality metrics. how do you measure if an imagined
-  scenario is useful?
+**run 1 (baseline)**: standard todorov at 350M with current ternary spikes,
+standard alpha, no delta rule erasure, standard SwiGLU. replicate the
+0.663x BPB ratio at larger scale. this is the comparison target.
 
-**Q5: connectivity pattern**
-- experiment: test random vs structured sparsity in the cortical
-  microcircuit simulation. does small-world topology improve information
-  flow vs random sparse connectivity? kaggle CPU.
-- research: search for sparse neural network architecture papers.
-  lottery ticket hypothesis. structured pruning. what patterns survive
-  training?
+**run 2 (rate-coded k-WTA)**: replace ternary spikes with rate-coded k-WTA
+at 20% selection. measure: BPB, MI, CKA, firing rate. if gradient flow
+breaks at 20%, fallback to 30-40% and anneal.
 
-## files to create
+**run 3 (delta rule erasure + BCM alpha)**: add targeted overwrite and
+activity-dependent forgetting (gamma=0.3). measure: BPB, state norm
+dynamics, long-sequence retrieval quality.
 
-- `neuroloc/spec/core_operation.md` -- the math, in detail
-- `neuroloc/spec/memory.md` -- eidetic memory architecture
-- `neuroloc/spec/compression.md` -- novel compression proposals
-- `neuroloc/spec/imagination.md` -- controlled generation
-- `neuroloc/spec/monitoring.md` -- telemetry system
-- `neuroloc/spec/v1_requirements.md` -- first version capabilities
+**run 4 (multi-compartment SwiGLU)**: replace standard SwiGLU with K=4
+block-diagonal sub-gates. measure: BPB change, per-layer representation
+diversity. if it hurts, drop it.
+
+**run 5 (retrieval mode)**: add the exact-retrieval mode with consolidated
+snapshots. measure: long-range retrieval accuracy, BPB on documents
+>1024 tokens.
+
+each run that improves or maintains quality is KEPT. each run that
+degrades is DROPPED. the final architecture is the composition of
+all surviving features.
 
 ## verification
 
-test the core operation components individually:
-- k-WTA selection: already validated (pilot showed 0.925 vs 0.500)
-- BCM-like decay: already validated (gamma=0.5, p=0.001)
-- delta rule erasure: implement and test on selective copy task
-- multi-compartment units: test 4-gate vs 1-gate on pattern classification
-- imagination gate: test controlled recombination on associative tasks
-- consolidation: test memory retention over 10K+ steps with and without
-
-then integrate and test the unified operation on:
-- sequence prediction (text, byte-level)
-- pattern classification (images, synthetic)
-- associative retrieval (store N items, retrieve by partial cue)
-- novel scenario generation (recombine stored fragments, evaluate)
+each run is verified by:
+1. prosecutor audit of the code before execution
+2. eara ultra loop pre-push checks (5 subagents)
+3. comparison against the baseline (run 1) on matched token budget
+4. statistical significance (p < 0.01) for any claimed improvement
+5. documentation update after each run

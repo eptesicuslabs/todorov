@@ -167,29 +167,33 @@ this is the flat reference catalog. for guided navigation, start at [[start_here
 - bridge/positional_encoding_to_rope.md -- theta phase precession, grid cell phase, tonotopy to RoPE rotation
 - bridge/normalization_to_rmsnorm.md -- divisive normalization, synaptic scaling, gain control to RMSNorm
 
-## tests (3 records)
+## tests (5 records)
 - tests/2026-04-07_pattern_completion_baseline.md -- first dated experiment record; repaired ca3-like attractor baseline with shuffled control, sweeps, and metrics json
 - tests/2026-04-07_kwta_vs_threshold_pilot.md -- lateral-inhibition bridge pilot; matched-sparsity threshold vs k-wta with exact-support and active-fraction metrics
 - tests/2026-04-08_leak_vs_carry_pilot.md -- single-neuron bridge pilot; explicit leak vs atmn-style carry with paired-pulse retention, drift scaling, and passive lif anchor metrics
+- tests/2026-04-09_bcm_alpha_pilot.md -- plasticity bridge pilot; bcm-like adaptive alpha with activity-dependent forgetting and state norm stabilization
+- tests/2026-04-09_gp_vs_bilinear_pilot.md -- spatial bridge pilot; pga geometric product vs random bilinear at random initialization
 
-## simulations (18 scripts)
+## simulations (28 scripts across 17 directories)
 - simulations/single_neuron/ (3 scripts: lif_fi_curve leak-validation, adex_patterns, izhikevich_gallery)
-- simulations/plasticity/ (2 scripts: stdp_weight_evolution, homeostatic_scaling)
-- simulations/sparse_coding/ (1 script: sparse_coding_demo)
+- simulations/plasticity/ (3 scripts: stdp_weight_evolution, homeostatic_scaling, bcm_alpha_pilot)
+- simulations/sparse_coding/ (2 scripts: sparse_coding_demo, hierarchical_ternary)
 - simulations/predictive_coding/ (1 script: predictive_coding_2level)
-- simulations/cortical_microcircuit/ (1 script: canonical_circuit)
+- simulations/cortical_microcircuit/ (2 scripts: canonical_circuit, sparse_topology)
 - simulations/neuromodulation/ (1 script: dopamine_rpe)
 - simulations/lateral_inhibition/ (1 script: wta_dynamics)
 - simulations/oscillations/ (1 script: gamma_ping)
-- simulations/memory/ (1 script: pattern_completion)
+- simulations/memory/ (3 scripts: pattern_completion, capacity_scaling, imagination_recombination)
 - simulations/attention/ (1 script: biased_competition)
 - simulations/dendritic/ (1 script: multicompartment_neuron)
 - simulations/energy/ (1 script: energy_comparison)
 - simulations/development/ (1 script: critical_period)
-- simulations/spatial/ (1 script: grid_cell_model)
+- simulations/spatial/ (2 scripts: grid_cell_model, gp_vs_bilinear_pilot)
 - simulations/consciousness/ (1 script: ignition_dynamics)
+- simulations/prototypes/ (3 scripts: rate_coded_spike, linoss_dynamics, forward_learning)
+- simulations/shared.py (metrics schema and utilities)
 
-## knowledge (33 articles)
+## knowledge (39 articles)
 - knowledge/unified_theory.md -- crbr formulation unifying kda, mamba-3, mla, spikes, swiglu, and gp under one mathematical object
 - knowledge/delta_rule_theory.md -- delta-rule linear attention, online regression view, and fast-weight state updates
 - knowledge/kda_channel_gating.md -- kimi delta attention with channel-wise forgetting and constrained dplr implementation notes
@@ -232,15 +236,16 @@ this is the flat reference catalog. for guided navigation, start at [[start_here
 
 - knowledge/unified_learning_hypothesis.md -- the forward pass IS the learning step: outer product = hebbian, BCM alpha = metaplasticity, delta rule = error correction, k-WTA = competition, prediction error = teaching signal. unified learning where computation and training are the same operation. testable hypothesis with specific experiment design.
 - knowledge/compression_novelty.md -- novelty analysis of hierarchical k-WTA + ternary compression. confirmed novel: no prior work on runtime activations with CKA quality validation. closest: ComPEFT (EMNLP 2024) on weight deltas. architecture-agnostic, applies to any activation tensor.
+- knowledge/biological_vision_research.md -- curated research library on biological vision, retinal processing, center-surround receptive fields, ventral/dorsal streams, and visual cortex hierarchies
 
 ## statistics
 - total mechanism articles: 61
 - total bridge notes: 18
 - total synthesis articles: 5
 - total test records: 5
-- total simulations: 18
+- total simulations: 28
 - total entity notes: 33
 - total comparison articles: 13
 - total concept articles: 7
-- total knowledge articles: 38
+- total knowledge articles: 39
 - last updated: 2026-04-09
