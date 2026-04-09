@@ -6,7 +6,7 @@ curated peer-reviewed research on sparse network connectivity, dynamic pruning, 
 
 ### sparse subnetworks in transformers
 
-frankle, J. & carlin, M. (2019, original). extended to transformers by chen, T. et al. (2020) and prasanna, S. et al. (2020).
+frankle, j. & carbin, m. (2019, original). extended to transformers by chen, T. et al. (2020) and prasanna, S. et al. (2020).
 
 key finding: the lottery ticket hypothesis states that dense networks contain sparse subnetworks (winning tickets) that, when trained in isolation from the same initialization, match the full network's performance. in transformers, winning tickets exist at 50-90% sparsity -- meaning 50-90% of weights can be removed with no accuracy loss, provided the correct subset is identified. identification requires training the full network first (iterative magnitude pruning), making it a post-hoc compression technique rather than a training method. the hypothesis has not been validated for pretraining from scratch at 1B+ scale.
 
@@ -76,7 +76,7 @@ confidence: medium-high. single study with clear methodology and biological vali
 
 ### connectome-based networks resist neuron loss
 
-smith, A. et al. (2026). connectome-inspired architectures are more robust to neuron ablation. *biorxiv preprint*.
+mcallister, b. et al. (2026). non-random brain connectome wiring enables robust neural network function under high sparsity. *biorxiv*. doi:10.64898/2026.03.30.715411v1.
 
 key finding: neural networks whose connectivity is initialized from biological connectome data (c. elegans, drosophila mushroom body, mouse visual cortex) are significantly more robust to random neuron ablation (simulated neuron death) than networks with random or fully connected initialization. at 30% neuron ablation, connectome-initialized networks retain ~85% of original accuracy versus ~60% for random networks. the robustness comes from the connectome's redundant pathways and distributed representations: information is encoded across multiple parallel circuits, so losing one circuit does not catastrophically degrade performance.
 
@@ -88,7 +88,7 @@ confidence: medium. preprint, not yet peer-reviewed. the ablation robustness res
 
 ### spontaneous emergence of small-world and rich-club
 
-frontiers team (2024). adaptive synaptic rewiring produces small-world and rich-club topology in spiking networks. *frontiers in computational neuroscience*.
+li, j., bauer, r., rentzeperis, i. & van leeuwen, c. (2024). adaptive rewiring: a general principle for neural network development. *frontiers in network physiology*, 4, 1410092.
 
 key finding: when spiking neural networks are given the ability to adaptively rewire their connections based on activity (strengthening connections between co-active neurons, weakening and eventually pruning connections between uncorrelated neurons, and regrowing connections randomly), two emergent topological properties appear: (a) small-world structure (high clustering + short path length) and (b) rich-club organization (highly connected hub neurons preferentially connect to each other). these properties emerge spontaneously from local activity-dependent rules without any global topological objective. the resulting networks process information more efficiently than fixed-topology networks.
 

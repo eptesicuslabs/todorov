@@ -40,13 +40,13 @@ confidence: high. replicated across multiple variants (deltanet, gated deltanet,
 
 ### ternary synapses preserve scaling
 
-bhattacharjee, s. & martin, R. (2025). capacity of associative memories with ternary synapses.
+bhattacharjee, s. & martin, i. (2025). accuracy and capacity of modern hopfield networks with synaptic noise. *physical review e*, 112. arXiv:2503.00241.
 
-key finding: associative memories with ternary synapses {-1, 0, +1} preserve the polynomial scaling of storage capacity: N^(n-1) for n-th order interactions, same as continuous synapses. the ternary constraint reduces the prefactor (fewer bits per synapse means less information per connection) but does not change the scaling exponent. for pairwise (hopfield-like) networks, the capacity is approximately 0.14N for ternary versus 0.14N for binary and 0.138N for continuous (all remarkably close). the zero state in ternary provides an additional degree of freedom compared to binary, allowing the network to prune weak connections.
+key finding: synaptic noise (including ternary quantization) preserves the N^(n-1) scaling exponent for n-th order hopfield networks. the prefactor is reduced but the exponent survives. for the classical pairwise case (n=2), the baseline capacity is 0.138N (McEliece et al. 1987 for binary {-1,+1} patterns with continuous weights). ternary synapses reduce the prefactor relative to continuous weights but do not change the scaling class. the zero state in ternary provides an additional degree of freedom compared to binary, allowing the network to suppress weak connections.
 
-relevance to neural machine: this directly validates todorov's ternary spikes from a capacity perspective. the preserved N^(n-1) scaling means that ternary quantization does not fundamentally limit how many patterns the kda state can store -- only the fidelity per pattern. the biological interpretation is that cortical synapses (which are effectively low-precision) can achieve the same capacity scaling as high-precision synapses, consistent with the brain's ~10^14 synapses achieving enormous storage despite individual synapse noise.
+relevance to neural machine: ternary quantization does not fundamentally limit how many patterns the kda state can store -- only the fidelity per pattern. the N^(n-1) scaling is preserved under quantization noise. however, the exact prefactor for ternary synapses with ternary patterns (the joint condition in the crbr architecture) has not been measured empirically.
 
-confidence: medium-high. theoretical result with simulation validation on small networks. caveat: the analysis assumes random patterns and does not account for the structured correlations in natural language data.
+confidence: medium. the paper studies ising (binary) patterns with noisy synapses, not the joint ternary-ternary case. the exact prefactor for {-1,0,+1} synapses AND {-1,0,+1} patterns is extrapolated, not directly computed.
 
 ## ssm retrieval and capacity
 
@@ -86,7 +86,7 @@ confidence: high. validated on multiple pretrained models across standard benchm
 
 ### memory caching gives rnns growing capacity
 
-memory caching team (2026). growing recurrent capacity through state checkpoints.
+behrouz, a. et al. (2026). memory caching: rnns with growing memory. arXiv:2602.24281.
 
 key finding: by periodically checkpointing the recurrent state and allowing the model to attend over past checkpoints, rnns can achieve growing (rather than fixed) memory capacity. the checkpointed states serve as a compressed kv cache, where each checkpoint summarizes a segment of the input sequence. retrieval from checkpoints uses a lightweight attention mechanism over the checkpoint embeddings. this converts a fixed-capacity rnn into a growing-capacity model at the cost of linear memory growth in the number of checkpoints.
 

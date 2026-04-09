@@ -16,7 +16,7 @@ confidence: high. replicated by multiple groups. the 3B threshold is approximate
 
 ### fully binary w1a1: the gap persists
 
-FBI-LLM team (2024). fully binarized weight and activation language models.
+ma, j. et al. (2024). FBI-LLM: scaling up fully binarized llms from scratch via autoregressive distillation. arXiv:2407.07093.
 
 key finding: fully binarizing both weights and activations (w1a1, {-1, +1} for both) at 7B parameters produces a ~13 percentage point accuracy gap compared to fp16 baselines across standard language benchmarks. the gap is larger than ternary-weight-only quantization, confirming that activation quantization is harder than weight quantization. the binary activation constraint removes the zero state that ternary preserves, eliminating the network's ability to gate information flow through silence.
 
@@ -38,7 +38,7 @@ confidence: high. systematic scaling study across multiple model sizes and bit w
 
 ### data scaling dominates parameter scaling
 
-spectra team (2024). spectra 1.1: scaling laws for ternary llms.
+vaidhya, t. et al. (2025). spectra 1.1: scaling laws and efficient inference for ternary language models. arXiv:2506.23025. ACL 2025.
 
 key finding: ternary llms follow modified scaling laws where the data exponent (0.81) is dramatically larger than the parameter exponent (0.32). in fp16 models, these exponents are closer (approximately 0.7 and 0.5 respectively). the implication is that ternary models benefit more from additional training data than from additional parameters. at fixed compute budget, ternary models should be trained on significantly more data relative to their parameter count compared to fp16 models.
 
