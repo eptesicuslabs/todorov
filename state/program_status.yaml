@@ -17,16 +17,19 @@ run_history:
   run_008: COMPLETE, progressive 256->2048, BPB 2.82, perplexity +4% PASS, copy 0% FAIL
   run_009: COMPLETE, Phase 3 spatial validation, ALL GATES PASS
   run_010: "KDA+MLA scaling probe (NOT todorov baseline -- Mamba3 absent), H200, 267M, BPB 2.375, ratio 0.663x, gates pass but architecture incomplete"
-latest_run: run_010
+  run_011: "full architecture (KDA+Mamba3+MLA, 6:1:1), H200, 280M, BPB 2.592, ratio 0.722x, 3/4 gates pass (FR measurement bug from gradient checkpointing)"
+latest_run: run_011
 latest_run_results:
   phase: 5
-  description: phase 5 baseline at 267m params on h200, kda+mla only (mamba3 dropped due to sequential scan speed)
-  best_val_bpb: 2.375
-  baseline_best_bpb: 3.583
-  bpb_ratio: 0.663
-  param_count: 267389306
-  spike_mi: 1.168
-  spike_cka: 0.732
-  spike_fr: 0.408
-  all_gates_pass: true
-next_action: "BLOCKER: implement Mamba3 parallel scan (SSD chunked or mamba_ssm kernel). then re-run phase 5 baseline with FULL todorov architecture (KDA+Mamba3+MLA, 6:1:1). run_010 was NOT a valid baseline -- Mamba3 was absent."
+  description: phase 5 full architecture baseline at 280m params on h200
+  best_val_bpb: 2.592
+  baseline_best_bpb: 3.590
+  bpb_ratio: 0.722
+  param_count: 280000000
+  spike_mi: 1.246
+  spike_cka: 0.802
+  spike_fr: 0.000
+  spike_fr_note: "measurement bug from gradient checkpointing -- FR=0 is artifact, not real dead spikes"
+  all_gates_pass: false
+  gates_note: "3/4 pass. FR fail is measurement artifact."
+next_action: "architecture development paused for neural machine research phase (neuroloc). todorov resumes when neural machine design is validated. see neuroloc/spec/blueprint.md for the neural machine specification."

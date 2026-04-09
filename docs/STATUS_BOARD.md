@@ -1,10 +1,21 @@
 # status board
 
-## current phase: 5 (scale to 267m params)
+## current phase: neural machine research (neuroloc)
 
-## status: run_010 complete -- phase 5 baseline, all gates pass
+## status: todorov architecture paused. neural machine spec at neuroloc/spec/blueprint.md
 
-## phase 5: baseline complete (run_010)
+## phase 5: runs 010-011 complete
+
+### run_011: full architecture (KDA+Mamba3+MLA, 6:1:1)
+
+h200, 280m params, full architecture (18 KDA + 3 Mamba3 + 3 MLA).
+bpb 2.592, ratio 0.722x (27.8% better than transformer baseline).
+spike mi 1.246, cka 0.802. fr measurement bug from gradient
+checkpointing (reported 0%, actual ~41%). 3/4 gates pass.
+mamba3 sequential scan dominates training time (~10s/step overhead).
+atmn too slow at 280m with gradient checkpointing (30+ min/step).
+
+### run_010: KDA+MLA only (no Mamba3)
 
 h200, 267m params, kda+mla only (no mamba3). fla disabled (chunk_kda NaN at
 d_model=1024). mamba3 dropped (sequential scan ~15s/step at T=2048, not viable

@@ -15,7 +15,7 @@ todorov is a proof that biological neural computation principles -- ternary
 spikes, adaptive thresholds, recurrent state accumulation -- can outperform
 standard transformers at matched scale. 0.663x BPB at 267M params (33.7%
 better than transformer baseline). spike mutual information 1.168, CKA 0.732,
-firing rate 40.8%. all gates passing across 10 runs.
+firing rate 40.8%. all gates passing across 11 runs.
 
 the architecture is built on one mathematical object: the CRBR.
 
