@@ -32,32 +32,48 @@ NOISE_LEVELS = [0.0, 0.2, 0.5, 1.0]
 GP_TABLE = None
 
 
+def _blade_indices(bitmap):
+    indices = []
+    for bit in range(4):
+        if bitmap & (1 << bit):
+            indices.append(bit)
+    return indices
+
+
+def _canonical_reorder_sign(bitmap_a, bitmap_b):
+    a_indices = _blade_indices(bitmap_a)
+    b_indices = _blade_indices(bitmap_b)
+    combined = a_indices + b_indices
+    swaps = 0
+    arr = list(combined)
+    for i in range(len(arr)):
+        for j in range(i + 1, len(arr)):
+            if arr[i] > arr[j]:
+                arr[i], arr[j] = arr[j], arr[i]
+                swaps += 1
+    return (-1) ** swaps
+
+
+def _metric_sign(bitmap_a, bitmap_b):
+    shared = bitmap_a & bitmap_b
+    sign = 1
+    for bit in range(4):
+        if shared & (1 << bit):
+            if bit == 0:
+                sign *= 0
+            else:
+                sign *= 1
+    return sign
+
+
 def build_pga_cayley_table():
     table = np.zeros((16, 16, 16))
-
-    signs = np.zeros((4, 4), dtype=int)
-    signs[0] = [1, 1, 1, 1]
-    signs[1] = [1, -1, 1, -1]
-    signs[2] = [1, -1, -1, 1]
-    signs[3] = [1, 1, -1, -1]
-
     for i in range(16):
         for j in range(16):
-            grade_i = bin(i).count("1")
-            grade_j = bin(j).count("1")
-            grade_out = (grade_i + grade_j) % 5
-            k = (i ^ j) % 16
-
-            sign = 1
-            if grade_i > 0 and grade_j > 0:
-                si = min(grade_i, 3)
-                sj = min(grade_j, 3)
-                sign = signs[si][sj]
-                if (i & j) != 0:
-                    sign *= (-1) ** bin(i & j).count("1")
-
-            table[i, j, k] += sign
-
+            reorder = _canonical_reorder_sign(i, j)
+            metric = _metric_sign(i, j)
+            result_blade = i ^ j
+            table[i, j, result_blade] = reorder * metric
     return table
 
 

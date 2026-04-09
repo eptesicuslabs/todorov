@@ -41,9 +41,14 @@ def make_dense_weights(patterns):
 
 def make_random_sparse(W, rng, sparsity):
     n = W.shape[0]
-    mask = rng.random((n, n)) < sparsity
-    np.fill_diagonal(mask, False)
+    n_connections = int(n * n * sparsity / 2)
+    mask = np.zeros((n, n), dtype=bool)
+    upper_indices = np.triu_indices(n, k=1)
+    total_possible = len(upper_indices[0])
+    chosen = rng.choice(total_possible, size=min(n_connections, total_possible), replace=False)
+    mask[upper_indices[0][chosen], upper_indices[1][chosen]] = True
     mask = mask | mask.T
+    np.fill_diagonal(mask, False)
     return W * mask
 
 
