@@ -189,7 +189,7 @@ this is the flat reference catalog. for guided navigation, start at [[start_here
 - simulations/spatial/ (1 script: grid_cell_model)
 - simulations/consciousness/ (1 script: ignition_dynamics)
 
-## knowledge (24 articles)
+## knowledge (33 articles)
 - knowledge/unified_theory.md -- crbr formulation unifying kda, mamba-3, mla, spikes, swiglu, and gp under one mathematical object
 - knowledge/delta_rule_theory.md -- delta-rule linear attention, online regression view, and fast-weight state updates
 - knowledge/kda_channel_gating.md -- kimi delta attention with channel-wise forgetting and constrained dplr implementation notes
@@ -220,6 +220,12 @@ this is the flat reference catalog. for guided navigation, start at [[start_here
 - knowledge/imagination_research.md -- hippocampal scene construction, constructive episodic simulation, suppression circuit for controlled vs intrusive thought, dmn-executive coupling for creativity, visual imagery, dreaming as offline generation, forward models as primitive imagination. hassabis 2007, schacter & addis 2007, anderson 2025, beaty 2018, pearson 2019, deperrois 2022
 - knowledge/compression_architecture.md -- novel compression proposals for the neural machine: hierarchical ternary coding (0.37 bits/dim), state-predictive residual coding, consolidated state snapshots, content-addressable sparse memory, ternary weight matrices. combines hippocampal indexing, pattern separation, chunking, predictive coding, and consolidation principles
 
+- knowledge/learning_rules_research.md -- curated research library on non-backprop learning rules, 8 sources across target propagation, predictive coding at depth, forward-forward, evolution strategies, e-prop on neuromorphic hardware, three-factor hebbian, and the 1-15pp scale gap
+- knowledge/ternary_compression_research.md -- curated research library on ternary and extreme quantization, 9 sources across bitnet b1.58, w1a1 gap, paretoq pareto frontier, matmul-free lm, hardware efficiency, fpga accelerators, scaling laws, and ste improvements
+- knowledge/memory_capacity_research.md -- curated research library on associative memory capacity, 9 sources across modern hopfield exponential capacity, tight upper bounds, gated deltanet mqar, ternary synaptic scaling, ssm retrieval horizon, rnn formal lower bounds, svd kv compression, memory caching, and the unmeasured joint of outer product + decay + ternary
+- knowledge/imagination_computation_research.md -- curated research library on computational imagination, 8 sources across novelty as feature superposition, meta-learning for compositionality, dreamerv3 latent imagination, cmmd and vendi score quality metrics, logit arithmetic, outer-product generative interpolation, and memorization-to-generalization phase transition
+- knowledge/sparse_connectivity_research.md -- curated research library on sparse network connectivity, 8 sources across lottery tickets in transformers, sparsegpt at 175b, deepseek moe, small-world acceleration, rigl dynamic sparse training, biological wiring cost optimization, connectome robustness, and adaptive rewiring emergence
+
 ## statistics
 - total mechanism articles: 61
 - total bridge notes: 18
@@ -229,5 +235,5 @@ this is the flat reference catalog. for guided navigation, start at [[start_here
 - total entity notes: 33
 - total comparison articles: 13
 - total concept articles: 7
-- total knowledge articles: 28
+- total knowledge articles: 33
 - last updated: 2026-04-09

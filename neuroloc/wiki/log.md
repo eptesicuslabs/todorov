@@ -1,5 +1,41 @@
 # neuroloc operation log
 
+## 2026-04-09 five design-question knowledge libraries created | 5 knowledge articles
+
+new knowledge articles:
+- knowledge/learning_rules_research.md: curated library of 8 sources on non-backprop learning rules including scaled dtp, predictive coding, scff, evolution strategies, e-prop, and three-factor hebbian; documents the 1-15pp scale gap
+- knowledge/ternary_compression_research.md: curated library of 9 sources on ternary and extreme quantization including bitnet b1.58, paretoq pareto frontier, matmul-free lm, hardware efficiency benchmarks, scaling laws, and ste improvements
+- knowledge/memory_capacity_research.md: curated library of 9 sources on associative memory capacity including modern hopfield exponential bounds, gated deltanet mqar, ternary synaptic scaling, ssm retrieval horizon, rnn formal lower bounds, and the unmeasured joint of outer product + decay + ternary
+- knowledge/imagination_computation_research.md: curated library of 8 sources on computational imagination including novelty as feature superposition, meta-learning for compositionality, dreamerv3 latent imagination, quality metrics, logit arithmetic, and outer-product generative interpolation
+- knowledge/sparse_connectivity_research.md: curated library of 8 sources on sparse connectivity including lottery tickets, sparsegpt, deepseek moe, small-world topology, rigl, biological wiring cost optimization, connectome robustness, and adaptive rewiring
+
+what these libraries address:
+- the 5 open design questions for the neural machine: (1) can non-backprop learning rules work at 300m+ scale, (2) what are the scaling laws and hardware advantages of ternary quantization, (3) how much can the kda state store under joint outer-product + decay + ternary constraints, (4) can the kda outer-product state support structured imagination, (5) should todorov adopt structured sparsity or biological wiring constraints
+
+documentation updates:
+- index.md updated: knowledge section expanded from 28 to 33 articles, statistics updated
+
+## 2026-04-08 single-neuron leak vs carry pilot logged | 1 new test record
+
+new test record:
+- tests/2026-04-08_leak_vs_carry_pilot.md documents the validated single-neuron bridge pilot in neuroloc/simulations/single_neuron/lif_fi_curve.py
+
+what the recorded test covers:
+- matched discrete-time comparison between explicit leak, current atmn-style carry, and an integrator control
+- paired-pulse gap sweep with a passive brian2 lif anchor
+- long-sequence drift scaling under zero-mean noise
+- figure + metrics json artifact pair
+
+main finding recorded:
+- explicit leak tau20 retained 0.447 of the first pulse at 16 ms gap vs -0.001 for atmn carry, paired delta 0.448 with permutation p = 0.001
+- but atmn carry matched the passive lif anchor more closely on second-pulse peak error (0.166 mV vs 0.507 mV) and had lower drift variance at length 1024 (0.576 mV vs 1.567 mV)
+- the defensible claim is a tradeoff, not a clean win: explicit leak improves subthreshold retention while atmn carry is more stable and closer to the anchor in this toy recurrence
+
+documentation updates:
+- neuroloc/simulations/single_neuron/README.md rewritten so lif_fi_curve is described as a leak-vs-carry bridge pilot rather than the old f-i classroom demo
+- tests/index.md updated with the new dated record
+- index.md updated: tests section expanded from 2 to 3 records, the single-neuron simulation entry now reflects the leak-validation role of lif_fi_curve, and the flat knowledge catalog was corrected to include all 24 current knowledge articles
+
 ## 2026-04-08 seven domain knowledge libraries created | 7 knowledge articles
 
 new knowledge articles:
