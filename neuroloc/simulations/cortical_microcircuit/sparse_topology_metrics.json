@@ -1,0 +1,398 @@
+{
+  "schema_version": "neuroloc.sim.metrics/v1",
+  "run": {
+    "run_id": "sparse_topology_20260409_092640",
+    "simulation_name": "sparse_topology",
+    "status": "completed",
+    "started_at_utc": "2026-04-09T09:26:40Z",
+    "finished_at_utc": "2026-04-09T09:27:00Z",
+    "duration_sec": 20.371923446655273
+  },
+  "environment": {
+    "python_version": "3.14.2",
+    "numpy_version": "2.1.3",
+    "scipy_version": "1.17.0",
+    "platform": "Windows-11-10.0.26220-SP0",
+    "cpu": "AMD64 Family 25 Model 116 Stepping 1, AuthenticAMD",
+    "script_path": "neuroloc/simulations/cortical_microcircuit/sparse_topology.py",
+    "git_commit": "d30d4ee6d5ae7a39210e404fc019f11855de0062",
+    "git_dirty": true
+  },
+  "configuration": {
+    "parameters": {
+      "n": 500,
+      "p": 30,
+      "sparsity_levels": [
+        0.01,
+        0.05,
+        0.1,
+        0.2,
+        0.5,
+        1.0
+      ],
+      "trials": 20,
+      "corruption": 0.1
+    },
+    "parameter_hash": "7995a7686ac65652",
+    "seed_numpy": 42,
+    "numpy_bit_generator": "PCG64",
+    "n_trials": 11
+  },
+  "summary": {
+    "random_sparse_sp0.01": {
+      "exact_retrieval": 0.0,
+      "overlap": 0.4688,
+      "clustering": 0.01247175047175047,
+      "path_length": 4.0
+    },
+    "smallworld_sp0.01": {
+      "exact_retrieval": 0.0,
+      "overlap": 0.4750799999999999,
+      "clustering": 0.3244897959183673,
+      "path_length": 10.6
+    },
+    "random_sparse_sp0.05": {
+      "exact_retrieval": 0.0,
+      "overlap": 0.6504,
+      "clustering": 0.08503537346673379,
+      "path_length": 2.0
+    },
+    "smallworld_sp0.05": {
+      "exact_retrieval": 0.0,
+      "overlap": 0.4425199999999999,
+      "clustering": 0.5249581505296674,
+      "path_length": 3.16
+    },
+    "random_sparse_sp0.1": {
+      "exact_retrieval": 0.0,
+      "overlap": 0.8382400000000001,
+      "clustering": 0.1612198730567469,
+      "path_length": 2.0
+    },
+    "smallworld_sp0.1": {
+      "exact_retrieval": 0.0,
+      "overlap": 0.50336,
+      "clustering": 0.5329915132184962,
+      "path_length": 3.0
+    },
+    "random_sparse_sp0.2": {
+      "exact_retrieval": 0.01,
+      "overlap": 0.9764799999999999,
+      "clustering": 0.3086993307366815,
+      "path_length": 2.0
+    },
+    "smallworld_sp0.2": {
+      "exact_retrieval": 0.0,
+      "overlap": 0.6946799999999999,
+      "clustering": 0.5464757527854601,
+      "path_length": 2.0
+    },
+    "random_sparse_sp0.5": {
+      "exact_retrieval": 0.89,
+      "overlap": 0.9994800000000001,
+      "clustering": 0.6449573129165965,
+      "path_length": 2.0
+    },
+    "smallworld_sp0.5": {
+      "exact_retrieval": 0.54,
+      "overlap": 0.9962799999999999,
+      "clustering": 0.6016467224567772,
+      "path_length": 2.0
+    },
+    "dense_sp1.0": {
+      "exact_retrieval": 1.0,
+      "overlap": 1.0,
+      "clustering": 1.0,
+      "path_length": 1.0
+    }
+  },
+  "statistics": {},
+  "trials": [
+    {
+      "topology": "random_sparse",
+      "target_sparsity": 0.01,
+      "actual_sparsity": 0.016832,
+      "exact_retrieval": {
+        "n": 20,
+        "mean": 0.0,
+        "std": 0.0,
+        "ci95": {
+          "low": 0.0,
+          "high": 0.0
+        }
+      },
+      "overlap": {
+        "n": 20,
+        "mean": 0.4688,
+        "std": 0.019207016261882284,
+        "ci95": {
+          "low": 0.4598108396850974,
+          "high": 0.4777891603149026
+        }
+      },
+      "clustering_coefficient": 0.01247175047175047,
+      "path_length": 4.0
+    },
+    {
+      "topology": "smallworld",
+      "target_sparsity": 0.01,
+      "actual_sparsity": 0.007472,
+      "exact_retrieval": {
+        "n": 20,
+        "mean": 0.0,
+        "std": 0.0,
+        "ci95": {
+          "low": 0.0,
+          "high": 0.0
+        }
+      },
+      "overlap": {
+        "n": 20,
+        "mean": 0.4750799999999999,
+        "std": 0.01900298037566463,
+        "ci95": {
+          "low": 0.46618633141927385,
+          "high": 0.48397366858072594
+        }
+      },
+      "clustering_coefficient": 0.3244897959183673,
+      "path_length": 10.6
+    },
+    {
+      "topology": "random_sparse",
+      "target_sparsity": 0.05,
+      "actual_sparsity": 0.084864,
+      "exact_retrieval": {
+        "n": 20,
+        "mean": 0.0,
+        "std": 0.0,
+        "ci95": {
+          "low": 0.0,
+          "high": 0.0
+        }
+      },
+      "overlap": {
+        "n": 20,
+        "mean": 0.6504,
+        "std": 0.030653788295121137,
+        "ci95": {
+          "low": 0.636053585466537,
+          "high": 0.664746414533463
+        }
+      },
+      "clustering_coefficient": 0.08503537346673379,
+      "path_length": 2.0
+    },
+    {
+      "topology": "smallworld",
+      "target_sparsity": 0.05,
+      "actual_sparsity": 0.045144,
+      "exact_retrieval": {
+        "n": 20,
+        "mean": 0.0,
+        "std": 0.0,
+        "ci95": {
+          "low": 0.0,
+          "high": 0.0
+        }
+      },
+      "overlap": {
+        "n": 20,
+        "mean": 0.4425199999999999,
+        "std": 0.021720947929300134,
+        "ci95": {
+          "low": 0.43235428344799054,
+          "high": 0.4526857165520093
+        }
+      },
+      "clustering_coefficient": 0.5249581505296674,
+      "path_length": 3.16
+    },
+    {
+      "topology": "random_sparse",
+      "target_sparsity": 0.1,
+      "actual_sparsity": 0.16224,
+      "exact_retrieval": {
+        "n": 20,
+        "mean": 0.0,
+        "std": 0.0,
+        "ci95": {
+          "low": 0.0,
+          "high": 0.0
+        }
+      },
+      "overlap": {
+        "n": 20,
+        "mean": 0.8382400000000001,
+        "std": 0.03305176800749172,
+        "ci95": {
+          "low": 0.8227712964148449,
+          "high": 0.8537087035851553
+        }
+      },
+      "clustering_coefficient": 0.1612198730567469,
+      "path_length": 2.0
+    },
+    {
+      "topology": "smallworld",
+      "target_sparsity": 0.1,
+      "actual_sparsity": 0.094096,
+      "exact_retrieval": {
+        "n": 20,
+        "mean": 0.0,
+        "std": 0.0,
+        "ci95": {
+          "low": 0.0,
+          "high": 0.0
+        }
+      },
+      "overlap": {
+        "n": 20,
+        "mean": 0.50336,
+        "std": 0.02670963555683508,
+        "ci95": {
+          "low": 0.4908595057691755,
+          "high": 0.5158604942308246
+        }
+      },
+      "clustering_coefficient": 0.5329915132184962,
+      "path_length": 3.0
+    },
+    {
+      "topology": "random_sparse",
+      "target_sparsity": 0.2,
+      "actual_sparsity": 0.305216,
+      "exact_retrieval": {
+        "n": 20,
+        "mean": 0.01,
+        "std": 0.0447213595499958,
+        "ci95": {
+          "low": -0.010930240544083087,
+          "high": 0.03093024054408309
+        }
+      },
+      "overlap": {
+        "n": 20,
+        "mean": 0.9764799999999999,
+        "std": 0.006715386887784759,
+        "ci95": {
+          "low": 0.9733371021918332,
+          "high": 0.9796228978081666
+        }
+      },
+      "clustering_coefficient": 0.3086993307366815,
+      "path_length": 2.0
+    },
+    {
+      "topology": "smallworld",
+      "target_sparsity": 0.2,
+      "actual_sparsity": 0.188656,
+      "exact_retrieval": {
+        "n": 20,
+        "mean": 0.0,
+        "std": 0.0,
+        "ci95": {
+          "low": 0.0,
+          "high": 0.0
+        }
+      },
+      "overlap": {
+        "n": 20,
+        "mean": 0.6946799999999999,
+        "std": 0.06339677561118338,
+        "ci95": {
+          "low": 0.665009395693395,
+          "high": 0.7243506043066047
+        }
+      },
+      "clustering_coefficient": 0.5464757527854601,
+      "path_length": 2.0
+    },
+    {
+      "topology": "random_sparse",
+      "target_sparsity": 0.5,
+      "actual_sparsity": 0.639864,
+      "exact_retrieval": {
+        "n": 20,
+        "mean": 0.89,
+        "std": 0.12096106376585988,
+        "ci95": {
+          "low": 0.833388479541699,
+          "high": 0.946611520458301
+        }
+      },
+      "overlap": {
+        "n": 20,
+        "mean": 0.9994800000000001,
+        "std": 0.0005961278562964736,
+        "ci95": {
+          "low": 0.9992010035751852,
+          "high": 0.9997589964248151
+        }
+      },
+      "clustering_coefficient": 0.6449573129165965,
+      "path_length": 2.0
+    },
+    {
+      "topology": "smallworld",
+      "target_sparsity": 0.5,
+      "actual_sparsity": 0.468368,
+      "exact_retrieval": {
+        "n": 20,
+        "mean": 0.54,
+        "std": 0.19574419397183718,
+        "ci95": {
+          "low": 0.44838889724812503,
+          "high": 0.631611102751875
+        }
+      },
+      "overlap": {
+        "n": 20,
+        "mean": 0.9962799999999999,
+        "std": 0.0028108062151182564,
+        "ci95": {
+          "low": 0.99496450219767,
+          "high": 0.9975954978023299
+        }
+      },
+      "clustering_coefficient": 0.6016467224567772,
+      "path_length": 2.0
+    },
+    {
+      "topology": "dense",
+      "target_sparsity": 1.0,
+      "actual_sparsity": 0.998,
+      "exact_retrieval": {
+        "n": 20,
+        "mean": 1.0,
+        "std": 0.0,
+        "ci95": {
+          "low": 1.0,
+          "high": 1.0
+        }
+      },
+      "overlap": {
+        "n": 20,
+        "mean": 1.0,
+        "std": 0.0,
+        "ci95": {
+          "low": 1.0,
+          "high": 1.0
+        }
+      },
+      "clustering_coefficient": 1.0,
+      "path_length": 1.0
+    }
+  ],
+  "artifacts": [
+    {
+      "name": "sparse_topology.png",
+      "type": "figure"
+    },
+    {
+      "name": "sparse_topology_metrics.json",
+      "type": "metrics"
+    }
+  ],
+  "warnings": []
+}
