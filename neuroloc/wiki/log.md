@@ -1,5 +1,21 @@
 # neuroloc operation log
 
+## 2026-04-09 three implementation research libraries + prosecutor fixes | 3 knowledge articles, 4 fixes
+
+new knowledge articles:
+- knowledge/gpu_spike_implementation_research.md: curated library covering spikingjelly 11x cupy fusion (fang et al. 2023), sparseprop O(log N) binary heap (engelken et al. neurips 2023), 4 parallel scan solutions for lif hard reset (psn, prf, spikingssms aaai 2025, bullet trains), eventprop exact spike-timing gradients (wunderlich & pehle 2021), ttfs 0.3 spikes/neuron (nature communications 2024), matmul-free lm 61% gpu memory reduction (zhu et al. neurips 2024), temporal fusion 5-40x speedup (icann 2024), dense-beats-sparse crossover at 40% firing rate
+- knowledge/gpu_architecture_building_research.md: curated library covering triton vs raw cuda (80-100% perf, python-based), torch.autograd.Function + ste for spike backprop, flash attention tiling for outer-product accumulation, fla chunkwise parallel scan (production delta rule triton kernels), gradient checkpointing per timestep chunk, bf16 default / fp8 only on h100, gradcheck + reference implementation verification, nsight compute roofline profiling
+- knowledge/phase_coding_research.md: curated library covering lisman theta-gamma model (capacity = f_theta/f_gamma ~ 7), liebe et al. 2025 nature neuroscience falsification of phase-order-encodes-sequence-order, trained rnns developing phase-locked limit cycles (pals et al. 2024 plos comp bio), linoss forced harmonic oscillators outperforming mamba on 50k sequences (rusch & rus iclr 2025 oral), akorn kuramoto synchronization (iclr 2025), rope as structural multi-frequency phase code (novel observation -- no published paper makes the explicit theta-gamma connection), complex-valued position embeddings (wang et al. iclr 2020), spike timing beats rate coding for temporal discrimination
+
+prosecutor fixes applied:
+- print/05_architecture_mapping.md: changed "6 of 24 layers (25%)" to "3 of 24 layers (12.5%)" in 2 locations (mla description line 30 and allocation bullet line 45)
+- wiki/comparisons/biological_vs_transformer_attention.md line 73: removed confused "Bhojanapalli, Veit, and Iyyer (2021)" citation, retained correct lonnqvist and bhatt reference
+- wiki/comparisons/biological_vs_transformer_attention.md line 128: changed lonnqvist & bhatt year from 2024 to 2023
+- wiki/knowledge/unified_theory.md line 272: verified already correct (12.5%, fixed in prior session)
+
+documentation updates:
+- index.md updated: knowledge section expanded from 33 to 36 articles, statistics updated
+
 ## 2026-04-09 five design-question knowledge libraries created | 5 knowledge articles
 
 new knowledge articles:

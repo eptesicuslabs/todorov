@@ -226,6 +226,10 @@ this is the flat reference catalog. for guided navigation, start at [[start_here
 - knowledge/imagination_computation_research.md -- curated research library on computational imagination, 8 sources across novelty as feature superposition, meta-learning for compositionality, dreamerv3 latent imagination, cmmd and vendi score quality metrics, logit arithmetic, outer-product generative interpolation, and memorization-to-generalization phase transition
 - knowledge/sparse_connectivity_research.md -- curated research library on sparse network connectivity, 8 sources across lottery tickets in transformers, sparsegpt at 175b, deepseek moe, small-world acceleration, rigl dynamic sparse training, biological wiring cost optimization, connectome robustness, and adaptive rewiring emergence
 
+- knowledge/gpu_spike_implementation_research.md -- curated research library on gpu spiking implementations, covering spikingjelly cupy fusion (11x speedup), sparseprop O(log N) binary heap, parallel scan solutions for lif reset (psn, prf, spikingssms, bullet trains), eventprop exact spike-timing gradients, ttfs 0.3 spikes/neuron, matmul-free lm ternary weights, temporal fusion 5-40x speedup, and dense-beats-sparse crossover at 40% firing rate
+- knowledge/gpu_architecture_building_research.md -- curated research library on gpu architecture engineering, covering triton vs cuda tradeoffs, torch.autograd.Function + ste for spike backprop, flash attention tiling for outer-product accumulation, fla chunkwise parallel scan, gradient checkpointing, bf16/fp8 precision, gradcheck verification, and nsight compute profiling
+- knowledge/phase_coding_research.md -- curated research library on phase-based neural coding, covering lisman theta-gamma model, liebe et al. 2025 falsification of phase-order-encodes-sequence-order, trained rnns developing limit cycles (pals et al. 2024), linoss forced harmonic oscillators (rusch & rus iclr 2025 oral), akorn kuramoto synchronization, rope as structural phase code (novel observation), complex-valued position embeddings (wang et al. iclr 2020), and spike timing vs rate coding
+
 ## statistics
 - total mechanism articles: 61
 - total bridge notes: 18
@@ -235,5 +239,5 @@ this is the flat reference catalog. for guided navigation, start at [[start_here
 - total entity notes: 33
 - total comparison articles: 13
 - total concept articles: 7
-- total knowledge articles: 33
+- total knowledge articles: 36
 - last updated: 2026-04-09

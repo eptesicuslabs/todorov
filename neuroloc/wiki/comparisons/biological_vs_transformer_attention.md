@@ -70,7 +70,7 @@ biological and transformer attention share the word "attention" but compute fund
 
 **transformer attention computes WHERE to look in memory.** it is a retrieval mechanism that constructs contextualized representations by aggregating information from all positions. it was designed to solve the long-range dependency problem: each token needs information from distant tokens to build its representation. the output of attention is a new representation composed from multiple sources.
 
-these are different operations solving different problems. the terminological overlap has caused significant confusion in both neuroscience and machine learning. Bhojanapalli, Veit, and Iyyer (2021) and Lonnqvist and Bhatt (2024) have argued that self-attention in vision transformers performs perceptual grouping (feature-similarity-based organization), not attention (goal-directed selective processing). the 2025 bioRxiv preprint "deficient executive control in transformer attention" showed that transformers lack the executive control component of biological attention: they fail at Stroop-like conflict resolution tasks that require suppressing a dominant response in favor of a task-relevant but weaker one.
+these are different operations solving different problems. the terminological overlap has caused significant confusion in both neuroscience and machine learning. lonnqvist and bhatt (2023) argued that self-attention in vision transformers performs perceptual grouping (feature-similarity-based organization), not attention (goal-directed selective processing). the 2025 bioRxiv preprint "deficient executive control in transformer attention" showed that transformers lack the executive control component of biological attention: they fail at Stroop-like conflict resolution tasks that require suppressing a dominant response in favor of a task-relevant but weaker one.
 
 ## is KDA or MLA closer to biological attention?
 
@@ -125,7 +125,7 @@ the rebuttal: the computational problem is different. biological attention solve
 - desimone, r. & duncan, j. (1995). neural mechanisms of selective visual attention. annual review of neuroscience, 18(1), 193-222.
 - reynolds, j. h. & heeger, d. j. (2009). the normalization model of attention. neuron, 61(2), 168-185.
 - vaswani, a. et al. (2017). attention is all you need. advances in neural information processing systems, 30.
-- lonnqvist, b. & bhatt, u. (2024). self-attention in vision transformers performs perceptual grouping, not attention. frontiers in computer science, 5, 1178450.
+- lonnqvist, b. & bhatt, u. (2023). self-attention in vision transformers performs perceptual grouping, not attention. frontiers in computer science, 5, 1178450.
 - doerig, a. et al. (2025). deficient executive control in transformer attention. bioRxiv, 2025.01.22.634394.
 - ellwood, i. t. (2024). short-term Hebbian learning can implement transformer-like attention. PLOS computational biology, 20(1), e1011843.
 - graziano, m. s. a. et al. (2024). from cognition to computation: a comparative review of human attention and transformer architectures. arXiv:2407.01548.
