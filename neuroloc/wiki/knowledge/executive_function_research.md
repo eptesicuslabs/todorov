@@ -2,9 +2,17 @@
 
 ## prefrontal working memory maintenance
 
-miller, e. k. & cohen, j. d. (2001). an integrative theory of prefrontal cortex function. *annual review of neuroscience*, 24, 167-202.
+miller, e. k. & cohen, j. d. (2001). an integrative theory of prefrontal cortex function. *annual review of neuroscience*, 24, 167-202. doi: 10.1146/annurev.neuro.24.1.167.
 
-key finding: pfc maintains task rules as persistent neural activity patterns that bias processing in posterior cortex. pfc doesn't compute the answer -- it holds the context that shapes how other regions compute. mixed selectivity (fusi et al. 2016 Nature): individual pfc neurons encode nonlinear combinations of task variables, enabling exponentially more task states than neurons.
+key finding: pfc maintains task rules as persistent neural activity patterns that bias processing in posterior cortex. pfc doesn't compute the answer -- it holds the context that shapes how other regions compute.
+
+rigotti, m. et al. (2013). the importance of mixed selectivity in complex cognitive tasks. *nature*, 497(7451), 585-590. doi: 10.1038/nature12160.
+
+key finding: individual pfc neurons encode nonlinear combinations of task variables (mixed selectivity), enabling exponentially more task states than neurons. bilinear interactions naturally produce this mixed representation.
+
+bernardi, s. et al. (2020). the geometry of abstraction in the hippocampus and prefrontal cortex. *cell*, 183(4), 954-967. doi: 10.1016/j.cell.2020.09.031.
+
+key finding: pfc representations are both abstract (low-dimensional structure across contexts) and high-dimensional (flexible readout). rigid vs flexible coding corresponds to the compression vs expansion tension in crbr.
 
 relevance: a neural machine needs a control layer that holds goals and biases processing without doing the processing itself. this maps to a gating mechanism on the residual stream.
 

@@ -22,7 +22,7 @@ confidence: high.
 
 ## the suppression circuit (controlled vs intrusive)
 
-anderson, m. c., crespo-garcia, m. & subbulakshmi, s. (2025). brain mechanisms underlying the inhibitory control of thought. *nature reviews neuroscience*.
+anderson, m. c. et al. (2025). brain mechanisms underlying the inhibitory control of thought. *nature reviews neuroscience*.
 
 key finding: the right lateral prefrontal cortex suppresses hippocampal retrieval via GABAergic interneurons. when this pathway is intact, unwanted memory retrieval and imagination are inhibited. when disrupted, thoughts become intrusive and uncontrollable. the same mechanism that stops memory retrieval also stops future imagination (benoit, davies & anderson 2016 pnas).
 
