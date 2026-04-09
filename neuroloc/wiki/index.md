@@ -230,6 +230,9 @@ this is the flat reference catalog. for guided navigation, start at [[start_here
 - knowledge/gpu_architecture_building_research.md -- curated research library on gpu architecture engineering, covering triton vs cuda tradeoffs, torch.autograd.Function + ste for spike backprop, flash attention tiling for outer-product accumulation, fla chunkwise parallel scan, gradient checkpointing, bf16/fp8 precision, gradcheck verification, and nsight compute profiling
 - knowledge/phase_coding_research.md -- curated research library on phase-based neural coding, covering lisman theta-gamma model, liebe et al. 2025 falsification of phase-order-encodes-sequence-order, trained rnns developing limit cycles (pals et al. 2024), linoss forced harmonic oscillators (rusch & rus iclr 2025 oral), akorn kuramoto synchronization, rope as structural phase code (novel observation), complex-valued position embeddings (wang et al. iclr 2020), and spike timing vs rate coding
 
+- knowledge/unified_learning_hypothesis.md -- the forward pass IS the learning step: outer product = hebbian, BCM alpha = metaplasticity, delta rule = error correction, k-WTA = competition, prediction error = teaching signal. unified learning where computation and training are the same operation. testable hypothesis with specific experiment design.
+- knowledge/compression_novelty.md -- novelty analysis of hierarchical k-WTA + ternary compression. confirmed novel: no prior work on runtime activations with CKA quality validation. closest: ComPEFT (EMNLP 2024) on weight deltas. architecture-agnostic, applies to any activation tensor.
+
 ## statistics
 - total mechanism articles: 61
 - total bridge notes: 18
@@ -239,5 +242,5 @@ this is the flat reference catalog. for guided navigation, start at [[start_here
 - total entity notes: 33
 - total comparison articles: 13
 - total concept articles: 7
-- total knowledge articles: 36
+- total knowledge articles: 38
 - last updated: 2026-04-09
