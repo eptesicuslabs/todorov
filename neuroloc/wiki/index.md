@@ -99,7 +99,7 @@ this is the flat reference catalog. for guided navigation, start at [[start_here
 - mechanisms/ignition_dynamics.md -- all-or-none transition, bifurcation dynamics
 - mechanisms/thalamocortical_loops.md -- thalamus as relay and regulator
 
-## concepts (6 articles)
+## concepts (7 articles)
 - [[start_here]] -- entry point for newcomers, reading order
 - [[the_brain_in_one_page]] -- 80/20 neuroscience overview for ML engineers
 - [[neuroscience_for_ml_engineers]] -- the big primer, 7 parts
@@ -110,7 +110,7 @@ this is the flat reference catalog. for guided navigation, start at [[start_here
 
 ## entities (33 notes)
 - entities/hebb.md, entities/bi_poo.md, entities/turrigiano.md
-- entities/gerstner.md, entities/hodgkin_huxley.md, entities/izhikevich.md
+- entities/gerstner.md, entities/hodgkin_huxley_researchers.md, entities/izhikevich.md
 - entities/barlow.md, entities/olshausen_field.md
 - entities/rao_ballard.md, entities/friston.md
 - entities/douglas_martin.md, entities/mountcastle.md
@@ -167,12 +167,13 @@ this is the flat reference catalog. for guided navigation, start at [[start_here
 - bridge/positional_encoding_to_rope.md -- theta phase precession, grid cell phase, tonotopy to RoPE rotation
 - bridge/normalization_to_rmsnorm.md -- divisive normalization, synaptic scaling, gain control to RMSNorm
 
-## tests (2 records)
+## tests (3 records)
 - tests/2026-04-07_pattern_completion_baseline.md -- first dated experiment record; repaired ca3-like attractor baseline with shuffled control, sweeps, and metrics json
 - tests/2026-04-07_kwta_vs_threshold_pilot.md -- lateral-inhibition bridge pilot; matched-sparsity threshold vs k-wta with exact-support and active-fraction metrics
+- tests/2026-04-08_leak_vs_carry_pilot.md -- single-neuron bridge pilot; explicit leak vs atmn-style carry with paired-pulse retention, drift scaling, and passive lif anchor metrics
 
 ## simulations (18 scripts)
-- simulations/single_neuron/ (3 scripts: lif_fi_curve, adex_patterns, izhikevich_gallery)
+- simulations/single_neuron/ (3 scripts: lif_fi_curve leak-validation, adex_patterns, izhikevich_gallery)
 - simulations/plasticity/ (2 scripts: stdp_weight_evolution, homeostatic_scaling)
 - simulations/sparse_coding/ (1 script: sparse_coding_demo)
 - simulations/predictive_coding/ (1 script: predictive_coding_2level)
@@ -188,27 +189,45 @@ this is the flat reference catalog. for guided navigation, start at [[start_here
 - simulations/spatial/ (1 script: grid_cell_model)
 - simulations/consciousness/ (1 script: ignition_dynamics)
 
-## knowledge (11 articles)
+## knowledge (24 articles)
+- knowledge/unified_theory.md -- crbr formulation unifying kda, mamba-3, mla, spikes, swiglu, and gp under one mathematical object
+- knowledge/delta_rule_theory.md -- delta-rule linear attention, online regression view, and fast-weight state updates
+- knowledge/kda_channel_gating.md -- kimi delta attention with channel-wise forgetting and constrained dplr implementation notes
+- knowledge/mamba3_architecture.md -- mamba-3 overview covering exp-trapezoidal discretization, complex-valued state, and mimo structure
+- knowledge/mla_compression.md -- multi-head latent attention as low-rank kv compression with cache-saving analysis
+- knowledge/hybrid_architectures.md -- evidence for the 3:1 linear-to-attention ratio across kimi, qwen3, and olmo-style hybrids
+- knowledge/context_extension.md -- long-context extension methods such as cope and related position-encoding strategies
+- knowledge/training_efficiency.md -- flash-linear-attention, triton kernels, and training-efficiency constraints
+- knowledge/ternary_spikes.md -- gerhard empirical findings on adaptive-threshold ternary spikes and firing-rate behavior
+- knowledge/geometric_algebra.md -- projective geometric algebra g(3,0,1), gatr notes, and gp implementation context
+- knowledge/multimodal_encoding.md -- techniques for mapping images, audio, and 3d data into unified token sequences
+- knowledge/papers.md -- compiled index of papers referenced across the todorov knowledge files
+- knowledge/papers_library.md -- extended eptesicus paper library organized by architecture relevance and actionability
 - knowledge/neuroscience_research_2026.md -- curated peer-reviewed neuroscience research library (2020-2026), 16 papers across dendritic computation, cortical microcircuits, memory systems, energy constraints, attention, oscillations
 - knowledge/perception_and_consciousness_research.md -- curated research library on perception, consciousness, attention, embodiment, and time at the cognitive level, 30+ sources from helmholtz to cogitate 2025
 - knowledge/decision_and_emotion_research.md -- curated research library on decision making, emotion, reward, intuition, social cognition, and rationality, 25+ sources across evidence accumulation, somatic markers, dopamine, heuristics, theory of mind, predictive brain
-- knowledge/memory_systems_research.md -- curated cognitive and systems-level memory research library, 25 sources across spatial memory, episodic/semantic, working memory, reconsolidation, expertise, prospective memory, cross-species memory
-- knowledge/sleep_and_dreaming_research.md -- curated research library on sleep stages as computational operations, 9 sources across SHY synaptic renormalization, SWR replay, REM emotional processing, dreaming as generative model optimization, sleep deprivation, lucid dreaming, glymphatic clearance
-- knowledge/cerebellum_research.md -- curated research library on the cerebellum as computational organ, 7 sources across expansion recoding (marr-albus), forward models, cerebellar cognition, scaling laws, supervised error signal
-- knowledge/neurogenesis_and_plasticity_research.md -- curated research library on adult neurogenesis, structural plasticity, and critical periods, 11 sources across hippocampal neurogenesis, pattern separation, forgetting, spine turnover, critical period closure, pharmacological reopening, experience-dependent growth
-- knowledge/language_in_the_brain_research.md -- curated research library on biological language processing, 8 sources across dual-stream architecture, fedorenko language network, N400 prediction, statistical learning, motor theory, sign language, linguistic relativity
-- knowledge/glial_computation_research.md -- curated research library on glial cells as active computational participants, 9 sources across glia:neuron ratio, tripartite synapse, astrocytic LTP gating, gliotransmission, activity-dependent myelination, microglial pruning, active forgetting, OPC synaptic input
-- knowledge/autonomic_and_interoception_research.md -- curated research library on body-brain interface, 10 sources across insular interoception, vagus nerve, gut-brain axis, cardiac gating, allostasis, gate control theory, neuromatrix, somatic markers, polyvagal theory
-- knowledge/connectomics_and_wiring_research.md -- curated research library on brain wiring architecture, 10 sources across complete connectomes (C. elegans, drosophila), small-world topology, rich-club hubs, wiring optimization, communication costs, sparse connectivity, non-random connectivity, human vs mouse cortex
+- knowledge/memory_systems_research.md -- curated cognitive and systems-level memory research library, 25 sources across spatial memory, episodic and semantic memory, working memory, reconsolidation, expertise, prospective memory, and cross-species memory
+- knowledge/sleep_and_dreaming_research.md -- curated research library on sleep stages as computational operations, 9 sources across shy synaptic renormalization, swr replay, rem emotional processing, dreaming as generative model optimization, sleep deprivation, lucid dreaming, glymphatic clearance
+- knowledge/cerebellum_research.md -- curated research library on the cerebellum as computational organ, 7 sources across expansion recoding, forward models, cerebellar cognition, scaling laws, and supervised error signals
+- knowledge/neurogenesis_and_plasticity_research.md -- curated research library on adult neurogenesis, structural plasticity, and critical periods, 11 sources across hippocampal neurogenesis, pattern separation, forgetting, spine turnover, critical period closure, pharmacological reopening, and experience-dependent growth
+- knowledge/language_in_the_brain_research.md -- curated research library on biological language processing, 8 sources across dual-stream architecture, the fedorenko language network, n400 prediction, statistical learning, motor theory, sign language, and linguistic relativity
+- knowledge/glial_computation_research.md -- curated research library on glial cells as active computational participants, 9 sources across glia:neuron ratio, tripartite synapse, astrocytic ltp gating, gliotransmission, activity-dependent myelination, microglial pruning, active forgetting, and opc synaptic input
+- knowledge/autonomic_and_interoception_research.md -- curated research library on body-brain interface, 10 sources across insular interoception, vagus nerve, gut-brain axis, cardiac gating, allostasis, gate control theory, neuromatrix, somatic markers, and polyvagal theory
+- knowledge/connectomics_and_wiring_research.md -- curated research library on brain wiring architecture, 10 sources across complete connectomes, small-world topology, rich-club hubs, wiring optimization, communication costs, sparse connectivity, non-random connectivity, and human vs mouse cortex
+
+- knowledge/executive_function_research.md -- prefrontal working memory maintenance, basal ganglia gating, conflict monitoring, metacognition, planning, task switching. miller & cohen 2001, o'reilly & frank 2006, botvinick 2001, fleming & dolan 2012
+- knowledge/motor_and_forward_models_research.md -- cerebellum as forward model, motor cortex as dynamical system, sequence chunking, optimal feedback control, active inference. wolpert 1998, churchland 2012, graybiel 1998, todorov & jordan 2002, friston 2011
+- knowledge/imagination_research.md -- hippocampal scene construction, constructive episodic simulation, suppression circuit for controlled vs intrusive thought, dmn-executive coupling for creativity, visual imagery, dreaming as offline generation, forward models as primitive imagination. hassabis 2007, schacter & addis 2007, anderson 2025, beaty 2018, pearson 2019, deperrois 2022
+- knowledge/compression_architecture.md -- novel compression proposals for the neural machine: hierarchical ternary coding (0.37 bits/dim), state-predictive residual coding, consolidated state snapshots, content-addressable sparse memory, ternary weight matrices. combines hippocampal indexing, pattern separation, chunking, predictive coding, and consolidation principles
 
 ## statistics
 - total mechanism articles: 61
 - total bridge notes: 18
 - total synthesis articles: 5
-- total test records: 2
+- total test records: 5
 - total simulations: 18
 - total entity notes: 33
 - total comparison articles: 13
 - total concept articles: 7
-- total knowledge articles: 11
-- last updated: 2026-04-08
+- total knowledge articles: 28
+- last updated: 2026-04-09
