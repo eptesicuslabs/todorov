@@ -1,0 +1,1508 @@
+{
+  "schema_version": "neuroloc.sim.metrics/v1",
+  "run": {
+    "run_id": "linoss_dynamics_comparison_20260409_200249",
+    "simulation_name": "linoss_dynamics_comparison",
+    "status": "completed",
+    "started_at_utc": "2026-04-09T20:02:49Z",
+    "finished_at_utc": "2026-04-09T20:02:50Z",
+    "duration_sec": 1.0903072357177734
+  },
+  "environment": {
+    "python_version": "3.14.2",
+    "numpy_version": "2.4.4",
+    "scipy_version": "1.17.1",
+    "platform": "Windows-11-10.0.26220-SP0",
+    "cpu": "AMD64 Family 25 Model 116 Stepping 1, AuthenticAMD",
+    "script_path": "neuroloc/simulations/prototypes/linoss_dynamics.py",
+    "git_commit": "2573e7971a210f45bf97f911b1dcfa381a1afd22",
+    "git_dirty": true
+  },
+  "configuration": {
+    "parameters": {
+      "d_state": 64,
+      "d_input": 32,
+      "seq_lengths": [
+        64,
+        128,
+        256,
+        512,
+        1024
+      ],
+      "trials": 20
+    },
+    "parameter_hash": "07a31fea2e7b1616",
+    "seed_numpy": 42,
+    "numpy_bit_generator": "PCG64",
+    "n_trials": 200
+  },
+  "summary": {
+    "oscillatory_retention_seq256": {
+      "n": 20,
+      "mean": 0.0,
+      "std": 0.0,
+      "ci95": {
+        "low": 0.0,
+        "high": 0.0
+      }
+    },
+    "exponential_decay_retention_seq256": {
+      "n": 20,
+      "mean": 0.0,
+      "std": 0.0,
+      "ci95": {
+        "low": 0.0,
+        "high": 0.0
+      }
+    },
+    "oscillatory_retention_seq1024": {
+      "n": 20,
+      "mean": 0.0,
+      "std": 0.0,
+      "ci95": {
+        "low": 0.0,
+        "high": 0.0
+      }
+    },
+    "exponential_decay_retention_seq1024": {
+      "n": 20,
+      "mean": 0.0,
+      "std": 0.0,
+      "ci95": {
+        "low": 0.0,
+        "high": 0.0
+      }
+    },
+    "osc_vs_decay_retention_1024": {
+      "n": 20,
+      "mean": 0.0,
+      "std": 0.0,
+      "ci95": {
+        "low": 0.0,
+        "high": 0.0
+      },
+      "mean_difference": 0.0,
+      "p_value_permutation": 1.0,
+      "p_value_ttest": null,
+      "effect_size_dz": null
+    }
+  },
+  "statistics": {},
+  "trials": [
+    {
+      "seq_len": 64,
+      "trial": 0,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000009
+    },
+    {
+      "seq_len": 64,
+      "trial": 0,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.015086237248444712,
+      "autonomous_norm_ratio": 0.027468741930246166
+    },
+    {
+      "seq_len": 64,
+      "trial": 1,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000022
+    },
+    {
+      "seq_len": 64,
+      "trial": 1,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.022773398452833625
+    },
+    {
+      "seq_len": 64,
+      "trial": 2,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.17992731069474965,
+      "autonomous_norm_ratio": 0.9999999999999994
+    },
+    {
+      "seq_len": 64,
+      "trial": 2,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.02708755492123595
+    },
+    {
+      "seq_len": 64,
+      "trial": 3,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000007
+    },
+    {
+      "seq_len": 64,
+      "trial": 3,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.01809014908198684
+    },
+    {
+      "seq_len": 64,
+      "trial": 4,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000004
+    },
+    {
+      "seq_len": 64,
+      "trial": 4,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.031747001867786416
+    },
+    {
+      "seq_len": 64,
+      "trial": 5,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999993
+    },
+    {
+      "seq_len": 64,
+      "trial": 5,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.023443314670260684
+    },
+    {
+      "seq_len": 64,
+      "trial": 6,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0
+    },
+    {
+      "seq_len": 64,
+      "trial": 6,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.02032747121571025
+    },
+    {
+      "seq_len": 64,
+      "trial": 7,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999989
+    },
+    {
+      "seq_len": 64,
+      "trial": 7,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.016378031055311215
+    },
+    {
+      "seq_len": 64,
+      "trial": 8,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000013
+    },
+    {
+      "seq_len": 64,
+      "trial": 8,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.010135527585326622
+    },
+    {
+      "seq_len": 64,
+      "trial": 9,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0
+    },
+    {
+      "seq_len": 64,
+      "trial": 9,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.029278195929361282
+    },
+    {
+      "seq_len": 64,
+      "trial": 10,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000022
+    },
+    {
+      "seq_len": 64,
+      "trial": 10,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.03387835733324439
+    },
+    {
+      "seq_len": 64,
+      "trial": 11,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.02289236153303953,
+      "autonomous_norm_ratio": 1.0
+    },
+    {
+      "seq_len": 64,
+      "trial": 11,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.02231291960941558
+    },
+    {
+      "seq_len": 64,
+      "trial": 12,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000007
+    },
+    {
+      "seq_len": 64,
+      "trial": 12,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.015469390128810965
+    },
+    {
+      "seq_len": 64,
+      "trial": 13,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999988
+    },
+    {
+      "seq_len": 64,
+      "trial": 13,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.10347492215192844,
+      "autonomous_norm_ratio": 0.018721218901512775
+    },
+    {
+      "seq_len": 64,
+      "trial": 14,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999996
+    },
+    {
+      "seq_len": 64,
+      "trial": 14,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.02231899250550488
+    },
+    {
+      "seq_len": 64,
+      "trial": 15,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.20880558833930463,
+      "autonomous_norm_ratio": 1.0000000000000002
+    },
+    {
+      "seq_len": 64,
+      "trial": 15,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.030769163582940462,
+      "autonomous_norm_ratio": 0.016343167266072132
+    },
+    {
+      "seq_len": 64,
+      "trial": 16,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000004
+    },
+    {
+      "seq_len": 64,
+      "trial": 16,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.019550729133575945
+    },
+    {
+      "seq_len": 64,
+      "trial": 17,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999991
+    },
+    {
+      "seq_len": 64,
+      "trial": 17,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.01887103056877396
+    },
+    {
+      "seq_len": 64,
+      "trial": 18,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000004
+    },
+    {
+      "seq_len": 64,
+      "trial": 18,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.02762983207820641
+    },
+    {
+      "seq_len": 64,
+      "trial": 19,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.000000000000001
+    },
+    {
+      "seq_len": 64,
+      "trial": 19,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.02292711171050547
+    },
+    {
+      "seq_len": 128,
+      "trial": 0,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999994
+    },
+    {
+      "seq_len": 128,
+      "trial": 0,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.021062814605928834
+    },
+    {
+      "seq_len": 128,
+      "trial": 1,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000004
+    },
+    {
+      "seq_len": 128,
+      "trial": 1,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.024650597813926686
+    },
+    {
+      "seq_len": 128,
+      "trial": 2,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0
+    },
+    {
+      "seq_len": 128,
+      "trial": 2,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.028095524739550737
+    },
+    {
+      "seq_len": 128,
+      "trial": 3,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999993
+    },
+    {
+      "seq_len": 128,
+      "trial": 3,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.021974924689183106
+    },
+    {
+      "seq_len": 128,
+      "trial": 4,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000007
+    },
+    {
+      "seq_len": 128,
+      "trial": 4,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.03128796795824466
+    },
+    {
+      "seq_len": 128,
+      "trial": 5,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.999999999999999
+    },
+    {
+      "seq_len": 128,
+      "trial": 5,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.016555876990531355
+    },
+    {
+      "seq_len": 128,
+      "trial": 6,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000022
+    },
+    {
+      "seq_len": 128,
+      "trial": 6,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.02132862863189506
+    },
+    {
+      "seq_len": 128,
+      "trial": 7,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999994
+    },
+    {
+      "seq_len": 128,
+      "trial": 7,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.02078765217166017
+    },
+    {
+      "seq_len": 128,
+      "trial": 8,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0
+    },
+    {
+      "seq_len": 128,
+      "trial": 8,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.05602648850282921,
+      "autonomous_norm_ratio": 0.023667685019952926
+    },
+    {
+      "seq_len": 128,
+      "trial": 9,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000004
+    },
+    {
+      "seq_len": 128,
+      "trial": 9,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.1179074311808006,
+      "autonomous_norm_ratio": 0.01632042971538557
+    },
+    {
+      "seq_len": 128,
+      "trial": 10,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.999999999999999
+    },
+    {
+      "seq_len": 128,
+      "trial": 10,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.02416112047498734
+    },
+    {
+      "seq_len": 128,
+      "trial": 11,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999987
+    },
+    {
+      "seq_len": 128,
+      "trial": 11,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.013355336889896163
+    },
+    {
+      "seq_len": 128,
+      "trial": 12,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999986
+    },
+    {
+      "seq_len": 128,
+      "trial": 12,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.021428720534227327
+    },
+    {
+      "seq_len": 128,
+      "trial": 13,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.000000000000001
+    },
+    {
+      "seq_len": 128,
+      "trial": 13,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.018097261314965973
+    },
+    {
+      "seq_len": 128,
+      "trial": 14,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999993
+    },
+    {
+      "seq_len": 128,
+      "trial": 14,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.0067957944022095885
+    },
+    {
+      "seq_len": 128,
+      "trial": 15,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999999
+    },
+    {
+      "seq_len": 128,
+      "trial": 15,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.01612106522919251
+    },
+    {
+      "seq_len": 128,
+      "trial": 16,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0
+    },
+    {
+      "seq_len": 128,
+      "trial": 16,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.013273258502819267
+    },
+    {
+      "seq_len": 128,
+      "trial": 17,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000004
+    },
+    {
+      "seq_len": 128,
+      "trial": 17,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.015226681819256812
+    },
+    {
+      "seq_len": 128,
+      "trial": 18,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000002
+    },
+    {
+      "seq_len": 128,
+      "trial": 18,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.019530422808821286
+    },
+    {
+      "seq_len": 128,
+      "trial": 19,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000002
+    },
+    {
+      "seq_len": 128,
+      "trial": 19,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.024310668463938836
+    },
+    {
+      "seq_len": 256,
+      "trial": 0,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000007
+    },
+    {
+      "seq_len": 256,
+      "trial": 0,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.01996905073358489
+    },
+    {
+      "seq_len": 256,
+      "trial": 1,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000007
+    },
+    {
+      "seq_len": 256,
+      "trial": 1,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.02980966642350914
+    },
+    {
+      "seq_len": 256,
+      "trial": 2,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999994
+    },
+    {
+      "seq_len": 256,
+      "trial": 2,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.02333627117121391
+    },
+    {
+      "seq_len": 256,
+      "trial": 3,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000009
+    },
+    {
+      "seq_len": 256,
+      "trial": 3,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.02228889609659619
+    },
+    {
+      "seq_len": 256,
+      "trial": 4,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999997
+    },
+    {
+      "seq_len": 256,
+      "trial": 4,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.018872347112515227
+    },
+    {
+      "seq_len": 256,
+      "trial": 5,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000007
+    },
+    {
+      "seq_len": 256,
+      "trial": 5,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.02580047576521785
+    },
+    {
+      "seq_len": 256,
+      "trial": 6,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0
+    },
+    {
+      "seq_len": 256,
+      "trial": 6,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.031886414886844655
+    },
+    {
+      "seq_len": 256,
+      "trial": 7,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999988
+    },
+    {
+      "seq_len": 256,
+      "trial": 7,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.022192412466267124
+    },
+    {
+      "seq_len": 256,
+      "trial": 8,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000009
+    },
+    {
+      "seq_len": 256,
+      "trial": 8,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.01599920715897975
+    },
+    {
+      "seq_len": 256,
+      "trial": 9,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000027
+    },
+    {
+      "seq_len": 256,
+      "trial": 9,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.01637678180094861
+    },
+    {
+      "seq_len": 256,
+      "trial": 10,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000013
+    },
+    {
+      "seq_len": 256,
+      "trial": 10,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.021047438529315215
+    },
+    {
+      "seq_len": 256,
+      "trial": 11,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999984
+    },
+    {
+      "seq_len": 256,
+      "trial": 11,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.025464438648994527
+    },
+    {
+      "seq_len": 256,
+      "trial": 12,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999992
+    },
+    {
+      "seq_len": 256,
+      "trial": 12,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.023039758682580593
+    },
+    {
+      "seq_len": 256,
+      "trial": 13,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999997
+    },
+    {
+      "seq_len": 256,
+      "trial": 13,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.010477819570406543
+    },
+    {
+      "seq_len": 256,
+      "trial": 14,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.000000000000001
+    },
+    {
+      "seq_len": 256,
+      "trial": 14,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.02323392459501253
+    },
+    {
+      "seq_len": 256,
+      "trial": 15,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999987
+    },
+    {
+      "seq_len": 256,
+      "trial": 15,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.021622236861651694
+    },
+    {
+      "seq_len": 256,
+      "trial": 16,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999994
+    },
+    {
+      "seq_len": 256,
+      "trial": 16,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.015102261224795866
+    },
+    {
+      "seq_len": 256,
+      "trial": 17,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000007
+    },
+    {
+      "seq_len": 256,
+      "trial": 17,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.01693889003349861
+    },
+    {
+      "seq_len": 256,
+      "trial": 18,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999978
+    },
+    {
+      "seq_len": 256,
+      "trial": 18,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.027173370195228187
+    },
+    {
+      "seq_len": 256,
+      "trial": 19,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999997
+    },
+    {
+      "seq_len": 256,
+      "trial": 19,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.013447829192310624
+    },
+    {
+      "seq_len": 512,
+      "trial": 0,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000007
+    },
+    {
+      "seq_len": 512,
+      "trial": 0,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.0241112961347312
+    },
+    {
+      "seq_len": 512,
+      "trial": 1,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999982
+    },
+    {
+      "seq_len": 512,
+      "trial": 1,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.040218157027771866
+    },
+    {
+      "seq_len": 512,
+      "trial": 2,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999984
+    },
+    {
+      "seq_len": 512,
+      "trial": 2,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.02599886669238664
+    },
+    {
+      "seq_len": 512,
+      "trial": 3,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000002
+    },
+    {
+      "seq_len": 512,
+      "trial": 3,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.018011629305549448,
+      "autonomous_norm_ratio": 0.03002649046337826
+    },
+    {
+      "seq_len": 512,
+      "trial": 4,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000013
+    },
+    {
+      "seq_len": 512,
+      "trial": 4,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.017205159150251562
+    },
+    {
+      "seq_len": 512,
+      "trial": 5,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999992
+    },
+    {
+      "seq_len": 512,
+      "trial": 5,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.028096954375494705
+    },
+    {
+      "seq_len": 512,
+      "trial": 6,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999998
+    },
+    {
+      "seq_len": 512,
+      "trial": 6,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.028775945148305403
+    },
+    {
+      "seq_len": 512,
+      "trial": 7,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999998
+    },
+    {
+      "seq_len": 512,
+      "trial": 7,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.021517433142916507
+    },
+    {
+      "seq_len": 512,
+      "trial": 8,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000016
+    },
+    {
+      "seq_len": 512,
+      "trial": 8,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.017823120324265654
+    },
+    {
+      "seq_len": 512,
+      "trial": 9,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000013
+    },
+    {
+      "seq_len": 512,
+      "trial": 9,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.008299584757011532
+    },
+    {
+      "seq_len": 512,
+      "trial": 10,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000009
+    },
+    {
+      "seq_len": 512,
+      "trial": 10,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.015649494857950953
+    },
+    {
+      "seq_len": 512,
+      "trial": 11,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.999999999999998
+    },
+    {
+      "seq_len": 512,
+      "trial": 11,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.024470287052869185
+    },
+    {
+      "seq_len": 512,
+      "trial": 12,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0
+    },
+    {
+      "seq_len": 512,
+      "trial": 12,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.02642255306860794
+    },
+    {
+      "seq_len": 512,
+      "trial": 13,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999999
+    },
+    {
+      "seq_len": 512,
+      "trial": 13,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.026653675587359874
+    },
+    {
+      "seq_len": 512,
+      "trial": 14,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000002
+    },
+    {
+      "seq_len": 512,
+      "trial": 14,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.031915580198800135
+    },
+    {
+      "seq_len": 512,
+      "trial": 15,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0
+    },
+    {
+      "seq_len": 512,
+      "trial": 15,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.016094907829634682
+    },
+    {
+      "seq_len": 512,
+      "trial": 16,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999978
+    },
+    {
+      "seq_len": 512,
+      "trial": 16,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.013655802166421366
+    },
+    {
+      "seq_len": 512,
+      "trial": 17,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000002
+    },
+    {
+      "seq_len": 512,
+      "trial": 17,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.022275981353441405
+    },
+    {
+      "seq_len": 512,
+      "trial": 18,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.000000000000001
+    },
+    {
+      "seq_len": 512,
+      "trial": 18,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.0134327455727902
+    },
+    {
+      "seq_len": 512,
+      "trial": 19,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999984
+    },
+    {
+      "seq_len": 512,
+      "trial": 19,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.02753896179956726
+    },
+    {
+      "seq_len": 1024,
+      "trial": 0,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999998
+    },
+    {
+      "seq_len": 1024,
+      "trial": 0,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.031733218192212344
+    },
+    {
+      "seq_len": 1024,
+      "trial": 1,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000007
+    },
+    {
+      "seq_len": 1024,
+      "trial": 1,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.03334279479907797
+    },
+    {
+      "seq_len": 1024,
+      "trial": 2,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999986
+    },
+    {
+      "seq_len": 1024,
+      "trial": 2,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.025134590823912947
+    },
+    {
+      "seq_len": 1024,
+      "trial": 3,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000007
+    },
+    {
+      "seq_len": 1024,
+      "trial": 3,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.009411158504513824
+    },
+    {
+      "seq_len": 1024,
+      "trial": 4,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000004
+    },
+    {
+      "seq_len": 1024,
+      "trial": 4,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.021822580984626503
+    },
+    {
+      "seq_len": 1024,
+      "trial": 5,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000018
+    },
+    {
+      "seq_len": 1024,
+      "trial": 5,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.018507407606848124
+    },
+    {
+      "seq_len": 1024,
+      "trial": 6,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999992
+    },
+    {
+      "seq_len": 1024,
+      "trial": 6,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.02525456406764534
+    },
+    {
+      "seq_len": 1024,
+      "trial": 7,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000004
+    },
+    {
+      "seq_len": 1024,
+      "trial": 7,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.013323220482805171
+    },
+    {
+      "seq_len": 1024,
+      "trial": 8,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000022
+    },
+    {
+      "seq_len": 1024,
+      "trial": 8,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.015663867678535122
+    },
+    {
+      "seq_len": 1024,
+      "trial": 9,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999989
+    },
+    {
+      "seq_len": 1024,
+      "trial": 9,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.0177939998384045
+    },
+    {
+      "seq_len": 1024,
+      "trial": 10,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000004
+    },
+    {
+      "seq_len": 1024,
+      "trial": 10,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.017250553610413128
+    },
+    {
+      "seq_len": 1024,
+      "trial": 11,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999996
+    },
+    {
+      "seq_len": 1024,
+      "trial": 11,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.03358428173543101
+    },
+    {
+      "seq_len": 1024,
+      "trial": 12,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000002
+    },
+    {
+      "seq_len": 1024,
+      "trial": 12,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.015165749917758632
+    },
+    {
+      "seq_len": 1024,
+      "trial": 13,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999999
+    },
+    {
+      "seq_len": 1024,
+      "trial": 13,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.02613956715063669
+    },
+    {
+      "seq_len": 1024,
+      "trial": 14,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000004
+    },
+    {
+      "seq_len": 1024,
+      "trial": 14,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.02901709890892641
+    },
+    {
+      "seq_len": 1024,
+      "trial": 15,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000002
+    },
+    {
+      "seq_len": 1024,
+      "trial": 15,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.004067509128895386
+    },
+    {
+      "seq_len": 1024,
+      "trial": 16,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000007
+    },
+    {
+      "seq_len": 1024,
+      "trial": 16,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.021314705766773773
+    },
+    {
+      "seq_len": 1024,
+      "trial": 17,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 1.0000000000000018
+    },
+    {
+      "seq_len": 1024,
+      "trial": 17,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.025806795354337508
+    },
+    {
+      "seq_len": 1024,
+      "trial": 18,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.999999999999998
+    },
+    {
+      "seq_len": 1024,
+      "trial": 18,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.025918306895286847
+    },
+    {
+      "seq_len": 1024,
+      "trial": 19,
+      "dynamics": "oscillatory",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.9999999999999999
+    },
+    {
+      "seq_len": 1024,
+      "trial": 19,
+      "dynamics": "exponential_decay",
+      "retention_r2": 0.0,
+      "autonomous_norm_ratio": 0.019693557885615064
+    }
+  ],
+  "artifacts": [
+    {
+      "name": "linoss_dynamics.png",
+      "type": "figure"
+    },
+    {
+      "name": "linoss_dynamics_metrics.json",
+      "type": "metrics"
+    }
+  ],
+  "warnings": [
+    "both dynamics use exact matrix exponential discretization (expm) for fair comparison",
+    "retention measured via linear decoder R2 from late states to early inputs",
+    "autonomous stability measured without input injection (pure dynamics)"
+  ]
+}
