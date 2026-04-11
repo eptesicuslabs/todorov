@@ -1,12 +1,12 @@
 {
   "schema_version": "neuroloc.sim.metrics/v1",
   "run": {
-    "run_id": "capacity_scaling_20260409_104300",
+    "run_id": "capacity_scaling_20260411_224758",
     "simulation_name": "capacity_scaling",
     "status": "completed",
-    "started_at_utc": "2026-04-09T10:43:00Z",
-    "finished_at_utc": "2026-04-09T11:03:43Z",
-    "duration_sec": 1242.7370924949646
+    "started_at_utc": "2026-04-11T22:47:58Z",
+    "finished_at_utc": "2026-04-11T22:57:24Z",
+    "duration_sec": 565.8511769771576
   },
   "environment": {
     "python_version": "3.14.2",
@@ -15,7 +15,7 @@
     "platform": "Windows-11-10.0.26220-SP0",
     "cpu": "AMD64 Family 25 Model 116 Stepping 1, AuthenticAMD",
     "script_path": "neuroloc/simulations/memory/capacity_scaling.py",
-    "git_commit": "11e2e890e6cfc51b2dbd6fd1c37a0f5956d76e5b",
+    "git_commit": "78af5b9abc4513d170287a6cf5934b411740ab47",
     "git_dirty": true
   },
   "configuration": {

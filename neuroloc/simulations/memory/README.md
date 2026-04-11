@@ -24,3 +24,37 @@ run: `python pattern_completion.py`
 quantitative verdict: this script is a controlled attractor-memory baseline, not a validation of hippocampal memory as a whole. it measures how much structured recurrent weights improve recovery relative to a matched control and how retrieval degrades with corruption and load. the $0.138n$ line is included as theoretical context, but this run does not claim to prove the asymptotic hopfield limit.
 
 relevance: this simulation isolates the part of biological memory that todorov's current kda path does not implement: nonlinear attractor cleanup through recurrent dynamics. it is useful as a baseline for future associative-memory circuit work, but it should not be read as evidence that kda already matches ca3 or that hippocampal memory has been captured without pattern separation.
+
+## asymmetric_outer_product_recall.py
+
+asymmetric outer-product recall baseline for the actual write/read geometry the project is using: sequential writes into a matrix state followed by content-addressable readout through a query vector.
+
+memory rule: `s_t = a * s_{t-1} + b * k_t * v_t^T`, with optional overwrite subtraction `s_t -= b * k_t * (k_t^T * s_t)` applied after decay and before the new write. readout is `o_t = q_t^T * s_t`.
+
+experiments:
+1. exact-query recall versus stored-pattern count for multiple encoding families
+2. noisy-query recall versus query corruption level
+3. decay sensitivity for the same state geometry
+4. dense-key versus sparse-key comparison at matched sparse value encoding
+5. optional erasure-on versus erasure-off comparison at the same operating point
+
+encoding families included:
+- identity on queries, keys, and values
+- bounded continuous (`tanh`)
+- sign-only
+- global ternary threshold
+- per-dimension ternary threshold
+- top-k on all paths
+- dense keys with top-k values
+
+dependencies: numpy, scipy, matplotlib
+
+output:
+- asymmetric_outer_product_recall.png
+- asymmetric_outer_product_recall_metrics.json
+
+run: `python asymmetric_outer_product_recall.py`
+
+quantitative verdict: this script does not claim to model a full trained sequence processor. it isolates the geometry of the write/read rule itself, using synthetic gaussian keys and values, so the project can answer whether a candidate encoding family can support nontrivial recall before any paid compute run.
+
+relevance: this is the blocker-clearing simulation named in `neuroloc/wiki/PROJECT_PLAN.md`. it tests the project's actual asymmetric matrix-memory operation rather than the symmetric attractor baseline from classical hopfield-style literature. it is the right place to compare dense addressing against sparse addressing and to decide whether the current memory substrate is viable before scaling the neural model.

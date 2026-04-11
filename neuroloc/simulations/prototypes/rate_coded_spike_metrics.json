@@ -1,21 +1,21 @@
 {
   "schema_version": "neuroloc.sim.metrics/v1",
   "run": {
-    "run_id": "rate_coded_spike_comparison_20260409_200245",
+    "run_id": "rate_coded_spike_comparison_20260411_225253",
     "simulation_name": "rate_coded_spike_comparison",
     "status": "completed",
-    "started_at_utc": "2026-04-09T20:02:45Z",
-    "finished_at_utc": "2026-04-09T20:02:47Z",
-    "duration_sec": 2.2740888595581055
+    "started_at_utc": "2026-04-11T22:52:53Z",
+    "finished_at_utc": "2026-04-11T22:52:56Z",
+    "duration_sec": 3.4630935192108154
   },
   "environment": {
     "python_version": "3.14.2",
-    "numpy_version": "2.4.4",
-    "scipy_version": "1.17.1",
+    "numpy_version": "2.1.3",
+    "scipy_version": "1.17.0",
     "platform": "Windows-11-10.0.26220-SP0",
     "cpu": "AMD64 Family 25 Model 116 Stepping 1, AuthenticAMD",
     "script_path": "neuroloc/simulations/prototypes/rate_coded_spike.py",
-    "git_commit": "2573e7971a210f45bf97f911b1dcfa381a1afd22",
+    "git_commit": "78af5b9abc4513d170287a6cf5934b411740ab47",
     "git_dirty": true
   },
   "configuration": {
@@ -44,11 +44,11 @@
   },
   "summary": {
     "p10_binary_cosine": 0.9999999999999999,
-    "p10_ternary_cosine": 0.7204523414609157,
+    "p10_ternary_cosine": 0.7084531787991557,
     "p10_rate_cosine": 0.8166772048810504,
     "p20_binary_cosine": 0.9999999999999999,
-    "p20_ternary_cosine": 0.7088222792900652,
-    "p20_rate_cosine": 0.6721503770000974
+    "p20_ternary_cosine": 0.7082260280760352,
+    "p20_rate_cosine": 0.6721503770000972
   },
   "statistics": {},
   "trials": [
@@ -69,8 +69,8 @@
       "p": 5,
       "alpha": 0.01,
       "corruption": 0.1,
-      "cosine_mean": 0.7458186512024381,
-      "cosine_std": 0.34029088510386096,
+      "cosine_mean": 0.7479822695383597,
+      "cosine_std": 0.34005310199444866,
       "exact_mean": 0.6,
       "trials": 30
     },
@@ -80,8 +80,8 @@
       "p": 5,
       "alpha": 0.01,
       "corruption": 0.1,
-      "cosine_mean": 0.8970883098538229,
-      "cosine_std": 0.05939049049778451,
+      "cosine_mean": 0.8970883098538233,
+      "cosine_std": 0.05939049049778441,
       "exact_mean": 0.0,
       "trials": 30
     },
@@ -102,8 +102,8 @@
       "p": 10,
       "alpha": 0.02,
       "corruption": 0.1,
-      "cosine_mean": 0.7204523414609157,
-      "cosine_std": 0.2941804578061316,
+      "cosine_mean": 0.7084531787991557,
+      "cosine_std": 0.3061811091330705,
       "exact_mean": 0.5,
       "trials": 30
     },
@@ -114,7 +114,7 @@
       "alpha": 0.02,
       "corruption": 0.1,
       "cosine_mean": 0.8166772048810504,
-      "cosine_std": 0.06125307023241278,
+      "cosine_std": 0.061253070232412776,
       "exact_mean": 0.0,
       "trials": 30
     },
@@ -135,8 +135,8 @@
       "p": 20,
       "alpha": 0.04,
       "corruption": 0.1,
-      "cosine_mean": 0.7088222792900652,
-      "cosine_std": 0.3380170732637529,
+      "cosine_mean": 0.7082260280760352,
+      "cosine_std": 0.33888143228820067,
       "exact_mean": 0.3,
       "trials": 30
     },
@@ -146,8 +146,8 @@
       "p": 20,
       "alpha": 0.04,
       "corruption": 0.1,
-      "cosine_mean": 0.6721503770000974,
-      "cosine_std": 0.055318523712776436,
+      "cosine_mean": 0.6721503770000972,
+      "cosine_std": 0.05531852371277656,
       "exact_mean": 0.0,
       "trials": 30
     },
@@ -168,8 +168,8 @@
       "p": 30,
       "alpha": 0.06,
       "corruption": 0.1,
-      "cosine_mean": 0.5613448028697693,
-      "cosine_std": 0.39690189179458946,
+      "cosine_mean": 0.5619171403865785,
+      "cosine_std": 0.39735906939046556,
       "exact_mean": 0.36666666666666664,
       "trials": 30
     },
@@ -179,8 +179,8 @@
       "p": 30,
       "alpha": 0.06,
       "corruption": 0.1,
-      "cosine_mean": 0.6333439998505431,
-      "cosine_std": 0.05644122944730168,
+      "cosine_mean": 0.6333439998505435,
+      "cosine_std": 0.05644122944730171,
       "exact_mean": 0.0,
       "trials": 30
     },
@@ -201,8 +201,8 @@
       "p": 50,
       "alpha": 0.1,
       "corruption": 0.1,
-      "cosine_mean": 0.36009341730776884,
-      "cosine_std": 0.22847749797095135,
+      "cosine_mean": 0.3539641943101803,
+      "cosine_std": 0.22553843160650988,
       "exact_mean": 0.0,
       "trials": 30
     },
@@ -213,7 +213,7 @@
       "alpha": 0.1,
       "corruption": 0.1,
       "cosine_mean": 0.5425211121718234,
-      "cosine_std": 0.06126077595514458,
+      "cosine_std": 0.061260775955144654,
       "exact_mean": 0.0,
       "trials": 30
     }

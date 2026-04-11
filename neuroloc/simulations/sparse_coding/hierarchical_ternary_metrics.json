@@ -1,12 +1,12 @@
 {
   "schema_version": "neuroloc.sim.metrics/v1",
   "run": {
-    "run_id": "hierarchical_ternary_20260409_103939",
+    "run_id": "hierarchical_ternary_20260411_225258",
     "simulation_name": "hierarchical_ternary",
     "status": "completed",
-    "started_at_utc": "2026-04-09T10:39:39Z",
-    "finished_at_utc": "2026-04-09T10:39:59Z",
-    "duration_sec": 20.0881085395813
+    "started_at_utc": "2026-04-11T22:52:58Z",
+    "finished_at_utc": "2026-04-11T22:53:15Z",
+    "duration_sec": 16.331979274749756
   },
   "environment": {
     "python_version": "3.14.2",
@@ -15,7 +15,7 @@
     "platform": "Windows-11-10.0.26220-SP0",
     "cpu": "AMD64 Family 25 Model 116 Stepping 1, AuthenticAMD",
     "script_path": "neuroloc/simulations/sparse_coding/hierarchical_ternary.py",
-    "git_commit": "1de5138dfa56b19c244136c24009d5e9d9e035f2",
+    "git_commit": "78af5b9abc4513d170287a6cf5934b411740ab47",
     "git_dirty": true
   },
   "configuration": {
