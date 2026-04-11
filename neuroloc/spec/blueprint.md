@@ -1,5 +1,7 @@
 # neural machine specification
 
+see also: `neuroloc/wiki/PROJECT_PLAN.md` is the canonical persistent project state. that file holds the current run, current question, hypothesis under test, decision rules, prior runs index, open research questions, and project glossary. this blueprint covers the design intent and feature definitions; PROJECT_PLAN.md covers what is being run right now and what we have learned. update both when the project state changes.
+
 ## context
 
 todorov proved that biological computation math outperforms standard

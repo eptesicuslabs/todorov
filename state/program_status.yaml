@@ -1,7 +1,8 @@
 project: todorov
+canonical_plan: neuroloc/wiki/PROJECT_PLAN.md
 current_phase: neural_machine
-current_step: run1_baseline_dense_launching
-status: god_run_v2_confirmed_bundle_broken_launching_run1_baseline
+current_step: phase_0_project_plan_in_wiki
+status: god_run_v2_confirmed_bundle_broken_phase_0_canonical_wiki_plan_created
 last_updated: "2026-04-12"
 tests_passing: 76
 total_tests: 76

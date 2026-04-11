@@ -1,5 +1,7 @@
 # next gen spec
 
+see also: `neuroloc/wiki/PROJECT_PLAN.md` is the canonical persistent project state. this next_gen.md covers the post-baseline architectural direction (tiered compression, thinking loop, vision); PROJECT_PLAN.md covers what is being run right now. read PROJECT_PLAN.md first when picking up the project.
+
 ## scope
 
 this is the roadmap for what comes after god_run_v2. god_run v1 produced val_bpb 1.3950 with

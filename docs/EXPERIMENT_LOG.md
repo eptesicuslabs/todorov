@@ -1,5 +1,7 @@
 # Experiment Log
 
+canonical persistent project state lives in `neuroloc/wiki/PROJECT_PLAN.md`. this experiment log is an append-only chronological record of every run; PROJECT_PLAN.md is the structural plan and is updated whenever the project state changes. read PROJECT_PLAN.md first when picking up the project.
+
 ## Phase 0: Foundation
 
 ### 2026-03-22: Initial Build

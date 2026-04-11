@@ -1,5 +1,7 @@
 # status board
 
+canonical persistent project state lives in `neuroloc/wiki/PROJECT_PLAN.md`. that file is updated whenever the project state changes (a run starts, a run completes, a hypothesis is added or falsified, the experimental method changes, a new project term enters the glossary, a prior research question is answered). this status board is a per-run summary; PROJECT_PLAN.md is the structural plan and the entry point for any new agent picking up the project.
+
 ## current phase: neural machine research (neuroloc)
 
 ## status: god_run_v2 complete (2026-04-12). F1 math fix did NOT recover retrieval. passkey 0/100 at 256/1024/4096 (CI 3.7%), copy 0/100 at 256/512/1024/2048. bundle-is-broken branch of decision rule. blueprint.md revised with corrected run ordering (dense keys mandatory). run 1 baseline (dense k/v) launching next.

@@ -4,6 +4,14 @@ You are continuing work on the Neuroloc project inside the Todorov repository
 at `C:\Users\deyan\Projects\todorov\neuroloc\`. Read this entire document
 before taking any action.
 
+**Read `neuroloc/wiki/PROJECT_PLAN.md` first.** It is the canonical persistent
+project state: current run, current question, current obstacle, hypothesis
+under test, decision rules, prior runs index, open research questions, and the
+project glossary. Per the rule in `CLAUDE.md`, that file is updated whenever
+the project state changes and is the entry point for any new agent picking up
+the project. This handoff document is older context; PROJECT_PLAN.md supersedes
+anything in this file that contradicts it.
+
 ## What Neuroloc Is
 
 Neuroloc is a computational neuroscience research project for Eptesicus

@@ -2,6 +2,8 @@
 
 biological grounding for the todorov hybrid spiking neural architecture.
 
+canonical persistent project state lives in `neuroloc/wiki/PROJECT_PLAN.md`. that file holds the current run, current question, hypothesis under test, decision rules, prior runs index, open research questions, and the project glossary. read it first when picking up the project. updates to PROJECT_PLAN.md are mandatory whenever the project state changes (see the rule in `CLAUDE.md`).
+
 ## what this is
 
 neuroloc is a computational neuroscience research project for eptesicus
