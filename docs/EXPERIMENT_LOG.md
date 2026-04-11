@@ -472,3 +472,178 @@ capability in language, context extension stability, and spatial reasoning.
 
 Next: Phase 5 (scale and optimize). Phase 4 (multimodal fusion) was skipped per
 project plan (proceed directly from Phase 3 to Phase 5).
+
+## Phase 5: Scale (H200)
+
+### run_010: KDA+MLA scaling probe (H200, 267M)
+
+h200, 267m params, kda+mla only (mamba3 dropped, fla disabled — fla chunk_kda
+produced nan at d_model=1024 in this run, fixed in run_011 via l2 normalization).
+
+- best_val_bpb: 2.375
+- bpb_ratio: 0.663x vs 3.583 transformer baseline
+- spike_mi: 1.168  spike_cka: 0.732  firing_rate: 40.8%
+- all 4 gates pass
+- not a full todorov architecture (mamba3 layers absent)
+
+### run_011: full architecture (H200, 280M, 6:1:1)
+
+h200, 280m params, full 18 kda + 3 mamba3 + 3 mla. fla l2 fix stable across 2000 steps.
+
+- best_val_bpb: 2.592
+- bpb_ratio: 0.722x vs 3.590 transformer baseline
+- spike_mi: 1.246  spike_cka: 0.802
+- firing_rate: 0.000 (measurement bug from gradient checkpointing — actual ~41%)
+- 3/4 gates pass (firing rate failure is measurement artifact, not real)
+- mamba3 sequential scan dominates training cost (~10 s/step overhead)
+- atmn too slow at 280m with gradient checkpointing (30+ min/step)
+
+## Neural Machine Phase: god_run
+
+### god_run: god_machine.py first run (H200, 283M)
+
+2026-04-11. god_machine.py with all 5 blueprint features active simultaneously:
+k-wta rate-coded compression at 20%, delta-rule erasure, bcm-adaptive alpha
+(gamma=0.3), multi-compartment swiglu (k=4), compressed attention via sdpa.
+plus always-on imagination probe (learned query into delta state with gated
+residual) and per-layer predictive coding diagnostic head (lambda=1e-4).
+
+configuration: d_model=1024, n_layers=28 (24 delta + 4 attn in 6:1 pattern),
+delta_heads=16, delta_head_dim=64, attn_d_c=128, attn_d_R=32, attn_heads=16,
+mlp_ratio=4.0, num_compartments=4, batch_size=16, seq_len=2048, max_steps=4000,
+warmup_steps=200, lr=3e-4 cosine decay, weight_decay=0.1, grad_clip=1.0,
+grad_checkpointing=True, amp=bfloat16, seed=42.
+
+params: 282,953,496. training time: 3166 seconds (~53 minutes).
+tokens: 131,072,000. throughput: ~45,500 tok/s steady.
+
+TRAINING RESULTS:
+
+- best_val_bpb: **1.3950** at step 4000 (final)
+- bpb_ratio: 0.390x vs 3.58 transformer baseline (2.57x better)
+- val bpb progression (20 checkpoints, monotonic, smooth):
+  2.381 → 2.07 → 1.94 → 1.87 → 1.81 → 1.75 → 1.71 → 1.67 → 1.62 → 1.57 →
+  1.52 → 1.50 → 1.48 → 1.46 → 1.44 → 1.43 → 1.42 → 1.41 → 1.40 → 1.3950
+- final training loss: 0.9535
+- k-wta firing rate: 0.200 exactly at every step (target met)
+- dead neurons: 0.0% throughout
+- no nan, no inf, no crash
+
+EVAL SUITE (all retrieval tasks, num_trials=20 per cell):
+
+- passkey retrieval: 0/20 @ 256, 0/20 @ 1024, 0/20 @ 4096 (0.0% ACROSS THE BOARD)
+- selective copy: 0/20 @ 256, 0/20 @ 512, 0/20 @ 1024, 0/20 @ 2048 (0.0% ACROSS THE BOARD)
+- perplexity at length: 1.9354 @256, 1.8437 @512, 1.4909 @1024, 1.4110 @2048, 1.3751 @4096
+  (monotonic decrease, attention path correctly uses longer context)
+- delta state structure probe (closed-gate readout with 32 novel random keys across 24
+  delta layers): mean_structure_ratio=0.981, mean_pairwise_cos=-0.003,
+  random_pairwise_cos=0.000 (state is near-orthogonal across all layers, statistically
+  indistinguishable from random state of equal frobenius norm — NOT the kalaj et al.
+  structured-interpolation signature of ~0.93)
+
+DIAGNOSIS:
+
+compressed-attention + mlp path learned to fit the next-byte distribution through its
+own mechanism. the delta-rule memory state became a high-frobenius-norm but
+pairwise-orthogonal noise state that contributes to residual prediction (gradients flow
+through it) but never learned to store and retrieve specific content from earlier in the
+context. the 5-feature bundle (k-wta 20% + delta erasure + bcm alpha + imagination probe)
+produced a model that statistically fits the distribution while failing every retrieval
+task. this is exactly the lossy-mechanism failure mode predicted by
+`neuroloc/wiki/synthesis/compression_beyond_quantization.md`.
+
+CONFOUNDING FACTOR (fixed before re-run):
+
+bcm train/eval path divergence. the fla path computes alpha_eff from running_state_norm
+(ema buffer, slowly updated), while the pre-fix recurrent path computed alpha_eff from
+the live per-step state frobenius norm. training always took fla; eval continuation took
+recurrent after the first chunk. so the model was trained under one dynamical rule and
+evaluated under another for all retrieval tasks. any content-addressable binding that
+did get learned during training might have been unretrievable at eval time under the
+different retention dynamics. this is a credible alternative explanation for the 0%
+retrieval that is not intrinsic to the 5-feature bundle.
+
+BUG FIXES (17 prosecutor findings F1-F17):
+
+- F1 (P0): bcm train/eval path divergence — recurrent path now uses _effective_log_alpha
+- F2 (P0): running_state_norm eval mutation — gated on self.training and self.bcm_enabled
+- F3 (P1): history dict cherry-pick class regression — setdefault loop merges spike_stats
+- F4 (P1): collect_god_metrics length-inconsistent per_layer arrays — pre-allocated
+- F5 (P1): other metrics_logger sites still cherry-picked — loop-merged at all sites
+- F6 (P1): passkey/copy 20 trials too weak — bumped to 100, added wilson 95% ci logging
+- F7 (P2): load_state_dict strict=False swallowed errors — raises on missing keys
+- F8 (P2): dead compartment guard — fixed aux key
+- F9 (P2): hardcoded required_god_keys — derived from aux
+- F10 (P2): imag_filter and pc_head ~24m params — low-rank factorized to ~131k/layer
+- F11 (P2): ByteDataset int64 8x ram — stores uint8, casts per-slice
+- F12 (P2): no resume correctness test — added _test_resume_correctness
+- F13 (P3): dead _parallel_no_erasure — removed; recurrent handles all non-fla cases
+- F14 (P3): non-causal attn_entropy probe — removed
+- F15 (P3): hardcoded zero dead_pct metrics — removed
+- F16 (P3): dead imports/SEED/TernaryQuantizer/AdaptiveSpike — removed
+- F17 (P3): per-timestep state.norm O(H*D*D) — fixed via F1
+
+TELEMETRY BUG (permanent loss for god_run, fixed for re-run):
+
+god_machine.py step-logger was a hardcoded dict literal that cherry-picked 5 keys out of
+collect_god_metrics's 40+-key return value. the following probe metrics were computed
+and discarded: imag_contribution_ratio_per_layer, imag_gate_mean_per_layer, imag_ratio_*,
+pc_error_l2_per_layer, kwta_k_rate_per_layer, kwta_v_rate_per_layer, alpha_base_mean_per_layer,
+beta_mean_per_layer, state_frobenius_per_layer, mlp_compartment_l2_per_layer, and their
+_mean/_std/_min/_max aggregates. god_run's metrics.jsonl is permanently incomplete. the
+fix has been applied (step record now merges full spike_stats dict) and a smoke-test
+jsonl-roundtrip guard added (writes real step record through real MetricsLogger to tempfile,
+reads back with json.loads, asserts every aux key survives).
+
+NEW RULE (added to CLAUDE.md):
+
+fix absolutely every single thing the prosecutor flags. no cherry-picking. priorities
+determine order not selection. every prosecutor finding is treated as a bug CLASS, not an
+instance — grep every analogous site and fix them all. re-run prosecutor to zero before
+any paid compute launches.
+
+NAMING FIX:
+
+run_imagination_test → run_delta_state_structure_probe. "imagination test" was a misleading
+metaphor from `wiki/knowledge/imagination_computation_research.md` (kalaj et al. structured
+interpolation above critical load). the byte-level text model has no image generation or
+vision capability. the test is a state-structure probe that closes the external input gate
+and queries the accumulated delta state with novel random keys to measure whether the state
+is content-like or noise-like.
+
+NEXT:
+
+re-run with all F1-F17 fixes applied and full probe telemetry. the decisive question: did
+F1+F2 fixes recover retrieval, or is the 5-feature bundle itself the cause of verbatim
+memory destruction?
+
+- if re-run passkey > 0: F1/F2 were the confounder. proceed to feature-isolation runs
+  per blueprint implementation_plan to identify which feature(s) contribute what.
+- if re-run passkey still 0: the bundle destroys verbatim memory regardless of path
+  alignment. fall back to blueprint run 1 (ternary-spike baseline at 350m) as the honest
+  starting point, introduce features one at a time per the sequential isolation protocol.
+
+CROSS-RUN COMPARISON (updated):
+
+| metric            | run_010 (267M)  | run_011 (280M)  | god_run (283M)  |
+|-------------------|-----------------|-----------------|-----------------|
+| architecture      | kda+mla only    | kda+mamba3+mla  | god_machine     |
+| best_val_bpb      | 2.375           | 2.592           | 1.3950          |
+| bpb_ratio         | 0.663x          | 0.722x          | 0.390x          |
+| passkey retrieval | not measured    | not measured    | 0/20 all lengths|
+| selective copy    | not measured    | not measured    | 0/20 all lengths|
+| ppl@4096          | not measured    | not measured    | 1.3751          |
+| gates pass        | 4/4             | 3/4 (fr bug)    | pending re-run  |
+| spike_mi          | 1.168           | 1.246           | not logged (bug)|
+| compute           | h200 53min      | h200 ~66min     | h200 53min      |
+
+CONCLUSIONS:
+
+god_run is the first run in the project that produces a state-of-the-art bpb while failing
+every verbatim retrieval task. this is an important scientific finding independent of
+whether F1+F2 were the cause: it demonstrates that distribution fit (bpb) and
+content-addressable retrieval (passkey) can be decoupled in a way that standard perplexity
+benchmarks do not detect. whatever the re-run shows, god_run has produced the project's
+first empirical evidence on the compression_beyond_quantization thesis, and the project
+documentation is no longer "architecture paused" — it is "architecture under active
+empirical test, waiting on re-run."

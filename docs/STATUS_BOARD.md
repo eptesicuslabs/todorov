@@ -2,7 +2,85 @@
 
 ## current phase: neural machine research (neuroloc)
 
-## status: todorov architecture paused. neural machine spec at neuroloc/spec/blueprint.md
+## status: god_run complete (2026-04-11). val_bpb 1.3950 (0.390x vs transformer) but retrieval 0% at all tested lengths. prosecutor F1-F17 fixed, re-run pending.
+
+## god_run: god_machine.py first run (2026-04-11)
+
+h200, 283m params (282,953,496), 4000 steps on fineweb-edu byte-level, 131,072,000 tokens, seed 42.
+all 5 blueprint features active: k-wta 20% rate-coded compression, delta-rule erasure,
+bcm-adaptive alpha (gamma=0.3), multi-compartment swiglu (k=4), compressed attention via sdpa.
+plus always-on imagination probe (learned query into delta state with gated residual, now
+low-rank factorized to ~131k params per layer) and per-layer predictive coding diagnostic head.
+
+val_bpb 1.3950 (final). bpb_ratio 0.390x vs 3.58 transformer baseline at matched pipeline.
+smooth monotonic decrease: 2.381 → 2.07 → 1.94 → 1.87 → 1.81 → 1.75 → 1.71 → 1.67 → 1.62 →
+1.57 → 1.52 → 1.50 → 1.48 → 1.46 → 1.44 → 1.43 → 1.42 → 1.41 → 1.40 → 1.3950.
+training loss final 0.9535 at step 3950. throughput ~45,500 tok/s steady. total 3166s (~53 min).
+firing rate 0.200 exactly throughout (k-wta target met). no dead neurons.
+
+**retrieval failed at every tested length (n=20 per cell, 95% wilson upper ~14%):**
+
+passkey  @256: 0/20  passkey  @1024: 0/20  passkey  @4096: 0/20
+copy     @256: 0/20  copy     @512:  0/20  copy     @1024: 0/20  copy @2048: 0/20
+
+perplexity-at-length (monotonic decrease, attention path uses context):
+bpb@256=1.9354  bpb@512=1.8437  bpb@1024=1.4909  bpb@2048=1.4110  bpb@4096=1.3751
+
+delta state structure probe (closed-gate readout with novel keys, NOT image generation):
+mean_structure_ratio=0.981, mean_pairwise_cos=-0.003, random_pairwise_cos=0.000.
+state is near-orthogonal across 24 delta layers. this is NOT the structured-interpolation
+signature (cosine ~0.93) that exp_008 reported. the delta memory accumulated high frobenius
+norm but pairwise-orthogonal state that functions as noise, not content-addressable storage.
+
+**diagnosis**: the compressed-attention+mlp path learned to fit the next-byte distribution
+(bpb 1.395). the delta-rule memory state is noise. k-wta 20% + delta erasure + bcm alpha +
+imagination probe combined so that verbatim retrieval was destroyed while statistical
+distribution-fitting worked. this is exactly the lossy-mechanism failure mode that
+`wiki/synthesis/compression_beyond_quantization.md` predicts: preserved statistical fit,
+destroyed verbatim memory.
+
+**17 prosecutor findings F1-F17 applied before re-run:**
+
+- f1 (p0): bcm train/eval path divergence. recurrent path computed live-state alpha_eff
+  per timestep; fla path used running_state_norm buffer. fixed by aligning recurrent path
+  to use `_effective_log_alpha` which reads running_state_norm.
+- f2 (p0): running_state_norm buffer mutated during eval. fixed with self.training gate.
+- f3 (p1): history dict was a second cherry-pick site (class-level regression of the
+  step-logger bug). fixed via setdefault loop that merges all spike_stats keys.
+- f4 (p1): collect_god_metrics produced length-inconsistent per_layer arrays. fixed by
+  pre-allocating [None]*n_layers lists.
+- f5 (p1): other metrics_logger sites still cherry-picked val_result. fixed via loop merge.
+- f6 (p1): passkey/copy 20 trials was too few (95% wilson upper 14% for 0/20). fixed to 100.
+- f7 (p2): load_state_dict strict=False swallowed errors. fixed to raise on missing keys.
+- f8 (p2): compartment guard was dead. fixed to check correct aux key name.
+- f9 (p2): smoke-test required_god_keys was a hardcoded 9-key list. fixed to derive from aux.
+- f10 (p2): imag_filter 1m params * 24 layers = 24m always-active dead weight. fixed to
+  low-rank factorization (~131k params/layer). same for pc_head. added post-val warning
+  if imag_ratio_mean < 0.02.
+- f11 (p2): bytedataset materialized int64 (8x ram). fixed to keep uint8, cast per-slice.
+- f12 (p2): no resume correctness test. added _test_resume_correctness() to smoke_test.
+- f13 (p3): dead _parallel_no_erasure code. removed; all non-fla paths go through recurrent.
+- f14 (p3): non-causal attn_entropy probe with T<=512 gate. removed.
+- f15 (p3): hardcoded zero dead_pct/saturated_pct/per_layer_dead_count. removed.
+- f16 (p3): dead imports (field), SEED constant, TernaryQuantizer, AdaptiveSpike. removed.
+- f17 (p3): per-timestep state.norm O(H*D*D). fixed via f1 (alpha_eff hoisted).
+
+**renamed**: run_imagination_test → run_delta_state_structure_probe. "imagination" was a
+misleading metaphor for what is actually a state-structure probe; the byte-level text model
+has no image generation capability.
+
+**class-level telemetry gate**: smoke_test now writes collect_god_metrics output through a
+real MetricsLogger to a tempfile, reads it back via json.loads, and asserts every enabled
+feature's aux keys round-trip through disk. any future regression that drops metrics fails
+smoke test before launch. required_god_keys is derived programmatically from aux.
+
+artifacts: `neuroloc/output/god_run/` (eval_suite.json, metadata.json, stdout.log,
+metrics.jsonl, results.json). run card: `neuroloc/output/god_run/run_card.md`.
+
+**what comes next**: re-run god_machine.py with all F1-F17 fixes applied and full
+telemetry. key question for re-run analysis: did F1 (bcm path divergence) cause retrieval
+failure, or is the 5-feature bundle itself the cause? if retrieval still 0% with F1 fixed,
+fall back to blueprint sequential isolation starting with run 1 (ternary spike baseline).
 
 ## phase 5: runs 010-011 complete
 

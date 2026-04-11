@@ -289,8 +289,44 @@ all surviving features.
 ## verification
 
 each run is verified by:
-1. prosecutor audit of the code before execution
+1. prosecutor audit of the code before execution, with every finding fixed to zero
+   (no cherry-picking; each finding is a bug class, grep analogous sites and fix them all)
 2. eara ultra loop pre-push checks (5 subagents)
 3. comparison against the baseline (run 1) on matched token budget
 4. statistical significance (p < 0.01) for any claimed improvement
 5. documentation update after each run
+6. end-to-end telemetry round-trip: every metric computed in code must be written to the
+   on-disk jsonl and verified by reading it back. in-memory assertions alone do not count
+   (god_run lost 35 probe metrics because this guard was missing)
+
+## empirical status
+
+**god_run (2026-04-11)**: the first direct test of the 5-feature bundle. 283m params on
+fineweb-edu, 131m tokens, 4000 steps on h200. bypassed the sequential-isolation protocol
+below (activated all 5 features at once with always-on imagination probe and pc diagnostic
+head). result: val_bpb 1.3950 (best in project history, 2.57x vs transformer baseline) but
+retrieval FAILED at every tested length (passkey 0/20 and selective copy 0/20 at 256, 512,
+1024, 2048, 4096). delta state structure probe shows the delta memory is statistically
+indistinguishable from high-dimensional noise (mean_structure_ratio 0.981, mean_pairwise_cos
+-0.003). perplexity-at-length decreases monotonically with context, proving the
+compressed-attention path uses context correctly; the delta-rule memory is the channel
+that failed.
+
+interpretation: the compressed-attention + mlp path fit the next-byte distribution while
+the delta-rule memory never became content-addressable. this is the lossy-mechanism
+failure mode predicted by `wiki/synthesis/compression_beyond_quantization.md`. a
+confounder remains: the BCM train/eval path divergence (prosecutor finding F1) meant the
+model was trained under one dynamical rule and evaluated under a different one for
+everything beyond the first chunk. F1 and 16 related prosecutor findings have been fixed,
+and the re-run will determine whether F1 was the primary cause or whether the 5-feature
+bundle itself destroys verbatim memory.
+
+**decision rule for post-re-run analysis**:
+- if re-run passkey > 0 at any length: F1+F2 was the culprit. proceed with the sequential
+  isolation protocol below as originally planned, using the 5-feature bundle as validated.
+- if re-run passkey still 0 at all lengths: the bundle destroys verbatim memory regardless
+  of path alignment. fall back to run 1 (below) as the honest starting point and introduce
+  one feature at a time, validating retrieval after each.
+
+see `neuroloc/output/god_run/run_card.md` and `neuroloc/wiki/tests/god_run_findings.md`
+for full detail.

@@ -1,11 +1,11 @@
 project: todorov
-current_phase: 5
-current_step: run_010_complete
-status: phase_5_baseline_complete
-last_updated: "2026-03-26"
+current_phase: neural_machine
+current_step: god_run_complete
+status: god_machine_first_run_complete_retrieval_failed
+last_updated: "2026-04-11"
 tests_passing: 76
 total_tests: 76
-critical_fix: swiglu.py spatial_mode latent shape mismatch, GP residual applied after down projection (run_009)
+critical_fix: "god_machine.py step logger hardcoded dict dropped 40+ probe metrics, fixed class-wide via merge loop and smoke-test disk round-trip guard; bcm train/eval path divergence fixed by aligning recurrent path to running_state_norm; running_state_norm now training-only mutation; 17 prosecutor findings F1-F17 all fixed"
 run_history:
   run_001: Phase 1, sequential, 2000 steps, BPB 2.235 (PASS)
   run_002: Phase 1, parallel KDA, 500 steps, BPB 2.876, MI 1.275, CKA 0.913 (ALL PASS)
@@ -18,18 +18,37 @@ run_history:
   run_009: COMPLETE, Phase 3 spatial validation, ALL GATES PASS
   run_010: "KDA+MLA scaling probe (NOT todorov baseline -- Mamba3 absent), H200, 267M, BPB 2.375, ratio 0.663x, gates pass but architecture incomplete"
   run_011: "full architecture (KDA+Mamba3+MLA, 6:1:1), H200, 280M, BPB 2.592, ratio 0.722x, 3/4 gates pass (FR measurement bug from gradient checkpointing)"
-latest_run: run_011
+  god_run: "god_machine.py first run, all 5 blueprint features + imagination probe + PC diagnostic, H200, 283M, fineweb-edu 131M tokens, val_bpb 1.3950 (0.390x vs transformer baseline), RETRIEVAL FAILED (passkey 0.0% at 256/1024/4096, selective_copy 0.0% at 256/512/1024/2048), delta_state_structure_probe mean_structure_ratio=0.981 with pairwise_cos -0.003 (state is noise not content-addressable), telemetry bug lost 40+ probe keys fixed post-hoc"
+latest_run: god_run
 latest_run_results:
-  phase: 5
-  description: phase 5 full architecture baseline at 280m params on h200
-  best_val_bpb: 2.592
-  baseline_best_bpb: 3.590
-  bpb_ratio: 0.722
-  param_count: 280000000
-  spike_mi: 1.246
-  spike_cka: 0.802
-  spike_fr: 0.000
-  spike_fr_note: "measurement bug from gradient checkpointing -- FR=0 is artifact, not real dead spikes"
-  all_gates_pass: false
-  gates_note: "3/4 pass. FR fail is measurement artifact."
-next_action: "architecture development paused for neural machine research phase (neuroloc). todorov resumes when neural machine design is validated. see neuroloc/spec/blueprint.md for the neural machine specification."
+  phase: neural_machine
+  description: "god_machine.py: all 5 blueprint features active (k-WTA 20%, delta erasure, BCM alpha gamma=0.3, multi-compartment K=4, compressed attention via SDPA), always-on imagination probe, per-layer PC diagnostic. 4000 steps on fineweb-edu byte-level."
+  best_val_bpb: 1.3950
+  baseline_best_bpb: 3.580
+  bpb_ratio: 0.390
+  param_count: 282953496
+  firing_rate: 0.200
+  firing_rate_note: "k-WTA 20% target met exactly throughout training"
+  passkey_256: 0.0
+  passkey_1024: 0.0
+  passkey_4096: 0.0
+  selective_copy_256: 0.0
+  selective_copy_512: 0.0
+  selective_copy_1024: 0.0
+  selective_copy_2048: 0.0
+  perplexity_256: 1.9354
+  perplexity_512: 1.8437
+  perplexity_1024: 1.4909
+  perplexity_2048: 1.4110
+  perplexity_4096: 1.3751
+  delta_state_structure_ratio: 0.981
+  delta_state_pairwise_cos: -0.003
+  delta_state_note: "state is near-orthogonal across 24 delta layers. NOT the structured-interpolation signature (~0.93) exp_008 reported. delta memory is high-dimensional noise, not a trained content-addressable store."
+  retrieval_verdict: "FAILED. passkey 0/20 at every tested length, selective copy 0/20 at every tested length. 20-trial measurement, Wilson 95% CI upper bound ~14% — underspecified, re-run will use 100 trials."
+  telemetry_bug: "metrics.jsonl missing 40+ probe keys (imag_contribution_ratio_per_layer, pc_error_l2_per_layer, kwta_k_rate_per_layer, alpha_base_mean_per_layer, mlp_compartment_l2_per_layer, etc.). Fixed in code via merge loop; god_run data permanently incomplete. Re-run will have full telemetry."
+  total_time_sec: 3166
+  tokens: 131072000
+  throughput_tps: 45500
+  compute: h200
+  seed: 42
+next_action: "re-run god_machine.py after fixing 17 prosecutor findings. primary goal: collect full probe telemetry and verify whether the BCM train/eval path divergence (F1) was responsible for retrieval failure, or whether the 5-feature bundle itself destroys verbatim memory. if retrieval still 0% with F1 fix: follow blueprint sequential isolation — run 1 is ternary-spike baseline 350m as comparison target."
