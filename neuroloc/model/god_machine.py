@@ -2658,7 +2658,7 @@ def _smoke_preset_baseline_dense() -> None:
         raise AssertionError(
             f"baseline preset: mean_fr should be 0.0 with kwta disabled, got {stats.get('mean_fr')}"
         )
-    for forbidden_key in ("kwta_k_rate_per_layer", "kwta_v_rate_per_layer", "imag_gate_mean_per_layer", "imag_ratio_per_layer", "pc_error_l2_per_layer", "mlp_compartment_l2_per_layer"):
+    for forbidden_key in ("kwta_k_rate_per_layer", "kwta_v_rate_per_layer", "imag_gate_mean_per_layer", "imag_contribution_l2_per_layer", "imag_ratio_per_layer", "pc_error_l2_per_layer", "mlp_compartment_l2_per_layer"):
         if forbidden_key in stats:
             raise AssertionError(
                 f"baseline preset: aux should not contain {forbidden_key} when the "
