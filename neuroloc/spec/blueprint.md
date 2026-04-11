@@ -260,31 +260,61 @@ solution is NOT a separate MLA module but a MODE of the same operation:
 ## implementation sequencing (mandatory -- do NOT bundle)
 
 each feature is validated in isolation before combination. this follows
-the phase 5 sequencing protocol from CLAUDE.md.
+the phase 5 sequencing protocol from CLAUDE.md. **the ordering below has
+been revised on 2026-04-12 after god_run_v2's 0% passkey confirmed that
+the prior ordering (k-WTA on both keys AND values) destroys verbatim
+memory. see `memory/project_v2_diagnosis.md` for the 8 root causes.**
 
-**run 1 (baseline)**: standard todorov at 350M with current ternary spikes,
-standard alpha, no delta rule erasure, standard SwiGLU. replicate the
-0.663x BPB ratio at larger scale. this is the comparison target.
+**critical invariant (post-god_run_v2)**: keys must stay dense. k-WTA,
+sparsification, and any form of address-space truncation must be applied
+only to values, never to keys. a 20%-sparse key in a 64-dim head carries
+~13 effective dimensions, which drops Hopfield interference-free capacity
+from ~9 patterns to ~2 patterns per head. delta rule erasure with sparse
+keys also reads only the 13 surviving dimensions of the state, leaving
+"ghost" content in the zeroed dimensions that accumulates and interferes.
+both failure modes are explicit in the empirical data from god_run_v2.
 
-**run 2 (rate-coded k-WTA)**: replace ternary spikes with rate-coded k-WTA
-at 20% selection. measure: BPB, MI, CKA, firing rate. if gradient flow
-breaks at 20%, fallback to 30-40% and anneal.
+**run 1 (ternary-spike baseline at 350M)**: use `neural_machine.py` as-is.
+ternary spikes (adaptive threshold, not k-WTA), no delta erasure, no BCM,
+standard SwiGLU (not multi-compartment), no imagination probe, no PC
+diagnostic head. target: replicate run_010's 2.375 BPB at 267M scaled up
+to 350M. **critical success metric: nonzero passkey at 256 or 512 tokens.**
+if this run produces 0% passkey, the problem is deeper than the bundle
+and the entire delta-rule architecture needs rethinking.
 
-**run 3 (delta rule erasure + BCM alpha)**: add targeted overwrite and
-activity-dependent forgetting (gamma=0.3). measure: BPB, state norm
-dynamics, long-sequence retrieval quality.
+**run 2 (k-WTA 50% on values only, dense keys)**: replace ternary spikes
+with rate-coded k-WTA at 50% selection applied ONLY to values. keys remain
+dense (no k-WTA on k). apply to the neural_machine.py baseline from run 1,
+not god_machine. target: preserve run 1's retrieval accuracy, achieve some
+compression benefit from value sparsity. if 50% works, follow-up run tries
+30% on values; NEVER sparsify keys below 100%.
 
-**run 4 (multi-compartment SwiGLU)**: replace standard SwiGLU with K=4
-block-diagonal sub-gates. measure: BPB change, per-layer representation
-diversity. if it hurts, drop it.
+**run 3 (delta erasure with dense keys)**: add delta-rule erasure
+`state -= beta * k * (k^T @ state)` on top of run 2. dense keys allow
+erasure to see the full state and correctly remove old associations.
+target: preserve or improve retrieval over run 2, add targeted unlearning
+capability useful for safety/provenance.
 
-**run 5 (retrieval mode)**: add the exact-retrieval mode with consolidated
-snapshots. measure: long-range retrieval accuracy, BPB on documents
->1024 tokens.
+**run 4 (BCM alpha with faster EMA)**: add BCM-adapted alpha on top of
+run 3. use momentum 0.95 instead of 0.99 (half-life ~14 steps vs ~69).
+initialize `running_state_norm` to 0.01 instead of 1.0 so the BCM
+correction is active from step 0 rather than kicking in at step ~69 after
+the state has already saturated. target: activity-dependent forgetting
+without catastrophic saturation.
 
-each run that improves or maintains quality is KEPT. each run that
-degrades is DROPPED. the final architecture is the composition of
-all surviving features.
+**what is explicitly NOT added unless validated in a dedicated run:**
+- imagination probe (god_run_v2 confirmed it creates a gradient bypass
+  that the model uses instead of learning content-addressable storage,
+  gate rose from 0.12 to 0.22 during training)
+- multi-compartment SwiGLU K=4 (halves effective FFN width; responsible
+  for 283M vs 350M param gap and +0.050 bpb regression in god_run_v2)
+- PC diagnostic head (loss drag, no retrieval benefit)
+- retrieval mode / consolidated snapshots (deferred to next_gen.md phase 6
+  tiered architecture — not a bolt-on to the single-tier design)
+
+each run that improves or maintains quality AND retrieval is KEPT.
+each run that degrades is DROPPED. retrieval is a HARD gate: a run that
+drops passkey to 0% is rejected regardless of BPB improvement.
 
 ## verification
 
@@ -328,5 +358,20 @@ bundle itself destroys verbatim memory.
   of path alignment. fall back to run 1 (below) as the honest starting point and introduce
   one feature at a time, validating retrieval after each.
 
-see `neuroloc/output/god_run/run_card.md` and `neuroloc/wiki/tests/god_run_findings.md`
-for full detail.
+**god_run_v2 (2026-04-12)**: the re-run. all 17 F1-F17 + 14 G1-G14 prosecutor findings
+fixed, including the critical F1 `torch.sigmoid → torch.exp` math correction for the
+log-space gate and F2 `running_state_norm` training-only gating. 283m params, same
+pipeline, 4000 steps, 131m tokens, 59 min runtime. **result: val_bpb 1.4453 (+0.050 vs
+v1), passkey 0/100 at 256/1024/4096 (Wilson 95% CI upper 3.7%), copy 0/100 at every
+length. F1 math fix did NOT recover retrieval.** the 5-feature bundle is intrinsically
+broken: dense-key requirement for content-addressable storage is violated by k-WTA at
+20% on keys. decision rule hits the bundle-is-broken branch: fall back to run 1.
+
+external review (2026-04-12) identified 8 root causes. the two critical ones are k-WTA
+on keys (destroys address space, drops per-head capacity from ~9 patterns to ~2) and
+delta erasure with sparse keys (ghost content accumulates in zeroed dimensions). the
+six supporting causes are listed in `memory/project_v2_diagnosis.md` and inform the
+revised run ordering below.
+
+see `neuroloc/output/god_run/run_card.md`, `neuroloc/output/god_run_v2/run_card.md`,
+and `neuroloc/wiki/tests/god_run_findings.md` for full detail.

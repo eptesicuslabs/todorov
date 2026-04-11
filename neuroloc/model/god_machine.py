@@ -967,7 +967,7 @@ def collect_god_metrics(aux: dict) -> dict:
 collect_spike_stats = collect_god_metrics
 
 
-def aggregate_pc_loss(aux: dict) -> Tensor:
+def aggregate_pc_loss(aux: dict, device: torch.device | None = None) -> Tensor:
     total = None
     count = 0
     for layer_aux in aux.values():
@@ -978,7 +978,7 @@ def aggregate_pc_loss(aux: dict) -> Tensor:
             total = pc if total is None else (total + pc)
             count += 1
     if total is None or count == 0:
-        return torch.tensor(0.0)
+        return torch.zeros((), device=device if device is not None else torch.device("cpu"))
     return total / float(count)
 
 
@@ -1504,7 +1504,7 @@ def train_model(
                         logits.reshape(-1, logits.shape[-1]),
                         target.reshape(-1),
                     )
-                    pc_loss_val = aggregate_pc_loss(aux)
+                    pc_loss_val = aggregate_pc_loss(aux, device=main_loss.device)
                     loss = main_loss + cfg.pc_lambda * pc_loss_val
                     loss_scaled = loss / cfg.grad_accum_steps if cfg.grad_accum_steps > 1 else loss
 
@@ -2493,7 +2493,7 @@ def smoke_test() -> None:
     assert len(aux) == cfg.n_layers, f"bad aux length {len(aux)}"
 
     main_loss = F.cross_entropy(logits.reshape(-1, cfg.vocab_size), targets.reshape(-1))
-    pc_loss = aggregate_pc_loss(aux)
+    pc_loss = aggregate_pc_loss(aux, device=main_loss.device)
     loss = main_loss + cfg.pc_lambda * pc_loss
     loss.backward()
 
@@ -2605,7 +2605,97 @@ def smoke_test() -> None:
     _test_fla_vs_recurrent_parity()
     _test_resume_correctness()
 
+    _smoke_preset_baseline_dense()
+
     log("all smoke checks passed")
+
+
+def _smoke_preset_baseline_dense() -> None:
+    log("smoke test run1_baseline_dense preset (all features off, dense k/v, erasure on)")
+    cfg = Config(
+        d_model=64,
+        n_layers=4,
+        vocab_size=256,
+        max_seq_len=64,
+        delta_num_heads=2,
+        delta_head_dim=32,
+        attn_d_c=32,
+        attn_d_R=8,
+        attn_num_heads=2,
+        mlp_ratio=2.0,
+        layer_pattern=("DELTA", "DELTA", "DELTA", "ATTN"),
+        kwta_enabled=False,
+        delta_erasure_enabled=True,
+        bcm_alpha_enabled=False,
+        multi_compartment_enabled=False,
+        imagination_enabled=False,
+        pc_diagnostic_enabled=False,
+        batch_size=2,
+        seq_len=32,
+        max_steps=5,
+        warmup_steps=2,
+        val_interval=100,
+        grad_checkpointing=False,
+        amp=False,
+    )
+    torch.manual_seed(cfg.seed)
+    model = GodMachine(cfg)
+    input_ids = torch.randint(0, cfg.vocab_size, (2, 32))
+    targets = torch.randint(0, cfg.vocab_size, (2, 32))
+    model.train(True)
+    logits, states, aux = model(input_ids)
+    assert logits.shape == (2, 32, cfg.vocab_size)
+    main_loss = F.cross_entropy(logits.reshape(-1, cfg.vocab_size), targets.reshape(-1))
+    pc_loss = aggregate_pc_loss(aux, device=main_loss.device)
+    assert pc_loss.device == main_loss.device, (
+        f"aggregate_pc_loss device mismatch when pc_diagnostic disabled: "
+        f"pc_loss={pc_loss.device} vs main_loss={main_loss.device}"
+    )
+    loss = main_loss + cfg.pc_lambda * pc_loss
+    loss.backward()
+    stats = collect_spike_stats(aux)
+    if stats.get("mean_fr", None) != 0.0:
+        raise AssertionError(
+            f"baseline preset: mean_fr should be 0.0 with kwta disabled, got {stats.get('mean_fr')}"
+        )
+    for forbidden_key in ("kwta_k_rate_per_layer", "kwta_v_rate_per_layer", "imag_gate_mean_per_layer", "imag_ratio_per_layer", "pc_error_l2_per_layer", "mlp_compartment_l2_per_layer"):
+        if forbidden_key in stats:
+            raise AssertionError(
+                f"baseline preset: aux should not contain {forbidden_key} when the "
+                f"corresponding feature is disabled. found: {stats[forbidden_key]}"
+            )
+    required_keys = ("alpha_base_mean_per_layer", "alpha_eff_mean_per_layer", "beta_mean_per_layer", "state_frobenius_per_layer", "delta_path_per_layer", "delta_erasure_flag_per_layer")
+    for k in required_keys:
+        if k not in stats:
+            raise AssertionError(
+                f"baseline preset: expected stats key {k} not present. "
+                f"available: {sorted(stats.keys())[:20]}"
+            )
+    import tempfile
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as tf:
+        tmp_path = Path(tf.name)
+    try:
+        tmp_logger = MetricsLogger(tmp_path)
+        step_record: dict[str, Any] = {"event": "step", "step": 0}
+        for k, v in stats.items():
+            if k not in step_record:
+                step_record[k] = v
+        tmp_logger.log(step_record)
+        tmp_logger.close()
+        with open(tmp_path) as f:
+            roundtrip = json.loads(f.readline())
+        for k in required_keys:
+            if k not in roundtrip:
+                raise AssertionError(
+                    f"baseline preset: key {k} computed but not written to jsonl. "
+                    f"disk keys: {sorted(roundtrip.keys())[:20]}"
+                )
+    finally:
+        try:
+            tmp_path.unlink()
+        except Exception:
+            pass
+    log(f"smoke test run1_baseline_dense preset ok (mean_fr=0.0, {len(required_keys)} keys roundtripped, pc_loss device={pc_loss.device})")
 
 
 def main() -> None:
@@ -2616,12 +2706,40 @@ def main() -> None:
     output_dir = Path(os.environ.get("NM_OUTPUT_DIR", str(DEFAULT_OUTPUT)))
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    cfg = Config()
+    preset = os.environ.get("NM_PRESET", "god")
+    if preset == "run1_baseline_dense":
+        cfg = Config(
+            kwta_enabled=False,
+            delta_erasure_enabled=True,
+            bcm_alpha_enabled=False,
+            multi_compartment_enabled=False,
+            imagination_enabled=False,
+            pc_diagnostic_enabled=False,
+        )
+        log(f"preset: run1_baseline_dense (dense k/v, delta erasure on, all other features off)")
+    elif preset == "run1_baseline_noerasure":
+        cfg = Config(
+            kwta_enabled=False,
+            delta_erasure_enabled=False,
+            bcm_alpha_enabled=False,
+            multi_compartment_enabled=False,
+            imagination_enabled=False,
+            pc_diagnostic_enabled=False,
+        )
+        log(f"preset: run1_baseline_noerasure (dense k/v, no features; slower recurrent path only)")
+    else:
+        cfg = Config()
+        log(f"preset: {preset} (default god_machine config)")
     log(f"device: {DEVICE}")
     log(f"output: {output_dir}")
     log(
         f"config: d_model={cfg.d_model} n_layers={cfg.n_layers} "
         f"seq_len={cfg.seq_len} batch_size={cfg.batch_size}"
+    )
+    log(
+        f"features: kwta={cfg.kwta_enabled} erasure={cfg.delta_erasure_enabled} "
+        f"bcm={cfg.bcm_alpha_enabled} multicomp={cfg.multi_compartment_enabled} "
+        f"imag={cfg.imagination_enabled} pc_diag={cfg.pc_diagnostic_enabled}"
     )
     log(f"layer pattern: {cfg.layer_pattern}")
 

@@ -2,7 +2,54 @@
 
 ## current phase: neural machine research (neuroloc)
 
-## status: god_run complete (2026-04-11). val_bpb 1.3950 (0.390x vs transformer) but retrieval 0% at all tested lengths. prosecutor F1-F17 fixed, re-run pending.
+## status: god_run_v2 complete (2026-04-12). F1 math fix did NOT recover retrieval. passkey 0/100 at 256/1024/4096 (CI 3.7%), copy 0/100 at 256/512/1024/2048. bundle-is-broken branch of decision rule. blueprint.md revised with corrected run ordering (dense keys mandatory). run 1 baseline (dense k/v) launching next.
+
+## god_run_v2: god_machine.py re-run with all 17 F + 14 G prosecutor fixes (2026-04-12)
+
+h200, 283m params, 4000 steps on fineweb-edu byte-level, 131m tokens, 59 min runtime.
+all 17 F1-F17 + 14 G1-G14 prosecutor findings fixed before launch. critical fix: F1
+replaced `torch.sigmoid(log_alpha_eff)` with `torch.exp(log_alpha_eff)` so recurrent path
+matches FLA's `exp(g)` convention for log-space gates (prior broken math gave ~28% wrong
+alpha_eff at default init). F2 gated `running_state_norm` EMA on `self.training`. F3/F5
+merged spike_stats and val_result into jsonl via loop (fixed the class-wide regression of
+the step-logger bug). F10 low-rank factorized imag_filter/pc_head (d→64→d). F11 uint8
+ByteDataset. 12 more findings covering smoke tests, resume correctness, load errors,
+dead code, misleading metrics. cpu oracle verifies alpha_eff math passes before launch.
+
+**training: final val_bpb 1.4453 (+0.050 vs v1's 1.3950), 0.404x vs transformer**
+
+**eval: retrieval 0% at every tested length**
+
+| task | result (100 trials) |
+|---|---|
+| passkey @256 | 0/100 (CI 3.7%) |
+| passkey @1024 | 0/100 (CI 3.7%) |
+| passkey @4096 | 0/100 (CI 3.7%) |
+| copy @256 | 0/100 (CI 3.7%) |
+| copy @512 | 0/100 (CI 3.7%) |
+| copy @1024 | 0/100 (CI 3.7%) |
+| copy @2048 | 0/100 (CI 3.7%) |
+
+perplexity at length: 1.9254 → 1.8941 → 1.5373 → 1.4776 → 1.4192 (monotonic, attention
+uses context). delta state structure probe: mean_structure_ratio 0.977, pairwise_cos
+0.003 (statistically noise, not trained memory).
+
+**verdict: F1 math fix was not the root cause. the 5-feature bundle intrinsically destroys
+verbatim memory.** external review (2026-04-12) identified 8 root causes. the two critical
+ones: (1) k-WTA 20% on keys destroys the address space (only ~13/64 key dims survive,
+Hopfield capacity drops from ~9 to ~2 patterns per head); (2) delta erasure with sparse
+keys leaves ghost content in the zeroed dimensions. 6 supporting causes: imagination probe
+creates a gradient bypass that competes with the delta memory, BCM EMA half-life 69 steps
+is too slow, multi-compartment SwiGLU halves effective width, PC head creates loss drag,
+FLA/recurrent numerical drift compounds during chunked eval, q/k normalization timing
+differs between paths. full detail in `memory/project_v2_diagnosis.md`.
+
+**revised path forward** (blueprint.md updated):
+- **run 1 baseline dense**: dense k/v, delta erasure on, no BCM, no multi-compartment,
+  no imagination, no PC head. HARD GATE: nonzero passkey at 256. launching next on h200.
+- run 2: add k-WTA 50% on values only (keys stay dense)
+- run 3: add BCM with momentum 0.95, init running_state_norm to 0.01
+- not added until validated: imagination, multi-compartment, PC head, any k-WTA on keys
 
 ## god_run: god_machine.py first run (2026-04-11)
 

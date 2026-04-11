@@ -1,8 +1,8 @@
 project: todorov
 current_phase: neural_machine
-current_step: god_run_complete
-status: god_machine_first_run_complete_retrieval_failed
-last_updated: "2026-04-11"
+current_step: run1_baseline_dense_launching
+status: god_run_v2_confirmed_bundle_broken_launching_run1_baseline
+last_updated: "2026-04-12"
 tests_passing: 76
 total_tests: 76
 critical_fix: "god_machine.py step logger hardcoded dict dropped 40+ probe metrics, fixed class-wide via merge loop and smoke-test disk round-trip guard; bcm train/eval path divergence fixed by aligning recurrent path to running_state_norm; running_state_norm now training-only mutation; 17 prosecutor findings F1-F17 all fixed"
@@ -19,7 +19,45 @@ run_history:
   run_010: "KDA+MLA scaling probe (NOT todorov baseline -- Mamba3 absent), H200, 267M, BPB 2.375, ratio 0.663x, gates pass but architecture incomplete"
   run_011: "full architecture (KDA+Mamba3+MLA, 6:1:1), H200, 280M, BPB 2.592, ratio 0.722x, 3/4 gates pass (FR measurement bug from gradient checkpointing)"
   god_run: "god_machine.py first run, all 5 blueprint features + imagination probe + PC diagnostic, H200, 283M, fineweb-edu 131M tokens, val_bpb 1.3950 (0.390x vs transformer baseline), RETRIEVAL FAILED (passkey 0.0% at 256/1024/4096, selective_copy 0.0% at 256/512/1024/2048), delta_state_structure_probe mean_structure_ratio=0.981 with pairwise_cos -0.003 (state is noise not content-addressable), telemetry bug lost 40+ probe keys fixed post-hoc"
-latest_run: god_run
+  god_run_v2: "god_machine.py re-run with 17 F + 14 G prosecutor fixes including critical F1 torch.exp math correction, H200, 283M, fineweb-edu 131M tokens, 59 min, val_bpb 1.4453 (+0.050 vs v1, 0.404x baseline), RETRIEVAL STILL 0 (passkey 0/100 CI 3.7% at 256/1024/4096, copy 0/100 at 256/512/1024/2048), delta_state_structure_probe mean_structure_ratio 0.977 pairwise_cos 0.003 (noise), F1 math fix NOT the root cause. bundle-is-broken confirmed. external review identified 8 root causes: k-WTA on keys destroys address space (critical), erasure with sparse keys leaves ghost content (critical), imagination gradient bypass, slow BCM EMA, multi-compartment halves FFN width, PC head loss drag, FLA/recurrent numerical drift, q/k normalization timing mismatch"
+latest_run: god_run_v2
+god_run_v2_results:
+  phase: neural_machine
+  description: "god_machine.py re-run with all 17 F + 14 G prosecutor fixes; F1 math corrected (torch.exp instead of torch.sigmoid of logsigmoid); all probe metrics now in jsonl"
+  best_val_bpb: 1.4453
+  baseline_best_bpb: 3.580
+  bpb_ratio: 0.404
+  param_count: 282953496
+  firing_rate: 0.200
+  passkey_256: 0.0
+  passkey_1024: 0.0
+  passkey_4096: 0.0
+  passkey_wilson_95_upper: 0.037
+  selective_copy_256: 0.0
+  selective_copy_512: 0.0
+  selective_copy_1024: 0.0
+  selective_copy_2048: 0.0
+  perplexity_256: 1.9254
+  perplexity_512: 1.8941
+  perplexity_1024: 1.5373
+  perplexity_2048: 1.4776
+  perplexity_4096: 1.4192
+  delta_state_structure_ratio: 0.977
+  delta_state_pairwise_cos: 0.003
+  retrieval_verdict: "FAILED. F1 math fix did not recover passkey. bundle-is-broken confirmed. 8 root causes identified in external review."
+  total_time_sec: 3546
+  tokens: 131072000
+  compute: h200
+  seed: 42
+  root_causes:
+    critical_1: "k-WTA 20% on keys destroys address space (13/64 dims survive, Hopfield capacity ~2 patterns/head instead of ~9)"
+    critical_2: "delta erasure with sparse keys leaves ghost content in zeroed dimensions, accumulates across steps"
+    high_3: "imagination probe trainable MLP creates gradient bypass competing with delta memory"
+    high_4: "BCM alpha EMA half-life 69 steps, state saturates before BCM reacts"
+    high_5: "multi-compartment SwiGLU K=4 halves effective FFN width (4x 256-dim independent nets)"
+    medium_6: "PC diagnostic head adds constant loss drag trying to reconstruct input from noise-like delta output"
+    medium_7: "FLA/recurrent numerical drift compounds during chunked eval (rel 1.3e-3 per chunk * 8 chunks)"
+    medium_8: "q/k normalization timing differs between FLA kernel (per-timestep) and recurrent path (pre-loop)"
 latest_run_results:
   phase: neural_machine
   description: "god_machine.py: all 5 blueprint features active (k-WTA 20%, delta erasure, BCM alpha gamma=0.3, multi-compartment K=4, compressed attention via SDPA), always-on imagination probe, per-layer PC diagnostic. 4000 steps on fineweb-edu byte-level."
@@ -51,4 +89,4 @@ latest_run_results:
   throughput_tps: 45500
   compute: h200
   seed: 42
-next_action: "re-run god_machine.py after fixing 17 prosecutor findings. primary goal: collect full probe telemetry and verify whether the BCM train/eval path divergence (F1) was responsible for retrieval failure, or whether the 5-feature bundle itself destroys verbatim memory. if retrieval still 0% with F1 fix: follow blueprint sequential isolation — run 1 is ternary-spike baseline 350m as comparison target."
+next_action: "launch run 1 baseline dense on h200 (198.145.108.36:10090). preset: run1_baseline_dense (dense k/v, delta erasure on, no BCM/multi-compartment/imagination/PC head). hard gate: nonzero passkey at 256 tokens. if this run produces 0%, the delta-rule architecture itself is suspect and we need to rethink the base mechanism before adding tiers on top. if passkey >0, run 2 adds k-WTA 50% on values only (keys stay dense), run 3 adds BCM with faster EMA. in parallel: start phase 6a aesthetic logging from next_gen.md as a standalone low-risk deliverable."
