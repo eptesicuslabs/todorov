@@ -1269,11 +1269,13 @@ def train_model(
     name: str,
     output_dir: Path,
     dataset_source: str = "unknown",
+    stop_after_steps: int | None = None,
 ) -> dict:
     log(f"=== training {name} ===")
     torch.manual_seed(cfg.seed)
     np.random.seed(cfg.seed)
     py_random.seed(cfg.seed)
+    effective_max = cfg.max_steps if stop_after_steps is None else min(cfg.max_steps, stop_after_steps)
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1481,14 +1483,14 @@ def train_model(
     model.train(True)
 
     try:
-        while step < cfg.max_steps and not shutdown_flag["requested"]:
+        while step < effective_max and not shutdown_flag["requested"]:
             if train_gen_state_at_epoch_start is None or resume_skip_batches == 0:
                 train_gen_state_at_epoch_start = train_generator.get_state()
             for batch in train_dl:
                 if resume_skip_batches > 0:
                     resume_skip_batches -= 1
                     continue
-                if step >= cfg.max_steps or shutdown_flag["requested"]:
+                if step >= effective_max or shutdown_flag["requested"]:
                     break
 
                 batch = batch.to(DEVICE)
@@ -1517,7 +1519,7 @@ def train_model(
                 loss_scaled.backward()
 
                 grad_norm_val: float = float("nan")
-                do_step = ((step + 1) % cfg.grad_accum_steps == 0) or (step == cfg.max_steps - 1)
+                do_step = ((step + 1) % cfg.grad_accum_steps == 0) or (step == effective_max - 1)
                 if do_step:
                     gn = torch.nn.utils.clip_grad_norm_(model.parameters(), cfg.grad_clip)
                     grad_norm_val = gn.item() if isinstance(gn, torch.Tensor) else float(gn)
@@ -1648,7 +1650,7 @@ def train_model(
                         except Exception:
                             pass
 
-            if step >= cfg.max_steps or shutdown_flag["requested"]:
+            if step >= effective_max or shutdown_flag["requested"]:
                 break
             epoch_idx += 1
             step_in_epoch = 0
@@ -2394,19 +2396,18 @@ def _test_resume_correctness() -> None:
             dataset_source="synthetic",
         )
 
-        test_cfg_step2 = Config(**{**asdict(test_cfg), "max_steps": 2})
         torch.manual_seed(test_cfg.seed)
         _ = train_model(
-            test_cfg_step2,
+            test_cfg,
             train_data,
             val_data,
             name="resume_b",
             output_dir=tmp_dir / "b",
             dataset_source="synthetic",
+            stop_after_steps=2,
         )
-        test_cfg_step4 = Config(**{**asdict(test_cfg), "max_steps": 4})
         r2 = train_model(
-            test_cfg_step4,
+            test_cfg,
             train_data,
             val_data,
             name="resume_b",
