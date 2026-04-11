@@ -363,7 +363,6 @@ class DeltaRuleMemory(nn.Module):
         q: Tensor,
         k: Tensor,
         v: Tensor,
-        alpha_base: Tensor,
         beta: Tensor,
         state: Tensor | None,
     ) -> tuple[Tensor, Tensor]:
@@ -374,14 +373,10 @@ class DeltaRuleMemory(nn.Module):
             state = state.float()
 
         log_alpha_eff = self._effective_log_alpha(state.device)
-        alpha_eff = torch.sigmoid(log_alpha_eff).view(1, H, 1, 1)
+        alpha_eff = torch.exp(log_alpha_eff).view(1, H, 1, 1)
 
-        if self.delta_erasure:
-            q_norm = F.normalize(q.float(), p=2, dim=-1)
-            k_norm = F.normalize(k.float(), p=2, dim=-1)
-        else:
-            q_norm = q.float()
-            k_norm = k.float()
+        q_norm = F.normalize(q.float(), p=2, dim=-1)
+        k_norm = F.normalize(k.float(), p=2, dim=-1)
         v_fp = v.float()
 
         outputs = []
@@ -416,7 +411,6 @@ class DeltaRuleMemory(nn.Module):
         q: Tensor,
         k: Tensor,
         v: Tensor,
-        alpha_base: Tensor,
         beta: Tensor,
         state: Tensor | None,
     ) -> tuple[Tensor, Tensor]:
@@ -482,7 +476,10 @@ class DeltaRuleMemory(nn.Module):
         alpha_base = torch.sigmoid(self.alpha_log)
         beta = torch.sigmoid(self.beta_proj(x))
 
+        with torch.no_grad():
+            alpha_eff_scalar = torch.exp(self._effective_log_alpha(x.device)).mean()
         aux["alpha_base_mean"] = alpha_base.mean().detach()
+        aux["alpha_eff_mean"] = alpha_eff_scalar.detach()
         aux["beta_mean"] = beta.mean().detach()
 
         can_use_fla = (
@@ -491,21 +488,18 @@ class DeltaRuleMemory(nn.Module):
             and q.is_cuda
             and state is None
             and T > 1
+            and self.delta_erasure
         )
-        force_recurrent = self.delta_erasure or self.bcm_enabled
 
         if can_use_fla:
-            out_thd, new_state = self._fla_delta_rule_path(q, k, v, alpha_base, beta, state)
+            out_thd, new_state = self._fla_delta_rule_path(q, k, v, beta, state)
             aux["delta_path"] = torch.tensor(0.0, device=x.device)
-            aux["delta_erasure_applied"] = torch.tensor(
-                1.0 if self.delta_erasure else 0.0, device=x.device
-            )
         else:
-            out_thd, new_state = self._recurrent_with_erasure(q, k, v, alpha_base, beta, state)
+            out_thd, new_state = self._recurrent_with_erasure(q, k, v, beta, state)
             aux["delta_path"] = torch.tensor(1.0, device=x.device)
-            aux["delta_erasure_applied"] = torch.tensor(
-                1.0 if self.delta_erasure else 0.0, device=x.device
-            )
+        aux["delta_erasure_flag"] = torch.tensor(
+            1.0 if self.delta_erasure else 0.0, device=x.device
+        )
 
         out_flat = out_thd.reshape(B, T, self.inner)
         out = self.o(out_flat)
@@ -519,6 +513,8 @@ class DeltaRuleMemory(nn.Module):
             aux["pc_error_l2"] = pc_error
 
         if self.imag_filter_down is not None:
+            with torch.no_grad():
+                pre_imag_norm = out.norm(dim=-1).mean().clamp(min=1e-9)
             imag_value = self.imag_filter_up(self.imag_filter_down(out))
             gate_logit = self.imag_gate_proj(x)
             gate_val = torch.sigmoid(gate_logit)
@@ -526,11 +522,10 @@ class DeltaRuleMemory(nn.Module):
             out = out + imag_contribution
 
             with torch.no_grad():
-                main_norm = out.norm(dim=-1).mean().clamp(min=1e-9)
                 imag_norm = imag_contribution.norm(dim=-1).mean()
                 aux["imag_gate_mean"] = gate_val.mean().detach()
                 aux["imag_contribution_l2"] = imag_norm.detach()
-                aux["imag_ratio"] = (imag_norm / main_norm).detach()
+                aux["imag_ratio"] = (imag_norm / pre_imag_norm).detach()
 
         return out, new_state, aux
 
@@ -771,10 +766,13 @@ class ByteDataset(Dataset):
     def __init__(self, data: Any, seq_len: int) -> None:
         if isinstance(data, torch.Tensor):
             self.data = data.to(torch.uint8) if data.dtype != torch.uint8 else data
+            self._buf = None
         elif isinstance(data, np.ndarray):
-            self.data = torch.from_numpy(np.asarray(data, dtype=np.uint8))
+            self.data = torch.from_numpy(np.ascontiguousarray(data, dtype=np.uint8))
+            self._buf = None
         else:
-            self.data = torch.frombuffer(bytearray(data), dtype=torch.uint8)
+            self._buf = bytearray(data)
+            self.data = torch.frombuffer(self._buf, dtype=torch.uint8)
         self.seq_len = seq_len
         self._n = max(0, (len(self.data) - 1) // self.seq_len)
 
@@ -1368,10 +1366,6 @@ def train_model(
         "gpu_mem_max_alloc_gb": [],
         "step_duration_sec": [],
         "val_steps": [],
-        "val_bpb": [],
-        "val_mean_loss": [],
-        "val_tokens": [],
-        "val_precision": [],
     }
 
     step = 0
@@ -1406,8 +1400,18 @@ def train_model(
             best_val_bpb = resumed["best_val_bpb"]
             epoch_idx = resumed.get("epoch_idx", 0)
             step_in_epoch = resumed.get("step_in_epoch", 0)
-            for k, v in resumed.get("history", {}).items():
-                history[k] = v
+            resumed_history = resumed.get("history", {})
+            expected_len = len(resumed_history.get("steps", []))
+            expected_val_len = len(resumed_history.get("val_steps", []))
+            for k, v in resumed_history.items():
+                if not isinstance(v, list):
+                    history[k] = v
+                    continue
+                if k == "val_steps" or k.startswith("val_"):
+                    if len(v) == expected_val_len:
+                        history[k] = v
+                elif len(v) == expected_len:
+                    history[k] = v
             saved_gen_state = resumed.get("train_gen_state")
             if saved_gen_state is not None:
                 train_generator.set_state(saved_gen_state)
@@ -1587,10 +1591,9 @@ def train_model(
                 if step % cfg.val_interval == 0:
                     val_result = run_validation(model, val_dl, use_amp=use_amp, amp_dtype=amp_dtype)
                     history["val_steps"].append(step)
-                    history["val_bpb"].append(val_result["bpb"])
-                    history["val_mean_loss"].append(val_result["mean_loss"])
-                    history["val_tokens"].append(val_result["tokens"])
-                    history["val_precision"].append(val_result.get("precision", "unknown"))
+                    for k_v, v_v in val_result.items():
+                        hk = f"val_{k_v}" if not k_v.startswith("val_") else k_v
+                        history.setdefault(hk, []).append(v_v)
                     val_record: dict[str, Any] = {"event": "validation", "step": step}
                     for k_v, v_v in val_result.items():
                         val_record[f"val_{k_v}" if not k_v.startswith("val_") else k_v] = v_v
@@ -1659,11 +1662,14 @@ def train_model(
                 "tokens": 0,
                 "precision": "skipped_on_shutdown",
             }
-            metrics_logger.log({
+            skip_record: dict[str, Any] = {
                 "event": "final_validation_skipped",
                 "step": step,
                 "reason": "shutdown_requested",
-            })
+            }
+            for k_v, v_v in final_val.items():
+                skip_record[f"val_{k_v}" if not k_v.startswith("val_") else k_v] = v_v
+            metrics_logger.log(skip_record)
         elif already_valed_here:
             last_bpb = history["val_bpb"][-1]
             last_mean_loss = history["val_mean_loss"][-1]
@@ -1684,10 +1690,9 @@ def train_model(
         else:
             final_val = run_validation(model, val_dl, use_amp=use_amp, amp_dtype=amp_dtype)
             history["val_steps"].append(step)
-            history["val_bpb"].append(final_val["bpb"])
-            history["val_mean_loss"].append(final_val["mean_loss"])
-            history["val_tokens"].append(final_val["tokens"])
-            history["val_precision"].append(final_val.get("precision", "unknown"))
+            for k_v, v_v in final_val.items():
+                hk = f"val_{k_v}" if not k_v.startswith("val_") else k_v
+                history.setdefault(hk, []).append(v_v)
             final_record: dict[str, Any] = {"event": "final_validation", "step": step}
             for k_v, v_v in final_val.items():
                 final_record[f"val_{k_v}" if not k_v.startswith("val_") else k_v] = v_v
@@ -2151,7 +2156,6 @@ def run_eval_suite(
 def _run_fla_parity_variant(
     label: str,
     *,
-    delta_erasure: bool,
     bcm_alpha: bool,
     seed: int,
     tol_rel: float = 1e-2,
@@ -2168,7 +2172,7 @@ def _run_fla_parity_variant(
         mlp_ratio=2.0,
         layer_pattern=("DELTA",),
         kwta_enabled=False,
-        delta_erasure_enabled=delta_erasure,
+        delta_erasure_enabled=True,
         bcm_alpha_enabled=bcm_alpha,
         imagination_enabled=False,
         pc_diagnostic_enabled=False,
@@ -2221,16 +2225,68 @@ def _test_fla_vs_recurrent_parity() -> None:
     if not FLA_AVAILABLE or not torch.cuda.is_available():
         log("fla-vs-recurrent parity test skipped (fla not available or no cuda)")
         return
-    log("fla-vs-recurrent parity test (three variants)")
-    _run_fla_parity_variant(
-        "fla vs recurrent, erasure, bcm=off", delta_erasure=True, bcm_alpha=False, seed=54321
+    log("fla-vs-recurrent parity test (two variants, erasure always on when fla is active)")
+    _run_fla_parity_variant("fla vs recurrent, bcm=off", bcm_alpha=False, seed=54321)
+    _run_fla_parity_variant("fla vs recurrent, bcm=on", bcm_alpha=True, seed=54322)
+
+
+def _test_alpha_eff_math() -> None:
+    log("alpha_eff math sanity test (cpu, no fla required)")
+    torch.manual_seed(77)
+    test_cfg = Config(
+        d_model=64,
+        n_layers=1,
+        delta_num_heads=2,
+        delta_head_dim=32,
+        attn_d_c=16,
+        attn_d_R=8,
+        attn_num_heads=2,
+        mlp_ratio=2.0,
+        layer_pattern=("DELTA",),
+        kwta_enabled=False,
+        delta_erasure_enabled=True,
+        bcm_alpha_enabled=True,
+        imagination_enabled=False,
+        pc_diagnostic_enabled=False,
+        multi_compartment_enabled=False,
+        use_fla_if_available=False,
+        batch_size=2,
+        seq_len=8,
+        max_steps=1,
+        warmup_steps=1,
+        val_interval=100,
+        grad_checkpointing=False,
+        amp=False,
     )
-    _run_fla_parity_variant(
-        "fla vs recurrent, erasure, bcm=on", delta_erasure=True, bcm_alpha=True, seed=54322
+    layer = DeltaRuleMemory(test_cfg)
+    layer.train(False)
+    with torch.no_grad():
+        layer.running_state_norm.fill_(2.5)
+
+    log_alpha = layer._effective_log_alpha(torch.device("cpu"))
+    from_exp = torch.exp(log_alpha)
+    from_sigmoid = torch.sigmoid(log_alpha)
+    pre_sigmoid = layer.alpha_log.squeeze(-1).float() - layer.gamma_bcm * torch.log(
+        layer.running_state_norm.clamp(min=1e-6)
     )
-    _run_fla_parity_variant(
-        "fla vs recurrent, no erasure, bcm=on", delta_erasure=False, bcm_alpha=True, seed=54323
-    )
+    expected = torch.sigmoid(pre_sigmoid)
+
+    diff_exp = (from_exp - expected).abs().max().item()
+    diff_sig = (from_sigmoid - expected).abs().max().item()
+    log(f"  |exp(logsigmoid) - sigmoid(pre)| = {diff_exp:.3e} (should be ~0)")
+    log(f"  |sigmoid(logsigmoid) - sigmoid(pre)| = {diff_sig:.3e} (should be non-zero)")
+    if diff_exp >= 1e-5:
+        raise AssertionError(
+            f"alpha_eff math regression: exp(logsigmoid) should equal sigmoid(pre), "
+            f"got diff {diff_exp:.3e}. this is the F1 bug - recurrent path should use exp() "
+            f"not sigmoid() on the log-sigmoid output of _effective_log_alpha."
+        )
+    if diff_sig < 1e-5:
+        raise AssertionError(
+            f"alpha_eff math sanity: sigmoid(logsigmoid) should NOT equal sigmoid(pre) "
+            f"(they differ by ~30 percent at typical init). got diff {diff_sig:.3e}. "
+            f"test itself is broken."
+        )
 
 
 def _test_delta_equivalence() -> None:
@@ -2288,7 +2344,6 @@ def _test_delta_equivalence() -> None:
             f"expected rel < 1e-3"
         )
     log(f"  full-T vs chunked: max_abs={max_abs:.2e}, rel={rel:.2e} ok")
-    log(f"  parallel vs recurrent: max_abs={max_abs:.2e}, rel={rel:.2e} ok")
 
 
 def _test_resume_correctness() -> None:
@@ -2366,9 +2421,31 @@ def _test_resume_correctness() -> None:
                 f"resume correctness test: bpb not finite "
                 f"(scratch={bpb_from_scratch}, resume={bpb_from_resume})"
             )
+        if abs(bpb_from_scratch - bpb_from_resume) > 1e-4:
+            raise AssertionError(
+                f"resume correctness test: bpb mismatch. scratch={bpb_from_scratch:.6f}, "
+                f"resume={bpb_from_resume:.6f}, diff={abs(bpb_from_scratch - bpb_from_resume):.6f}. "
+                f"expected scratch == resume within 1e-4. this indicates resume does not replay "
+                f"the training trajectory deterministically (rng, data loader, or optimizer "
+                f"state drift)."
+            )
+        scratch_best = torch.load(tmp_dir / "a" / "resume_a_best.pt", weights_only=True)
+        resume_best = torch.load(tmp_dir / "b" / "resume_b_best.pt", weights_only=True)
+        max_param_diff = 0.0
+        for k in scratch_best:
+            if k not in resume_best:
+                raise AssertionError(f"resume correctness: key {k} missing from resume checkpoint")
+            d = (scratch_best[k].float() - resume_best[k].float()).abs().max().item()
+            if d > max_param_diff:
+                max_param_diff = d
+        if max_param_diff > 1e-4:
+            raise AssertionError(
+                f"resume correctness: max parameter diff {max_param_diff:.6e} > 1e-4. "
+                f"resume does not produce bit-identical weights to from-scratch."
+            )
         log(
             f"  resume correctness: scratch_bpb={bpb_from_scratch:.4f} "
-            f"resume_bpb={bpb_from_resume:.4f}"
+            f"resume_bpb={bpb_from_resume:.4f} max_param_diff={max_param_diff:.2e}"
         )
     finally:
         try:
@@ -2522,6 +2599,7 @@ def smoke_test() -> None:
     else:
         log("smoke test delta_state_structure_probe ok (no delta state populated in tiny config)")
 
+    _test_alpha_eff_math()
     _test_delta_equivalence()
     _test_fla_vs_recurrent_parity()
     _test_resume_correctness()
@@ -2579,36 +2657,37 @@ def main() -> None:
             log(f"eval suite skipped: {best_path} does not exist (no best checkpoint written)")
         else:
             log("loading best checkpoint for eval suite")
-            try:
-                eval_model = GodMachine(cfg).to(DEVICE)
-                best_state = torch.load(best_path, map_location=DEVICE, weights_only=True)
-                incompat = eval_model.load_state_dict(best_state, strict=False)
-                missing = list(incompat.missing_keys) if hasattr(incompat, "missing_keys") else []
-                unexpected = list(incompat.unexpected_keys) if hasattr(incompat, "unexpected_keys") else []
-                if missing or unexpected:
-                    log(
-                        f"checkpoint load mismatch: "
-                        f"missing={missing[:10]}{'...' if len(missing) > 10 else ''} "
-                        f"unexpected={unexpected[:10]}{'...' if len(unexpected) > 10 else ''}"
+            eval_model = GodMachine(cfg).to(DEVICE)
+            best_state = torch.load(best_path, map_location=DEVICE, weights_only=True)
+            incompat = eval_model.load_state_dict(best_state, strict=False)
+            missing = list(incompat.missing_keys) if hasattr(incompat, "missing_keys") else []
+            unexpected = list(incompat.unexpected_keys) if hasattr(incompat, "unexpected_keys") else []
+            if missing or unexpected:
+                log(
+                    f"checkpoint load mismatch: "
+                    f"missing={missing[:10]}{'...' if len(missing) > 10 else ''} "
+                    f"unexpected={unexpected[:10]}{'...' if len(unexpected) > 10 else ''}"
+                )
+                if missing:
+                    raise RuntimeError(
+                        f"checkpoint load incomplete: {len(missing)} missing keys "
+                        f"(first few: {missing[:5]}). refusing to run eval on uninitialized buffers/weights."
                     )
-                    if missing:
-                        raise RuntimeError(
-                            f"checkpoint load incomplete: {len(missing)} missing keys "
-                            f"(first few: {missing[:5]}). refusing to run eval on uninitialized buffers/weights."
-                        )
-                log(f"loaded {best_path}")
+            log(f"loaded {best_path}")
+            try:
                 eval_results = run_eval_suite(eval_model, val_data, output_dir, run_name)
                 log(
                     f"eval suite: passkey@256={eval_results['passkey']['256']['accuracy']:.1%} "
                     f"copy@256={eval_results['selective_copy']['256']['accuracy']:.1%} "
                     f"imag_structure={eval_results['imagination'].get('mean_structure_ratio', 0):.3f}"
                 )
+            except Exception as e:
+                log(f"eval suite runtime failure: {type(e).__name__}: {e}")
+            finally:
                 del eval_model
                 gc.collect()
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
-            except Exception as e:
-                log(f"eval suite failed: {type(e).__name__}: {e}")
 
     log("done")
 
