@@ -1,19 +1,20 @@
 import sys
 from pathlib import Path
 from time import perf_counter
+from typing import Any, cast
 
 import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-from brian2 import Network, NeuronGroup, SpikeMonitor, StateMonitor, defaultclock, ms, network_operation, prefs, start_scope, volt
+from brian2 import Network, NetworkOperation, NeuronGroup, SpikeMonitor, StateMonitor, defaultclock, ms, prefs, start_scope, volt
 
 SIM_ROOT = Path(__file__).resolve().parents[1]
 if str(SIM_ROOT) not in sys.path:
-    sys.path.append(str(SIM_ROOT))
+    sys.path.insert(0, str(SIM_ROOT))
 
-from shared import apply_plot_style, build_rng, build_run_record, child_rng, mean_confidence_interval, paired_difference_stats, utc_now_iso, write_json
+from shared import apply_plot_style, build_rng, build_run_record, child_rng, env_float, env_int, env_list, mean_confidence_interval, output_dir_for, paired_difference_stats, require_non_negative, require_non_negative_list, require_positive, require_positive_list, require_unit_interval, require_unit_interval_list, utc_now_iso, write_json
 
 prefs.codegen.target = "numpy"
 defaultclock.dt = 0.1 * ms
@@ -126,6 +127,13 @@ def summarize_metric(records, metric_name, x_key, x_values, condition, **filters
         summary.update({x_key: float(x_value), "metric": metric_name, "condition": condition})
         summaries.append(summary)
     return summaries
+
+
+def resolve_fraction_key(calibration: dict[float, dict[str, float]], target_fraction: float) -> float:
+    for key in calibration:
+        if np.isclose(float(key), float(target_fraction)):
+            return float(key)
+    raise KeyError(f"no calibrated fraction found for {target_fraction}")
 
 
 def run_selection_sweep(n_neurons, target_fractions, noise_levels, trials_per_condition, support_boost, leader_bonus, calibration_noise_level, calibration_trials, seed):
@@ -268,7 +276,7 @@ def run_brian2_anchor(activations, support_mask, leader_idx, inhibition_strength
     g_I : 1
     '''
 
-    excit = NeuronGroup(n_neurons, eqs_excit, threshold='v > 1*volt', reset='v = 0*volt', refractory=2*ms, method='euler')
+    excit = NeuronGroup(n_neurons, eqs_excit, threshold='v > 1*volt', reset='v = 0*volt', refractory=cast(Any, '2*ms'), method='euler')
     excit.v = 0 * volt
     excit.I_ext = input_currents * volt
     excit.g_I = inhibition_strength
@@ -282,11 +290,12 @@ def run_brian2_anchor(activations, support_mask, leader_idx, inhibition_strength
     inhib = NeuronGroup(1, eqs_inhib, method='euler')
     inhib.v_I = 0 * volt
 
-    @network_operation(dt=defaultclock.dt)
-    def update_inhibition():
+    def update_inhibition_step():
         mean_v = np.mean(excit.v[:] / volt)
         inhib.I_total = mean_v * volt
         excit.v_inh = inhib.v_I[0]
+
+    update_inhibition = NetworkOperation(update_inhibition_step, dt=defaultclock.dt)
 
     support_indices = np.flatnonzero(support_mask)
     top_support = support_indices[np.argsort(activations[support_indices])[::-1][: min(3, len(support_indices))]]
@@ -299,11 +308,13 @@ def run_brian2_anchor(activations, support_mask, leader_idx, inhibition_strength
     net = Network(excit, inhib, spike_monitor, state_monitor, update_inhibition)
     net.run(sim_duration_ms * ms)
 
-    late_window_start = sim_duration_ms - 50
+    late_window_ms = min(float(sim_duration_ms), 50.0)
+    late_window_start = max(0.0, float(sim_duration_ms) - late_window_ms)
+    late_window_duration_sec = max(late_window_ms / 1000.0, 1e-6)
     late_rates = np.zeros(n_neurons, dtype=float)
     for idx in range(n_neurons):
         spike_times = spike_monitor.spike_trains()[idx] / ms
-        late_rates[idx] = float(np.sum(spike_times > late_window_start) / 0.05)
+        late_rates[idx] = float(np.sum(spike_times > late_window_start) / late_window_duration_sec)
 
     traces = state_monitor.v / volt
     return {
@@ -322,30 +333,58 @@ def main():
     started_perf = perf_counter()
 
     simulation_name = "wta_dynamics"
-    output_dir = Path(__file__).parent
+    output_dir = output_dir_for(Path(__file__))
     figure_path = output_dir / "wta_dynamics.png"
     anchor_path = output_dir / "wta_dynamics_anchor.png"
     metrics_path = output_dir / "wta_dynamics_metrics.json"
 
     parameters = {
-        "seed_numpy": 42,
-        "n_neurons": 100,
-        "support_boost": 1.0,
-        "leader_bonus": 0.35,
-        "target_fractions": [0.05, 0.1, 0.2, 0.41],
-        "noise_levels": [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
-        "selection_trials": 40,
-        "calibration_noise_level": 0.4,
-        "calibration_trials": 256,
-        "scaling_network_sizes": [50, 100, 200, 400],
-        "scaling_target_fractions": [0.1, 0.41],
-        "scaling_noise_level": 0.6,
-        "scaling_trials": 20,
-        "anchor_target_fraction": 0.1,
-        "anchor_noise_level": 0.6,
-        "anchor_inhibition_strength": 5.0,
-        "anchor_duration_ms": 150,
+        "seed_numpy": env_int("WTA_SEED", 42),
+        "n_neurons": env_int("WTA_N_NEURONS", 100),
+        "support_boost": env_float("WTA_SUPPORT_BOOST", 1.0),
+        "leader_bonus": env_float("WTA_LEADER_BONUS", 0.35),
+        "target_fractions": env_list("WTA_TARGET_FRACTIONS", float, [0.05, 0.1, 0.2, 0.41]),
+        "noise_levels": env_list("WTA_NOISE_LEVELS", float, [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]),
+        "focus_fraction": env_float("WTA_FOCUS_FRACTION", 0.1),
+        "recovery_noise_level": env_float("WTA_RECOVERY_NOISE_LEVEL", 0.2),
+        "focus_noise_level": env_float("WTA_FOCUS_NOISE_LEVEL", 0.6),
+        "selection_trials": env_int("WTA_SELECTION_TRIALS", 40),
+        "calibration_noise_level": env_float("WTA_CALIBRATION_NOISE_LEVEL", 0.4),
+        "calibration_trials": env_int("WTA_CALIBRATION_TRIALS", 256),
+        "scaling_network_sizes": env_list("WTA_SCALING_NETWORK_SIZES", int, [50, 100, 200, 400]),
+        "scaling_target_fractions": env_list("WTA_SCALING_TARGET_FRACTIONS", float, [0.1, 0.41]),
+        "scaling_noise_level": env_float("WTA_SCALING_NOISE_LEVEL", 0.6),
+        "scaling_trials": env_int("WTA_SCALING_TRIALS", 20),
+        "anchor_target_fraction": env_float("WTA_ANCHOR_TARGET_FRACTION", 0.1),
+        "anchor_noise_level": env_float("WTA_ANCHOR_NOISE_LEVEL", 0.6),
+        "anchor_inhibition_strength": env_float("WTA_ANCHOR_INHIBITION_STRENGTH", 5.0),
+        "anchor_duration_ms": env_float("WTA_ANCHOR_DURATION_MS", 150.0),
     }
+
+    for required_fraction in (parameters["focus_fraction"], parameters["anchor_target_fraction"]):
+        if not any(np.isclose(required_fraction, value) for value in parameters["target_fractions"]):
+            parameters["target_fractions"] = sorted([*parameters["target_fractions"], float(required_fraction)])
+    for required_noise in (parameters["recovery_noise_level"], parameters["focus_noise_level"], parameters["anchor_noise_level"]):
+        if not any(np.isclose(required_noise, value) for value in parameters["noise_levels"]):
+            parameters["noise_levels"] = sorted([*parameters["noise_levels"], float(required_noise)])
+
+    require_positive("WTA_N_NEURONS", parameters["n_neurons"])
+    parameters["target_fractions"] = require_unit_interval_list("WTA_TARGET_FRACTIONS", parameters["target_fractions"])
+    parameters["noise_levels"] = require_non_negative_list("WTA_NOISE_LEVELS", parameters["noise_levels"])
+    require_unit_interval("WTA_FOCUS_FRACTION", parameters["focus_fraction"])
+    require_non_negative("WTA_RECOVERY_NOISE_LEVEL", parameters["recovery_noise_level"])
+    require_non_negative("WTA_FOCUS_NOISE_LEVEL", parameters["focus_noise_level"])
+    require_positive("WTA_SELECTION_TRIALS", parameters["selection_trials"])
+    require_non_negative("WTA_CALIBRATION_NOISE_LEVEL", parameters["calibration_noise_level"])
+    require_positive("WTA_CALIBRATION_TRIALS", parameters["calibration_trials"])
+    parameters["scaling_network_sizes"] = require_positive_list("WTA_SCALING_NETWORK_SIZES", parameters["scaling_network_sizes"])
+    parameters["scaling_target_fractions"] = require_unit_interval_list("WTA_SCALING_TARGET_FRACTIONS", parameters["scaling_target_fractions"])
+    require_non_negative("WTA_SCALING_NOISE_LEVEL", parameters["scaling_noise_level"])
+    require_positive("WTA_SCALING_TRIALS", parameters["scaling_trials"])
+    require_unit_interval("WTA_ANCHOR_TARGET_FRACTION", parameters["anchor_target_fraction"])
+    require_non_negative("WTA_ANCHOR_NOISE_LEVEL", parameters["anchor_noise_level"])
+    require_positive("WTA_ANCHOR_INHIBITION_STRENGTH", parameters["anchor_inhibition_strength"])
+    require_positive("WTA_ANCHOR_DURATION_MS", parameters["anchor_duration_ms"])
 
     target_fractions = np.array(parameters["target_fractions"], dtype=float)
     noise_levels = np.array(parameters["noise_levels"], dtype=float)
@@ -376,17 +415,19 @@ def main():
         seed=parameters["seed_numpy"] + 1,
     )
 
-    focus_fraction = 0.1
-    recovery_noise = 0.2
-    focus_noise = 0.6
+    focus_fraction = resolve_fraction_key(selection_calibration, float(parameters["focus_fraction"]))
+    recovery_noise = float(parameters["recovery_noise_level"])
+    focus_noise = float(parameters["focus_noise_level"])
     focus_alpha = selection_calibration[focus_fraction]["alpha"]
+    anchor_fraction = resolve_fraction_key(selection_calibration, float(parameters["anchor_target_fraction"]))
+    anchor_alpha = selection_calibration[anchor_fraction]["alpha"]
     example = build_example(
         n_neurons=parameters["n_neurons"],
-        target_fraction=focus_fraction,
+        target_fraction=anchor_fraction,
         support_boost=parameters["support_boost"],
         leader_bonus=parameters["leader_bonus"],
-        noise_sigma=focus_noise,
-        alpha=focus_alpha,
+        noise_sigma=float(parameters["anchor_noise_level"]),
+        alpha=anchor_alpha,
         seed=parameters["seed_numpy"] + 2,
     )
     brian2_anchor = run_brian2_anchor(
@@ -525,7 +566,7 @@ def main():
     )
     axes[0, 2].set_xlabel("noise sigma")
     axes[0, 2].set_ylabel("exact support recovery")
-    axes[0, 2].set_title("matched sparsity at 10% support")
+    axes[0, 2].set_title(f"matched sparsity at {int(round(focus_fraction * 100))}% support")
     axes[0, 2].set_ylim(-0.05, 1.05)
     axes[0, 2].legend(loc="upper right")
 
@@ -547,7 +588,7 @@ def main():
     )
     axes[1, 0].set_xlabel("true support fraction (%)")
     axes[1, 0].set_ylabel("support f1")
-    axes[1, 0].set_title("support recovery at noise sigma = 0.6")
+    axes[1, 0].set_title(f"support recovery at noise sigma = {focus_noise:.2f}")
     axes[1, 0].set_ylim(-0.05, 1.05)
 
     axes[1, 1].plot(target_fractions * 100, [entry["mean"] for entry in active_by_fraction_threshold], color="#d97706", marker="o", label="threshold")
@@ -569,11 +610,15 @@ def main():
     axes[1, 1].plot(target_fractions * 100, target_fractions, color="#111827", linestyle="--", linewidth=1.2, label="target")
     axes[1, 1].set_xlabel("target support fraction (%)")
     axes[1, 1].set_ylabel("realized active fraction")
-    axes[1, 1].set_title("sparsity control at noise sigma = 0.6")
+    axes[1, 1].set_title(f"sparsity control at noise sigma = {focus_noise:.2f}")
     axes[1, 1].set_ylim(-0.05, 0.55)
     axes[1, 1].legend(loc="upper left")
 
-    scaling_colors = {0.1: "#059669", 0.41: "#7c3aed"}
+    scaling_palette = plt.get_cmap("viridis")(np.linspace(0.15, 0.85, len(scaling_target_fractions)))
+    scaling_colors = {
+        float(target_fraction): scaling_palette[idx]
+        for idx, target_fraction in enumerate(scaling_target_fractions)
+    }
     for target_fraction in scaling_target_fractions:
         threshold_entries = scaling_summaries[float(target_fraction)]["adaptive_threshold"]
         kwta_entries = scaling_summaries[float(target_fraction)]["kwta"]
@@ -582,7 +627,7 @@ def main():
         axes[1, 2].plot(network_sizes, [entry["mean"] for entry in kwta_entries], color=color, linestyle="-", marker="s", label=f"k-wta {int(round(target_fraction * 100))}%")
     axes[1, 2].set_xlabel("network size")
     axes[1, 2].set_ylabel("support f1")
-    axes[1, 2].set_title("scaling at noise sigma = 0.6")
+    axes[1, 2].set_title(f"scaling at noise sigma = {parameters['scaling_noise_level']:.2f}")
     axes[1, 2].set_ylim(-0.05, 1.05)
     axes[1, 2].legend(loc="lower right")
 
@@ -633,17 +678,21 @@ def main():
 
     summary = {
         "threshold_calibration": selection_calibration,
-        "focus_fraction": focus_fraction,
-        "recovery_noise": recovery_noise,
-        "focus_noise": focus_noise,
-        "threshold_exact_support_at_10pct_noise_0p2": mean_confidence_interval(recovery_exact_threshold),
-        "kwta_exact_support_at_10pct_noise_0p2": mean_confidence_interval(recovery_exact_kwta),
+        "selected_conditions": {
+            "focus_fraction": focus_fraction,
+            "recovery_noise_level": recovery_noise,
+            "focus_noise_level": focus_noise,
+            "anchor_target_fraction": anchor_fraction,
+            "anchor_noise_level": float(parameters["anchor_noise_level"]),
+        },
+        "threshold_exact_support_recovery": mean_confidence_interval(recovery_exact_threshold),
+        "kwta_exact_support_recovery": mean_confidence_interval(recovery_exact_kwta),
         "paired_exact_support_delta_kwta_minus_threshold": exact_delta,
-        "threshold_f1_at_10pct_noise_0p6": mean_confidence_interval(focus_f1_threshold),
-        "kwta_f1_at_10pct_noise_0p6": mean_confidence_interval(focus_f1_kwta),
+        "threshold_f1_focus": mean_confidence_interval(focus_f1_threshold),
+        "kwta_f1_focus": mean_confidence_interval(focus_f1_kwta),
         "paired_f1_delta_kwta_minus_threshold": f1_delta,
-        "threshold_active_fraction_at_10pct_noise_0p6": mean_confidence_interval(focus_active_threshold),
-        "kwta_active_fraction_at_10pct_noise_0p6": mean_confidence_interval(focus_active_kwta),
+        "threshold_active_fraction_focus": mean_confidence_interval(focus_active_threshold),
+        "kwta_active_fraction_focus": mean_confidence_interval(focus_active_kwta),
         "paired_active_fraction_delta_kwta_minus_threshold": active_delta,
     }
 
@@ -688,22 +737,22 @@ def main():
 
     print(f"saved {figure_path.name}, {anchor_path.name}, and {metrics_path.name} to {output_dir}")
     print(
-        "kwta exact support at 10% support, noise 0.2: "
-        f"{summary['kwta_exact_support_at_10pct_noise_0p2']['mean']:.3f} "
-        f"[{summary['kwta_exact_support_at_10pct_noise_0p2']['ci95']['low']:.3f}, {summary['kwta_exact_support_at_10pct_noise_0p2']['ci95']['high']:.3f}]"
+        f"kwta exact support at focus fraction {focus_fraction:.3f}, recovery noise {recovery_noise:.3f}: "
+        f"{summary['kwta_exact_support_recovery']['mean']:.3f} "
+        f"[{summary['kwta_exact_support_recovery']['ci95']['low']:.3f}, {summary['kwta_exact_support_recovery']['ci95']['high']:.3f}]"
     )
     print(
-        "threshold exact support at 10% support, noise 0.2: "
-        f"{summary['threshold_exact_support_at_10pct_noise_0p2']['mean']:.3f} "
-        f"[{summary['threshold_exact_support_at_10pct_noise_0p2']['ci95']['low']:.3f}, {summary['threshold_exact_support_at_10pct_noise_0p2']['ci95']['high']:.3f}]"
+        f"threshold exact support at focus fraction {focus_fraction:.3f}, recovery noise {recovery_noise:.3f}: "
+        f"{summary['threshold_exact_support_recovery']['mean']:.3f} "
+        f"[{summary['threshold_exact_support_recovery']['ci95']['low']:.3f}, {summary['threshold_exact_support_recovery']['ci95']['high']:.3f}]"
     )
     print(
-        "paired exact-support delta kwta-threshold at 10% support, noise 0.2: "
+        f"paired exact-support delta kwta-threshold at focus fraction {focus_fraction:.3f}, recovery noise {recovery_noise:.3f}: "
         f"{summary['paired_exact_support_delta_kwta_minus_threshold']['mean_difference']:.3f}, "
         f"p={summary['paired_exact_support_delta_kwta_minus_threshold']['p_value_permutation']:.4f}"
     )
     print(
-        "paired active-fraction delta kwta-threshold at 10% support, noise 0.6: "
+        f"paired active-fraction delta kwta-threshold at focus fraction {focus_fraction:.3f}, focus noise {focus_noise:.3f}: "
         f"{summary['paired_active_fraction_delta_kwta_minus_threshold']['mean_difference']:.3f}, "
         f"p={summary['paired_active_fraction_delta_kwta_minus_threshold']['p_value_permutation']:.4f}"
     )

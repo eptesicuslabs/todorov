@@ -12,21 +12,31 @@ from shared import (
     build_rng,
     build_run_record,
     child_rng,
-    discrete_mutual_information,
-    linear_cka,
-    mean_confidence_interval,
-    paired_difference_stats,
+    env_float,
+    env_int,
+    env_list,
+    independent_difference_stats,
+    output_dir_for,
+    require_positive,
+    require_positive_list,
+    require_unit_interval,
     utc_now_iso,
     write_json,
 )
 
 SCRIPT_PATH = Path(__file__).resolve()
-SEED = 42
-N_NEURONS = 500
-N_PATTERNS_LIST = [5, 10, 20, 30, 50]
-CORRUPTION = 0.10
-TRIALS = 30
-MAX_ITERS = 50
+SEED = env_int("RATE_SPIKE_SEED", 42)
+N_NEURONS = env_int("RATE_SPIKE_N_NEURONS", 500)
+N_PATTERNS_LIST = env_list("RATE_SPIKE_N_PATTERNS", int, [5, 10, 20, 30, 50])
+CORRUPTION = env_float("RATE_SPIKE_CORRUPTION", 0.10)
+TRIALS = env_int("RATE_SPIKE_TRIALS", 30)
+MAX_ITERS = env_int("RATE_SPIKE_MAX_ITERS", 50)
+
+require_positive("RATE_SPIKE_N_NEURONS", N_NEURONS)
+require_positive_list("RATE_SPIKE_N_PATTERNS", N_PATTERNS_LIST)
+require_unit_interval("RATE_SPIKE_CORRUPTION", CORRUPTION, allow_zero=True)
+require_positive("RATE_SPIKE_TRIALS", TRIALS)
+require_positive("RATE_SPIKE_MAX_ITERS", MAX_ITERS)
 
 
 def generate_binary_patterns(rng, n, p):
@@ -126,6 +136,7 @@ def cosine_similarity(a, b):
 def run_experiment(rng, n, p, coding, corruption, trials, max_iters):
     cosines = []
     exacts = []
+    trial_records = []
 
     for t in range(trials):
         trial_rng = child_rng(rng)
@@ -157,6 +168,16 @@ def run_experiment(rng, n, p, coding, corruption, trials, max_iters):
         exact = float(np.allclose(retrieved, original, atol=0.05))
         cosines.append(cos)
         exacts.append(exact)
+        trial_records.append({
+            "coding": coding,
+            "n": n,
+            "p": p,
+            "alpha": p / n,
+            "corruption": float(corruption),
+            "trial_id": int(t),
+            "cosine": float(cos),
+            "exact": float(exact),
+        })
 
     return {
         "coding": coding,
@@ -168,7 +189,7 @@ def run_experiment(rng, n, p, coding, corruption, trials, max_iters):
         "cosine_std": float(np.std(cosines)),
         "exact_mean": float(np.mean(exacts)),
         "trials": trials,
-    }
+    }, trial_records
 
 
 def main():
@@ -181,14 +202,18 @@ def main():
 
     codings = ["binary", "ternary", "rate"]
     all_results = []
+    trial_records = []
 
     for p in N_PATTERNS_LIST:
         for coding in codings:
-            result = run_experiment(
+            result, result_trials = run_experiment(
                 child_rng(rng), N_NEURONS, p, coding, CORRUPTION, TRIALS, MAX_ITERS
             )
             all_results.append(result)
+            trial_records.extend(result_trials)
             print(f"  {coding} p={p}: cosine={result['cosine_mean']:.4f} exact={result['exact_mean']:.3f}")
+
+    output_dir = output_dir_for(SCRIPT_PATH)
 
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
@@ -213,26 +238,38 @@ def main():
     ax2.legend()
 
     plt.tight_layout()
-    fig_path = SCRIPT_PATH.parent / "rate_coded_spike.png"
+    fig_path = output_dir / "rate_coded_spike.png"
     plt.savefig(fig_path)
     plt.close()
 
+    reference_pattern_count = 10 if 10 in N_PATTERNS_LIST else N_PATTERNS_LIST[min(len(N_PATTERNS_LIST) - 1, 0)]
     summary = {}
-    paired_stats = {}
-    for p in [10, 20]:
-        alpha = p / N_NEURONS
-        b_cos = [r["cosine_mean"] for r in all_results if r["coding"] == "binary" and r["p"] == p]
-        t_cos = [r["cosine_mean"] for r in all_results if r["coding"] == "ternary" and r["p"] == p]
-        r_cos = [r["cosine_mean"] for r in all_results if r["coding"] == "rate" and r["p"] == p]
-        summary[f"p{p}_binary_cosine"] = b_cos[0] if b_cos else None
-        summary[f"p{p}_ternary_cosine"] = t_cos[0] if t_cos else None
-        summary[f"p{p}_rate_cosine"] = r_cos[0] if r_cos else None
+    summary["reference_pattern_count"] = int(reference_pattern_count)
+    summary["reference_cosine"] = {
+        coding: next((r["cosine_mean"] for r in all_results if r["coding"] == coding and r["p"] == reference_pattern_count), None)
+        for coding in codings
+    }
+    summary["reference_exact"] = {
+        coding: next((r["exact_mean"] for r in all_results if r["coding"] == coding and r["p"] == reference_pattern_count), None)
+        for coding in codings
+    }
+
+    statistics = {}
+    for left, right in (("binary", "ternary"), ("binary", "rate"), ("ternary", "rate")):
+        left_values = [record["cosine"] for record in trial_records if record["coding"] == left and record["p"] == reference_pattern_count]
+        right_values = [record["cosine"] for record in trial_records if record["coding"] == right and record["p"] == reference_pattern_count]
+        if left_values and right_values:
+            statistics[f"{left}_vs_{right}_reference_cosine"] = independent_difference_stats(
+                left_values,
+                right_values,
+                SEED,
+            )
 
     finished = utc_now_iso()
     duration = time.time() - t0
 
     record = build_run_record(
-        simulation_name="rate_coded_spike_comparison",
+        simulation_name="rate_coded_spike",
         script_path=SCRIPT_PATH,
         started_at_utc=started,
         finished_at_utc=finished,
@@ -244,29 +281,33 @@ def main():
             "trials": TRIALS,
             "max_iters": MAX_ITERS,
             "codings": codings,
+            "reference_pattern_count": reference_pattern_count,
         },
         seed_numpy=SEED,
-        n_trials=len(all_results),
+        n_trials=len(trial_records),
         summary=summary,
-        statistics=paired_stats,
-        trials=all_results,
+        statistics=statistics,
+        trials=trial_records,
         artifacts=[
-            {"name": "rate_coded_spike.png", "type": "figure"},
-            {"name": "rate_coded_spike_metrics.json", "type": "metrics"},
+            {"path": fig_path.as_posix(), "type": "figure"},
+            {"path": (output_dir / "rate_coded_spike_metrics.json").as_posix(), "type": "metrics"},
         ],
         warnings=[
-            "rate-coded retrieval uses sigmoid activation (continuous hopfield), not sign",
+            "rate-coded retrieval uses tanh activation (continuous state update), not sign",
             "exact match for rate-coded uses atol=0.05 (approximate, not exact)",
         ],
     )
 
-    metrics_path = SCRIPT_PATH.parent / "rate_coded_spike_metrics.json"
+    metrics_path = output_dir / "rate_coded_spike_metrics.json"
     write_json(metrics_path, record)
 
     print(f"\ndone in {duration:.1f}s")
     for coding in codings:
-        cos_at_20 = [r["cosine_mean"] for r in all_results if r["coding"] == coding and r["p"] == 20]
-        print(f"  {coding} at p=20: cosine={cos_at_20[0]:.4f}" if cos_at_20 else f"  {coding}: no data")
+        cosine = summary["reference_cosine"][coding]
+        if cosine is None:
+            print(f"  {coding}: no data at p={reference_pattern_count}")
+        else:
+            print(f"  {coding} at p={reference_pattern_count}: cosine={cosine:.4f}")
 
 
 if __name__ == "__main__":

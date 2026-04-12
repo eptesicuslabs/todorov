@@ -11,9 +11,9 @@ from brian2 import Mohm, NeuronGroup, StateMonitor, TimedArray, defaultclock, mV
 
 SIM_ROOT = Path(__file__).resolve().parents[1]
 if str(SIM_ROOT) not in sys.path:
-    sys.path.append(str(SIM_ROOT))
+    sys.path.insert(0, str(SIM_ROOT))
 
-from shared import apply_plot_style, build_rng, build_run_record, child_rng, mean_confidence_interval, paired_difference_stats, utc_now_iso, write_json
+from shared import apply_plot_style, build_rng, build_run_record, child_rng, ensure_close_member, env_float, env_int, env_list, leak_tau_condition_name, mean_confidence_interval, output_dir_for, paired_difference_stats, require_non_negative, require_non_negative_list, require_positive, require_positive_list, utc_now_iso, write_json
 
 prefs.codegen.target = "numpy"
 
@@ -84,46 +84,97 @@ def main():
     started_perf = perf_counter()
 
     simulation_name = "lif_fi_curve"
-    output_dir = Path(__file__).parent
+    output_dir = output_dir_for(Path(__file__))
     figure_path = output_dir / "lif_leak_validation.png"
     metrics_path = output_dir / "lif_leak_validation_metrics.json"
 
     parameters = {
-        "seed_numpy": 17,
-        "dt_ms": 1.0,
-        "threshold_mv": 15.0,
-        "atmn_tau": 2.0,
-        "leak_tau_ms": [5.0, 10.0, 20.0, 30.0],
-        "gap_values_ms": [1.0, 4.0, 8.0, 16.0, 32.0, 64.0],
-        "gap_trials": 32,
-        "gap_total_steps": 120,
-        "pulse_start_ms": 10.0,
-        "pulse_width_ms": 4.0,
-        "pulse_amplitude_mv": 0.1,
-        "gap_noise_sigma_mv": 0.004,
-        "drift_lengths": [128, 256, 512, 1024],
-        "drift_trials": 48,
-        "drift_noise_sigma_mv": 0.5,
-        "anchor_tau_m_ms": 20.0,
-        "anchor_resistance_mohm": 100.0,
-        "example_gap_ms": 16.0,
+        "seed_numpy": env_int("LIF_SEED", 17),
+        "dt_ms": env_float("LIF_DT_MS", 1.0),
+        "threshold_mv": env_float("LIF_THRESHOLD_MV", 15.0),
+        "atmn_tau": env_float("LIF_ATMN_TAU", 2.0),
+        "leak_tau_ms": env_list("LIF_LEAK_TAU_MS", float, [5.0, 10.0, 20.0, 30.0]),
+        "baseline_leak_tau_ms": env_float("LIF_BASELINE_TAU_MS", 20.0),
+        "gap_values_ms": env_list("LIF_GAP_VALUES_MS", float, [1.0, 4.0, 8.0, 16.0, 32.0, 64.0]),
+        "gap_trials": env_int("LIF_GAP_TRIALS", 32),
+        "gap_total_steps": env_int("LIF_GAP_TOTAL_STEPS", 120),
+        "pulse_start_ms": env_float("LIF_PULSE_START_MS", 10.0),
+        "pulse_width_ms": env_float("LIF_PULSE_WIDTH_MS", 4.0),
+        "pulse_amplitude_mv": env_float("LIF_PULSE_AMPLITUDE_MV", 0.1),
+        "spike_probe_gap_ms": env_float("LIF_SPIKE_PROBE_GAP_MS", 16.0),
+        "spike_probe_pulse_amplitude_mv": env_float("LIF_SPIKE_PROBE_PULSE_AMPLITUDE_MV", 4.0),
+        "gap_noise_sigma_mv": env_float("LIF_GAP_NOISE_SIGMA_MV", 0.004),
+        "drift_lengths": env_list("LIF_DRIFT_LENGTHS", int, [128, 256, 512, 1024]),
+        "drift_trials": env_int("LIF_DRIFT_TRIALS", 48),
+        "drift_noise_sigma_mv": env_float("LIF_DRIFT_NOISE_SIGMA_MV", 0.5),
+        "anchor_tau_m_ms": env_float("LIF_ANCHOR_TAU_M_MS", 20.0),
+        "anchor_resistance_mohm": env_float("LIF_ANCHOR_RESISTANCE_MOHM", 100.0),
+        "example_gap_ms": env_float("LIF_EXAMPLE_GAP_MS", 16.0),
     }
+
+    parameters["gap_values_ms"] = ensure_close_member(parameters["gap_values_ms"], float(parameters["example_gap_ms"]))
+    parameters["leak_tau_ms"] = ensure_close_member(parameters["leak_tau_ms"], float(parameters["baseline_leak_tau_ms"]))
+
+    require_positive("LIF_DT_MS", parameters["dt_ms"])
+    require_positive("LIF_THRESHOLD_MV", parameters["threshold_mv"])
+    require_positive("LIF_ATMN_TAU", parameters["atmn_tau"])
+    parameters["leak_tau_ms"] = require_positive_list("LIF_LEAK_TAU_MS", parameters["leak_tau_ms"])
+    require_positive("LIF_BASELINE_TAU_MS", parameters["baseline_leak_tau_ms"])
+    parameters["gap_values_ms"] = require_positive_list("LIF_GAP_VALUES_MS", parameters["gap_values_ms"])
+    require_positive("LIF_GAP_TRIALS", parameters["gap_trials"])
+    require_positive("LIF_GAP_TOTAL_STEPS", parameters["gap_total_steps"])
+    require_non_negative("LIF_PULSE_START_MS", parameters["pulse_start_ms"])
+    require_positive("LIF_PULSE_WIDTH_MS", parameters["pulse_width_ms"])
+    require_positive("LIF_PULSE_AMPLITUDE_MV", parameters["pulse_amplitude_mv"])
+    require_positive("LIF_SPIKE_PROBE_GAP_MS", parameters["spike_probe_gap_ms"])
+    require_positive("LIF_SPIKE_PROBE_PULSE_AMPLITUDE_MV", parameters["spike_probe_pulse_amplitude_mv"])
+    require_non_negative("LIF_GAP_NOISE_SIGMA_MV", parameters["gap_noise_sigma_mv"])
+    parameters["drift_lengths"] = require_positive_list("LIF_DRIFT_LENGTHS", parameters["drift_lengths"])
+    require_positive("LIF_DRIFT_TRIALS", parameters["drift_trials"])
+    require_non_negative("LIF_DRIFT_NOISE_SIGMA_MV", parameters["drift_noise_sigma_mv"])
+    require_positive("LIF_ANCHOR_TAU_M_MS", parameters["anchor_tau_m_ms"])
+    require_positive("LIF_ANCHOR_RESISTANCE_MOHM", parameters["anchor_resistance_mohm"])
+    require_positive("LIF_EXAMPLE_GAP_MS", parameters["example_gap_ms"])
+    parameters["drift_lengths"] = sorted(parameters["drift_lengths"])
 
     rng = build_rng(parameters["seed_numpy"])
     threshold_mv = parameters["threshold_mv"]
     dt_ms = parameters["dt_ms"]
     pulse_width_steps = int(round(parameters["pulse_width_ms"] / dt_ms))
     pulse_start_steps = int(round(parameters["pulse_start_ms"] / dt_ms))
+    if pulse_width_steps < 1:
+        raise ValueError("LIF_PULSE_WIDTH_MS must span at least one timestep")
+    for gap_ms in parameters["gap_values_ms"]:
+        gap_steps = int(round(gap_ms / dt_ms))
+        if gap_steps < 1:
+            raise ValueError("LIF_GAP_VALUES_MS entries must span at least one timestep")
+        final_step = pulse_start_steps + pulse_width_steps + gap_steps + pulse_width_steps
+        if final_step > parameters["gap_total_steps"]:
+            raise ValueError("Configured pulse sequence does not fit inside LIF_GAP_TOTAL_STEPS")
+    spike_probe_gap_steps = int(round(parameters["spike_probe_gap_ms"] / dt_ms))
+    if spike_probe_gap_steps < 1:
+        raise ValueError("LIF_SPIKE_PROBE_GAP_MS must span at least one timestep")
+    spike_probe_final_step = pulse_start_steps + pulse_width_steps + spike_probe_gap_steps + pulse_width_steps
+    if spike_probe_final_step > parameters["gap_total_steps"]:
+        raise ValueError("Configured LIF spike probe does not fit inside LIF_GAP_TOTAL_STEPS")
     leak_conditions = {
-        f"explicit_leak_tau{int(tau_ms)}": float(np.exp(-dt_ms / tau_ms)) for tau_ms in parameters["leak_tau_ms"]
+        leak_tau_condition_name(tau_ms): float(np.exp(-dt_ms / tau_ms)) for tau_ms in parameters["leak_tau_ms"]
+    }
+    explicit_condition_name = leak_tau_condition_name(parameters["baseline_leak_tau_ms"])
+    summary_condition_aliases = {
+        "explicit_leak": explicit_condition_name,
+        "atmn_carry": "atmn_carry_tau2",
+        "integrator_control": "integrator_control",
     }
     condition_retention = {
         **leak_conditions,
         "atmn_carry_tau2": float(1.0 / parameters["atmn_tau"]),
         "integrator_control": 1.0,
     }
+    plot_conditions = [explicit_condition_name, "atmn_carry_tau2", "integrator_control"]
+    tau_plot_conditions = [*leak_conditions.keys(), "atmn_carry_tau2", "integrator_control"]
     condition_colors = {
-        "explicit_leak_tau20": "#1f77b4",
+        explicit_condition_name: "#1f77b4",
         "atmn_carry_tau2": "#d62728",
         "integrator_control": "#2ca02c",
     }
@@ -218,8 +269,38 @@ def main():
                     }
                 )
 
+    spike_probe_records = []
+    spike_probe_sequence, spike_probe_first_end, spike_probe_second_start, spike_probe_second_end = make_gap_sequence(
+        total_steps=parameters["gap_total_steps"],
+        first_start=pulse_start_steps,
+        pulse_width=pulse_width_steps,
+        gap_steps=spike_probe_gap_steps,
+        amplitude_mv=parameters["spike_probe_pulse_amplitude_mv"],
+    )
+    for trial_id in range(parameters["gap_trials"]):
+        trial_rng = child_rng(rng)
+        noisy_inputs = np.repeat(spike_probe_sequence[None, :], 1, axis=0)
+        noisy_inputs += parameters["gap_noise_sigma_mv"] * trial_rng.standard_normal(noisy_inputs.shape)
+        for condition_name, retention in condition_retention.items():
+            traces_mv, spikes = simulate_discrete(noisy_inputs, retention, threshold_mv)
+            trace_mv = traces_mv[0]
+            spike_trace = spikes[0]
+            spike_probe_records.append(
+                {
+                    "experiment": "spike_probe",
+                    "trial_id": int(trial_id),
+                    "condition": condition_name,
+                    "gap_ms": float(parameters["spike_probe_gap_ms"]),
+                    "pulse_amplitude_mv": float(parameters["spike_probe_pulse_amplitude_mv"]),
+                    "first_peak_mv": float(np.max(trace_mv[pulse_start_steps:spike_probe_first_end])),
+                    "second_peak_mv": float(np.max(trace_mv[spike_probe_second_start:spike_probe_second_end])),
+                    "first_spike": float(np.any(np.abs(spike_trace[pulse_start_steps:spike_probe_first_end]) > 0.0)),
+                    "second_spike": float(np.any(np.abs(spike_trace[spike_probe_second_start:spike_probe_second_end]) > 0.0)),
+                }
+            )
+
     main_gap_curves = {}
-    for condition_name in ["explicit_leak_tau20", "atmn_carry_tau2", "integrator_control"]:
+    for condition_name in plot_conditions:
         peak_error_curve = []
         retained_curve = []
         spike_curve = []
@@ -243,7 +324,7 @@ def main():
         }
 
     drift_curves = {}
-    for condition_name in ["explicit_leak_tau20", "atmn_carry_tau2", "integrator_control"]:
+    for condition_name in plot_conditions:
         std_curve = []
         final_curve = []
         spike_curve = []
@@ -268,7 +349,7 @@ def main():
 
     tau_sweep_summary = summarize_tau_sweep(
         gap_records,
-        ["explicit_leak_tau5", "explicit_leak_tau10", "explicit_leak_tau20", "explicit_leak_tau30", "atmn_carry_tau2", "integrator_control"],
+        tau_plot_conditions,
     )
 
     paired_gap_trial_means = {}
@@ -290,19 +371,38 @@ def main():
 
     paired_drift_std = {}
     paired_drift_final = {}
-    max_length = int(parameters["drift_lengths"][-1])
+    max_length = int(max(parameters["drift_lengths"]))
     for condition_name in condition_retention:
         paired_drift_std[condition_name] = [record["state_std_mv"] for record in drift_records if record["condition"] == condition_name and record["length_steps"] == max_length]
         paired_drift_final[condition_name] = [record["final_abs_mv"] for record in drift_records if record["condition"] == condition_name and record["length_steps"] == max_length]
 
+    paired_spike_probe_first = {}
+    paired_spike_probe_second = {}
+    for condition_name in condition_retention:
+        paired_spike_probe_first[condition_name] = [
+            record["first_spike"]
+            for record in spike_probe_records
+            if record["condition"] == condition_name
+        ]
+        paired_spike_probe_second[condition_name] = [
+            record["second_spike"]
+            for record in spike_probe_records
+            if record["condition"] == condition_name
+        ]
+
     statistics = {
-        "gap_mean_peak_error_explicit_vs_atmn": paired_difference_stats(paired_gap_trial_means["atmn_carry_tau2"], paired_gap_trial_means["explicit_leak_tau20"], seed=301),
-        "gap_mean_peak_error_explicit_vs_integrator": paired_difference_stats(paired_gap_trial_means["integrator_control"], paired_gap_trial_means["explicit_leak_tau20"], seed=302),
-        "retained_fraction_gap16_explicit_vs_atmn": paired_difference_stats(paired_retained_fraction["atmn_carry_tau2"], paired_retained_fraction["explicit_leak_tau20"], seed=306),
-        "retained_fraction_gap16_explicit_vs_integrator": paired_difference_stats(paired_retained_fraction["integrator_control"], paired_retained_fraction["explicit_leak_tau20"], seed=307),
-        "drift_state_std_explicit_vs_atmn_length1024": paired_difference_stats(paired_drift_std["atmn_carry_tau2"], paired_drift_std["explicit_leak_tau20"], seed=303),
-        "drift_state_std_explicit_vs_integrator_length1024": paired_difference_stats(paired_drift_std["integrator_control"], paired_drift_std["explicit_leak_tau20"], seed=304),
-        "drift_final_abs_explicit_vs_atmn_length1024": paired_difference_stats(paired_drift_final["atmn_carry_tau2"], paired_drift_final["explicit_leak_tau20"], seed=305),
+        "gap_mean_peak_error_explicit_vs_atmn": paired_difference_stats(paired_gap_trial_means["atmn_carry_tau2"], paired_gap_trial_means[explicit_condition_name], seed=301),
+        "gap_mean_peak_error_explicit_vs_integrator": paired_difference_stats(paired_gap_trial_means["integrator_control"], paired_gap_trial_means[explicit_condition_name], seed=302),
+        "selected_gap_retained_fraction_explicit_vs_atmn": paired_difference_stats(paired_retained_fraction["atmn_carry_tau2"], paired_retained_fraction[explicit_condition_name], seed=306),
+        "selected_gap_retained_fraction_explicit_vs_integrator": paired_difference_stats(paired_retained_fraction["integrator_control"], paired_retained_fraction[explicit_condition_name], seed=307),
+        "selected_max_length_state_std_explicit_vs_atmn": paired_difference_stats(paired_drift_std["atmn_carry_tau2"], paired_drift_std[explicit_condition_name], seed=303),
+        "selected_max_length_state_std_explicit_vs_integrator": paired_difference_stats(paired_drift_std["integrator_control"], paired_drift_std[explicit_condition_name], seed=304),
+        "selected_max_length_final_abs_explicit_vs_atmn": paired_difference_stats(paired_drift_final["atmn_carry_tau2"], paired_drift_final[explicit_condition_name], seed=305),
+        "selected_max_length_final_abs_explicit_vs_integrator": paired_difference_stats(paired_drift_final["integrator_control"], paired_drift_final[explicit_condition_name], seed=308),
+        "spike_probe_first_spike_explicit_vs_atmn": paired_difference_stats(paired_spike_probe_first["atmn_carry_tau2"], paired_spike_probe_first[explicit_condition_name], seed=309),
+        "spike_probe_first_spike_explicit_vs_integrator": paired_difference_stats(paired_spike_probe_first["integrator_control"], paired_spike_probe_first[explicit_condition_name], seed=310),
+        "spike_probe_second_spike_explicit_vs_atmn": paired_difference_stats(paired_spike_probe_second["atmn_carry_tau2"], paired_spike_probe_second[explicit_condition_name], seed=311),
+        "spike_probe_second_spike_explicit_vs_integrator": paired_difference_stats(paired_spike_probe_second["integrator_control"], paired_spike_probe_second[explicit_condition_name], seed=312),
     }
 
     example_gap = float(parameters["example_gap_ms"])
@@ -316,7 +416,7 @@ def main():
     )
     example_inputs = example_sequence[None, :]
     example_traces = {}
-    for condition_name in ["explicit_leak_tau20", "atmn_carry_tau2", "integrator_control"]:
+    for condition_name in plot_conditions:
         example_traces[condition_name] = simulate_discrete(example_inputs, condition_retention[condition_name], threshold_mv)[0][0]
     example_anchor = anchor_by_gap[example_gap]
 
@@ -324,15 +424,15 @@ def main():
 
     axes[0, 0].plot(np.arange(example_inputs.shape[1]) * dt_ms, example_sequence, color="#7f7f7f", linestyle="--", linewidth=1.5, label="input")
     axes[0, 0].plot(example_anchor["time_ms"], example_anchor["trace_mv"], color="#000000", linewidth=2.2, label="brian2 lif anchor")
-    for condition_name in ["explicit_leak_tau20", "atmn_carry_tau2", "integrator_control"]:
+    for condition_name in plot_conditions:
         axes[0, 0].plot(np.arange(example_inputs.shape[1]) * dt_ms, example_traces[condition_name], color=condition_colors[condition_name], label=condition_name.replace("_", " "))
     axes[0, 0].axhline(y=threshold_mv, color="#999999", linestyle=":", linewidth=1.2, label="threshold")
-    axes[0, 0].set_title("paired-pulse integration at 16 ms gap")
+    axes[0, 0].set_title(f"paired-pulse integration at {example_gap:.0f} ms gap")
     axes[0, 0].set_xlabel("time (ms)")
     axes[0, 0].set_ylabel("state (mV rel. rest)")
     axes[0, 0].legend(fontsize=8)
 
-    for condition_name in ["explicit_leak_tau20", "atmn_carry_tau2", "integrator_control"]:
+    for condition_name in plot_conditions:
         x_values = [item["gap_ms"] for item in main_gap_curves[condition_name]["peak_error_mv"]]
         y_values = [item["mean"] for item in main_gap_curves[condition_name]["peak_error_mv"]]
         y_low = [item["ci95"]["low"] for item in main_gap_curves[condition_name]["peak_error_mv"]]
@@ -345,7 +445,7 @@ def main():
     axes[0, 1].set_ylabel("peak error to lif anchor (mV)")
     axes[0, 1].legend(fontsize=8)
 
-    for condition_name in ["explicit_leak_tau20", "atmn_carry_tau2", "integrator_control"]:
+    for condition_name in plot_conditions:
         x_values = [item["length_steps"] for item in drift_curves[condition_name]["state_std_mv"]]
         y_values = [item["mean"] for item in drift_curves[condition_name]["state_std_mv"]]
         y_low = [item["ci95"]["low"] for item in drift_curves[condition_name]["state_std_mv"]]
@@ -376,27 +476,45 @@ def main():
 
     summary = {
         "main_comparison": {
-            "explicit_leak_condition": "explicit_leak_tau20",
+            "explicit_leak_condition": explicit_condition_name,
             "baseline_condition": "atmn_carry_tau2",
             "control_condition": "integrator_control",
+            "condition_aliases": summary_condition_aliases,
+            "selected_gap_ms": float(focal_gap_ms),
+            "max_drift_length_steps": int(max_length),
             "mean_gap_peak_error_mv": {
-                "explicit_leak_tau20": float(np.mean(paired_gap_trial_means["explicit_leak_tau20"])),
-                "atmn_carry_tau2": float(np.mean(paired_gap_trial_means["atmn_carry_tau2"])),
+                "explicit_leak": float(np.mean(paired_gap_trial_means[explicit_condition_name])),
+                "atmn_carry": float(np.mean(paired_gap_trial_means["atmn_carry_tau2"])),
                 "integrator_control": float(np.mean(paired_gap_trial_means["integrator_control"])),
             },
-            "length1024_state_std_mv": {
-                "explicit_leak_tau20": float(np.mean(paired_drift_std["explicit_leak_tau20"])),
-                "atmn_carry_tau2": float(np.mean(paired_drift_std["atmn_carry_tau2"])),
+            "selected_max_length_state_std_mv": {
+                "explicit_leak": float(np.mean(paired_drift_std[explicit_condition_name])),
+                "atmn_carry": float(np.mean(paired_drift_std["atmn_carry_tau2"])),
                 "integrator_control": float(np.mean(paired_drift_std["integrator_control"])),
             },
-            "length1024_final_abs_mv": {
-                "explicit_leak_tau20": float(np.mean(paired_drift_final["explicit_leak_tau20"])),
-                "atmn_carry_tau2": float(np.mean(paired_drift_final["atmn_carry_tau2"])),
+            "selected_max_length_final_abs_mv": {
+                "explicit_leak": float(np.mean(paired_drift_final[explicit_condition_name])),
+                "atmn_carry": float(np.mean(paired_drift_final["atmn_carry_tau2"])),
+                "integrator_control": float(np.mean(paired_drift_final["integrator_control"])),
             },
-            "gap16_retained_fraction": {
-                "explicit_leak_tau20": float(np.mean(paired_retained_fraction["explicit_leak_tau20"])),
-                "atmn_carry_tau2": float(np.mean(paired_retained_fraction["atmn_carry_tau2"])),
+            "selected_gap_retained_fraction": {
+                "explicit_leak": float(np.mean(paired_retained_fraction[explicit_condition_name])),
+                "atmn_carry": float(np.mean(paired_retained_fraction["atmn_carry_tau2"])),
                 "integrator_control": float(np.mean(paired_retained_fraction["integrator_control"])),
+            },
+        },
+        "spike_probe": {
+            "selected_gap_ms": float(parameters["spike_probe_gap_ms"]),
+            "pulse_amplitude_mv": float(parameters["spike_probe_pulse_amplitude_mv"]),
+            "selected_gap_first_spike": {
+                "explicit_leak": float(np.mean(paired_spike_probe_first[explicit_condition_name])),
+                "atmn_carry": float(np.mean(paired_spike_probe_first["atmn_carry_tau2"])),
+                "integrator_control": float(np.mean(paired_spike_probe_first["integrator_control"])),
+            },
+            "selected_gap_second_spike": {
+                "explicit_leak": float(np.mean(paired_spike_probe_second[explicit_condition_name])),
+                "atmn_carry": float(np.mean(paired_spike_probe_second["atmn_carry_tau2"])),
+                "integrator_control": float(np.mean(paired_spike_probe_second["integrator_control"])),
             },
         },
         "gap_curves": main_gap_curves,
@@ -426,10 +544,10 @@ def main():
         duration_sec=duration_sec,
         parameters=parameters,
         seed_numpy=parameters["seed_numpy"],
-        n_trials=parameters["gap_trials"] + parameters["drift_trials"],
+        n_trials=len(gap_records) + len(drift_records),
         summary=summary,
         statistics=statistics,
-        trials=gap_records + drift_records,
+        trials=gap_records + drift_records + spike_probe_records,
         artifacts=[
             {"path": figure_path.as_posix(), "type": "figure"},
             {"path": metrics_path.as_posix(), "type": "metrics_json"},
@@ -439,12 +557,14 @@ def main():
     )
     write_json(metrics_path, run_record)
 
-    print(f"mean gap peak error explicit leak: {summary['main_comparison']['mean_gap_peak_error_mv']['explicit_leak_tau20']:.3f} mV")
-    print(f"mean gap peak error atmn carry: {summary['main_comparison']['mean_gap_peak_error_mv']['atmn_carry_tau2']:.3f} mV")
-    print(f"gap 16 retained fraction explicit leak: {summary['main_comparison']['gap16_retained_fraction']['explicit_leak_tau20']:.3f}")
-    print(f"gap 16 retained fraction atmn carry: {summary['main_comparison']['gap16_retained_fraction']['atmn_carry_tau2']:.3f}")
-    print(f"length 1024 state std explicit leak: {summary['main_comparison']['length1024_state_std_mv']['explicit_leak_tau20']:.3f} mV")
-    print(f"length 1024 state std atmn carry: {summary['main_comparison']['length1024_state_std_mv']['atmn_carry_tau2']:.3f} mV")
+    print(f"mean gap peak error explicit leak: {summary['main_comparison']['mean_gap_peak_error_mv']['explicit_leak']:.3f} mV")
+    print(f"mean gap peak error atmn carry: {summary['main_comparison']['mean_gap_peak_error_mv']['atmn_carry']:.3f} mV")
+    print(f"gap {summary['main_comparison']['selected_gap_ms']:.1f} retained fraction explicit leak: {summary['main_comparison']['selected_gap_retained_fraction']['explicit_leak']:.3f}")
+    print(f"gap {summary['main_comparison']['selected_gap_ms']:.1f} retained fraction atmn carry: {summary['main_comparison']['selected_gap_retained_fraction']['atmn_carry']:.3f}")
+    print(f"length {summary['main_comparison']['max_drift_length_steps']} state std explicit leak: {summary['main_comparison']['selected_max_length_state_std_mv']['explicit_leak']:.3f} mV")
+    print(f"length {summary['main_comparison']['max_drift_length_steps']} state std atmn carry: {summary['main_comparison']['selected_max_length_state_std_mv']['atmn_carry']:.3f} mV")
+    print(f"spike probe second-spike rate explicit leak: {summary['spike_probe']['selected_gap_second_spike']['explicit_leak']:.3f}")
+    print(f"spike probe second-spike rate integrator: {summary['spike_probe']['selected_gap_second_spike']['integrator_control']:.3f}")
     print(f"saved: {figure_path.name}")
     print(f"saved: {metrics_path.name}")
 

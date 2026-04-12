@@ -276,33 +276,36 @@ keys also reads only the 13 surviving dimensions of the state, leaving
 "ghost" content in the zeroed dimensions that accumulates and interferes.
 both failure modes are explicit in the empirical data from god_run_v2.
 
-**run 1 (ternary-spike baseline at 350M)**: use `neural_machine.py` as-is.
-ternary spikes (adaptive threshold, not k-WTA), no delta erasure, no BCM,
+**run 1 (baseline dense at 350M)**: use `neural_machine.py` with dense
+keys, dense values, and delta erasure on. no activity-adaptive decay,
 standard SwiGLU (not multi-compartment), no imagination probe, no PC
 diagnostic head. target: replicate run_010's 2.375 BPB at 267M scaled up
-to 350M. **critical success metric: nonzero passkey at 256 or 512 tokens.**
-if this run produces 0% passkey, the problem is deeper than the bundle
-and the entire delta-rule architecture needs rethinking.
+to 350M while restoring measurable retrieval. **critical success metric:
+nonzero passkey at 256 or 512 tokens.** if this run produces 0% passkey,
+the problem is deeper than the bundle and the entire delta-rule
+architecture needs rethinking.
 
-**run 2 (k-WTA 50% on values only, dense keys)**: replace ternary spikes
-with rate-coded k-WTA at 50% selection applied ONLY to values. keys remain
-dense (no k-WTA on k). apply to the neural_machine.py baseline from run 1,
-not god_machine. target: preserve run 1's retrieval accuracy, achieve some
-compression benefit from value sparsity. if 50% works, follow-up run tries
-30% on values; NEVER sparsify keys below 100%.
+**run 2 (50% value-side rate-coded compression, dense keys)**: add
+rate-coded 50% selection applied only to values. keys remain dense.
+apply to the neural_machine.py baseline from run 1, not god_machine.
+target: preserve run 1's retrieval accuracy while testing whether value
+sparsity can be recovered without collapsing the address space. if 50%
+works, a follow-up run can try 30% on values; never sparsify keys below
+100%.
 
-**run 3 (delta erasure with dense keys)**: add delta-rule erasure
-`state -= beta * k * (k^T @ state)` on top of run 2. dense keys allow
-erasure to see the full state and correctly remove old associations.
-target: preserve or improve retrieval over run 2, add targeted unlearning
-capability useful for safety/provenance.
+**run 3 (activity-adaptive decay with faster EMA)**: add activity-adaptive
+decay on top of run 2. use momentum 0.95 instead of 0.99 (half-life ~14
+steps vs ~69). initialize `running_state_norm` to 0.01 instead of 1.0 so
+the correction is active from step 0 rather than kicking in late after the
+state has already saturated. target: preserve or improve retrieval over
+run 2 while testing whether adaptive retention helps without reintroducing
+the bundle failure mode.
 
-**run 4 (BCM alpha with faster EMA)**: add BCM-adapted alpha on top of
-run 3. use momentum 0.95 instead of 0.99 (half-life ~14 steps vs ~69).
-initialize `running_state_norm` to 0.01 instead of 1.0 so the BCM
-correction is active from step 0 rather than kicking in at step ~69 after
-the state has already saturated. target: activity-dependent forgetting
-without catastrophic saturation.
+**run 4 (erasure ablation after dense-key validation)**: if the first
+three runs preserve retrieval, run an erasure ablation that compares the
+dense-key baseline with and without the overwrite subtraction under the
+same retrieval gate. target: determine whether erasure is net helpful once
+the address space is no longer sparsified.
 
 **what is explicitly NOT added unless validated in a dedicated run:**
 - imagination probe (god_run_v2 confirmed it creates a gradient bypass

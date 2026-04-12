@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import platform
 import subprocess
 import sys
@@ -14,6 +15,129 @@ import scipy
 from scipy import stats
 
 SCHEMA_VERSION = "neuroloc.sim.metrics/v1"
+
+
+def _json_path(path: Path) -> Path:
+    return path.with_suffix(path.suffix + ".tmp")
+
+
+def _artifact_sha256(path: Path) -> str:
+    hasher = hashlib.sha256()
+    with path.open("rb") as handle:
+        while True:
+            chunk = handle.read(1024 * 1024)
+            if not chunk:
+                break
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
+
+def assert_finite_payload(value: Any, path: str = "root") -> None:
+    if isinstance(value, dict):
+        for key, item in value.items():
+            assert_finite_payload(item, f"{path}.{key}")
+        return
+    if isinstance(value, (list, tuple)):
+        for idx, item in enumerate(value):
+            assert_finite_payload(item, f"{path}[{idx}]")
+        return
+    if isinstance(value, Path):
+        return
+    if isinstance(value, np.ndarray):
+        if np.issubdtype(value.dtype, np.floating) and not np.isfinite(value).all():
+            raise ValueError(f"non-finite array values at {path}")
+        if np.issubdtype(value.dtype, np.complexfloating):
+            raise ValueError(f"complex array values are not supported at {path}")
+        return
+    if isinstance(value, np.generic):
+        assert_finite_payload(value.item(), path)
+        return
+    if isinstance(value, float):
+        if not np.isfinite(value):
+            raise ValueError(f"non-finite float at {path}: {value}")
+        return
+
+
+def normalize_artifact_entry(artifact: dict[str, Any], project_root: Path, base_dir: Path, metrics_path: Path | None = None) -> dict[str, Any]:
+    raw_path = artifact.get("path") or artifact.get("name")
+    if raw_path is None:
+        raise ValueError(f"artifact entry missing path/name: {artifact}")
+    artifact_path = Path(str(raw_path))
+    if not artifact_path.is_absolute():
+        artifact_path = (base_dir / artifact_path).resolve()
+    exists = artifact_path.exists()
+    normalized = {
+        "name": artifact.get("name") or artifact_path.name,
+        "path": relative_to_root(artifact_path, project_root),
+        "type": str(artifact.get("type", "unknown")),
+        "exists": bool(exists),
+    }
+    if "description" in artifact:
+        normalized["description"] = str(artifact["description"])
+    if exists:
+        is_metrics_artifact = metrics_path is not None and artifact_path.resolve() == metrics_path.resolve()
+        if is_metrics_artifact:
+            normalized["self_referential"] = True
+        else:
+            normalized["size_bytes"] = int(artifact_path.stat().st_size)
+            normalized["sha256"] = _artifact_sha256(artifact_path)
+    return normalized
+
+
+def normalize_artifacts(
+    record: dict[str, Any],
+    metrics_path: Path | None = None,
+    artifact_entries: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    project_root = find_project_root(metrics_path if metrics_path is not None else Path.cwd())
+    base_dir = metrics_path.parent if metrics_path is not None else project_root
+    record_copy = dict(record)
+    artifacts = artifact_entries if artifact_entries is not None else record_copy.get("artifacts", [])
+    record_copy["artifacts"] = [
+        normalize_artifact_entry(dict(artifact), project_root, base_dir, metrics_path=metrics_path)
+        for artifact in artifacts
+    ]
+    return record_copy
+
+
+def validate_run_record(record: dict[str, Any]) -> None:
+    required_top = {"schema_version", "run", "environment", "configuration", "summary", "statistics", "trials", "artifacts", "warnings"}
+    missing_top = required_top - set(record)
+    if missing_top:
+        raise ValueError(f"run record missing required keys: {sorted(missing_top)}")
+    if record["schema_version"] != SCHEMA_VERSION:
+        raise ValueError(f"unexpected schema version: {record['schema_version']}")
+    run = record["run"]
+    for key in ["run_id", "simulation_name", "status", "started_at_utc", "finished_at_utc", "duration_sec", "trial_record_count"]:
+        if key not in run:
+            raise ValueError(f"run section missing key: {key}")
+    environment = record["environment"]
+    for key in ["python_version", "numpy_version", "scipy_version", "platform", "cpu", "script_path", "git_commit", "git_dirty"]:
+        if key not in environment:
+            raise ValueError(f"environment section missing key: {key}")
+    config = record["configuration"]
+    for key in ["parameters", "parameter_hash", "seed_numpy", "numpy_bit_generator", "n_trials_requested"]:
+        if key not in config:
+            raise ValueError(f"configuration section missing key: {key}")
+    if not isinstance(record["trials"], list):
+        raise ValueError("trials must be a list")
+    if int(run["trial_record_count"]) != len(record["trials"]):
+        raise ValueError(
+            f"trial_record_count={run['trial_record_count']} does not match len(trials)={len(record['trials'])}"
+        )
+    for artifact in record["artifacts"]:
+        for key in ["name", "path", "type", "exists"]:
+            if key not in artifact:
+                raise ValueError(f"artifact missing key {key}: {artifact}")
+
+
+def validate_metrics_file(path: Path) -> dict[str, Any]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError(f"metrics payload at {path} is not a dict")
+    assert_finite_payload(payload)
+    validate_run_record(payload)
+    return payload
 
 
 def apply_plot_style() -> None:
@@ -59,6 +183,115 @@ def build_rng(seed: int) -> np.random.Generator:
     return np.random.default_rng(seed)
 
 
+def env_int(name: str, default: int) -> int:
+    raw = os.environ.get(name)
+    return int(default if raw is None or raw.strip() == "" else raw)
+
+
+def env_float(name: str, default: float) -> float:
+    raw = os.environ.get(name)
+    return float(default if raw is None or raw.strip() == "" else raw)
+
+
+def env_list(name: str, cast: Any, default: list[Any]) -> list[Any]:
+    raw = os.environ.get(name)
+    if raw is None or raw.strip() == "":
+        return list(default)
+    values = [cast(item.strip()) for item in raw.split(",") if item.strip()]
+    if not values:
+        raise ValueError(f"{name} must not resolve to an empty list")
+    return values
+
+
+def require_non_empty(name: str, values: list[Any]) -> list[Any]:
+    if not values:
+        raise ValueError(f"{name} must not be empty")
+    return values
+
+
+def require_unique_list(name: str, values: list[Any]) -> list[Any]:
+    require_non_empty(name, values)
+    if any(isinstance(value, float) for value in values):
+        unique_values = []
+        for value in values:
+            if any(np.isclose(float(value), float(existing)) for existing in unique_values):
+                raise ValueError(f"{name} must not contain duplicate values")
+            unique_values.append(value)
+        return values
+    if len(values) != len(set(values)):
+        raise ValueError(f"{name} must not contain duplicate values")
+    return values
+
+
+def require_positive(name: str, value: float | int) -> float | int:
+    if float(value) <= 0:
+        raise ValueError(f"{name} must be > 0")
+    return value
+
+
+def require_non_negative(name: str, value: float | int) -> float | int:
+    if float(value) < 0:
+        raise ValueError(f"{name} must be >= 0")
+    return value
+
+
+def require_positive_list(name: str, values: list[float | int]) -> list[float | int]:
+    require_unique_list(name, values)
+    for value in values:
+        require_positive(name, value)
+    return values
+
+
+def require_non_negative_list(name: str, values: list[float | int]) -> list[float | int]:
+    require_unique_list(name, values)
+    for value in values:
+        require_non_negative(name, value)
+    return values
+
+
+def require_unit_interval(name: str, value: float, allow_zero: bool = False) -> float:
+    lower_ok = value >= 0.0 if allow_zero else value > 0.0
+    if not lower_ok or value > 1.0:
+        comparator = "[0, 1]" if allow_zero else "(0, 1]"
+        raise ValueError(f"{name} must be in {comparator}")
+    return value
+
+
+def require_unit_interval_list(name: str, values: list[float], allow_zero: bool = False) -> list[float]:
+    require_unique_list(name, values)
+    for value in values:
+        require_unit_interval(name, float(value), allow_zero=allow_zero)
+    return values
+
+
+def leak_tau_condition_name(tau_ms: float) -> str:
+    return f"explicit_leak_tau{format(float(tau_ms), 'g').replace('.', 'p')}"
+
+
+def ensure_close_member(values: list[float], target: float) -> list[float]:
+    if any(np.isclose(float(target), float(value)) for value in values):
+        return list(values)
+    return sorted([*values, float(target)])
+
+
+def default_output_dir(script_path: Path) -> Path:
+    resolved_script = script_path.resolve()
+    project_root = find_project_root(resolved_script)
+    simulations_root = (project_root / "neuroloc" / "simulations").resolve()
+    try:
+        relative_parent = resolved_script.parent.relative_to(simulations_root)
+    except ValueError:
+        relative_parent = Path("misc") / resolved_script.parent.name
+    return project_root / "neuroloc" / "output" / "simulation_runs" / relative_parent / resolved_script.stem
+
+
+def output_dir_for(script_path: Path) -> Path:
+    raw = os.environ.get("SIM_OUTPUT_DIR")
+    output_dir = Path(raw).resolve() if raw else default_output_dir(script_path)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    return output_dir
+
+
 def child_seed(rng: np.random.Generator) -> int:
     return int(rng.integers(0, np.iinfo(np.uint32).max, dtype=np.uint32))
 
@@ -86,7 +319,22 @@ def sanitize_json(value: Any) -> Any:
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
-    path.write_text(json.dumps(sanitize_json(payload), indent=2) + "\n", encoding="utf-8")
+    assert_finite_payload(payload)
+    normalized_payload = sanitize_json(payload)
+    artifact_entries = None
+    if isinstance(normalized_payload, dict) and normalized_payload.get("schema_version") == SCHEMA_VERSION:
+        artifact_entries = [dict(artifact) for artifact in normalized_payload.get("artifacts", [])]
+        normalized_payload = normalize_artifacts(normalized_payload, metrics_path=path, artifact_entries=artifact_entries)
+        validate_run_record(normalized_payload)
+    tmp_path = _json_path(path)
+    tmp_path.write_text(json.dumps(normalized_payload, indent=2) + "\n", encoding="utf-8")
+    tmp_path.replace(path)
+    if isinstance(normalized_payload, dict) and normalized_payload.get("schema_version") == SCHEMA_VERSION:
+        enriched_payload = normalize_artifacts(normalized_payload, metrics_path=path, artifact_entries=artifact_entries)
+        validate_run_record(enriched_payload)
+        tmp_path = _json_path(path)
+        tmp_path.write_text(json.dumps(sanitize_json(enriched_payload), indent=2) + "\n", encoding="utf-8")
+        tmp_path.replace(path)
 
 
 def parameter_hash(parameters: dict[str, Any]) -> str:
@@ -275,35 +523,34 @@ def build_run_record(
         "parameter_hash": parameter_hash(parameters),
         "seed_numpy": seed_numpy,
         "numpy_bit_generator": np.random.default_rng(seed_numpy).bit_generator.__class__.__name__,
-        "n_trials": n_trials,
+        "n_trials_requested": int(n_trials),
     }
     if extra_configuration:
         configuration.update(extra_configuration)
-    return sanitize_json(
-        {
-            "schema_version": SCHEMA_VERSION,
-            "run": {
-                "run_id": f"{simulation_name}_{started_at_utc.replace(':', '').replace('-', '').replace('T', '_').replace('Z', '')}",
-                "simulation_name": simulation_name,
-                "status": status,
-                "started_at_utc": started_at_utc,
-                "finished_at_utc": finished_at_utc,
-                "duration_sec": duration_sec,
-            },
-            "environment": {
-                "python_version": sys.version.split()[0],
-                "numpy_version": np.__version__,
-                "scipy_version": scipy.__version__,
-                "platform": platform.platform(),
-                "cpu": platform.processor() or None,
-                "script_path": relative_to_root(script_path, project_root),
-                **git_info,
-            },
-            "configuration": configuration,
-            "summary": summary,
-            "statistics": statistics,
-            "trials": trials,
-            "artifacts": artifacts,
-            "warnings": warnings,
-        }
-    )
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "run": {
+            "run_id": f"{simulation_name}_{started_at_utc.replace(':', '').replace('-', '').replace('T', '_').replace('Z', '')}",
+            "simulation_name": simulation_name,
+            "status": status,
+            "started_at_utc": started_at_utc,
+            "finished_at_utc": finished_at_utc,
+            "duration_sec": duration_sec,
+            "trial_record_count": len(trials),
+        },
+        "environment": {
+            "python_version": sys.version.split()[0],
+            "numpy_version": np.__version__,
+            "scipy_version": scipy.__version__,
+            "platform": platform.platform(),
+            "cpu": platform.processor() or None,
+            "script_path": relative_to_root(script_path, project_root),
+            **git_info,
+        },
+        "configuration": configuration,
+        "summary": summary,
+        "statistics": statistics,
+        "trials": trials,
+        "artifacts": artifacts,
+        "warnings": warnings,
+    }

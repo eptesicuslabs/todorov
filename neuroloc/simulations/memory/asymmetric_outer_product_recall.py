@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import sys
 import time
 from pathlib import Path
@@ -16,22 +15,41 @@ from shared import (
     build_rng,
     build_run_record,
     child_rng,
+    env_float,
+    env_int,
+    env_list,
+    output_dir_for,
     mean_confidence_interval,
     paired_difference_stats,
+    require_non_negative,
+    require_non_negative_list,
+    require_positive,
+    require_positive_list,
+    require_unit_interval,
+    require_unit_interval_list,
     utc_now_iso,
     write_json,
 )
 
 SCRIPT_PATH = Path(__file__).resolve()
-SEED = int(os.environ.get("ASYM_SEED", "42"))
-HEAD_DIM = int(os.environ.get("ASYM_HEAD_DIM", "64"))
-PATTERN_COUNTS = [int(value) for value in os.environ.get("ASYM_PATTERN_COUNTS", "8,16,32,48").split(",") if value.strip()]
-QUERY_NOISE_LEVELS = [float(value) for value in os.environ.get("ASYM_QUERY_NOISE", "0.0,0.1,0.2").split(",") if value.strip()]
-DECAY_VALUES = [float(value) for value in os.environ.get("ASYM_DECAYS", "0.4,0.8,0.95").split(",") if value.strip()]
-TRIALS = int(os.environ.get("ASYM_TRIALS", "24"))
-WRITE_GATE = float(os.environ.get("ASYM_WRITE_GATE", "1.0"))
-TOPK_FRACTION = float(os.environ.get("ASYM_TOPK_FRACTION", "0.2"))
-TERNARY_ALPHA = float(os.environ.get("ASYM_TERNARY_ALPHA", "1.0"))
+SEED = env_int("ASYM_SEED", 42)
+HEAD_DIM = env_int("ASYM_HEAD_DIM", 64)
+PATTERN_COUNTS = env_list("ASYM_PATTERN_COUNTS", int, [8, 16, 32, 48])
+QUERY_NOISE_LEVELS = env_list("ASYM_QUERY_NOISE", float, [0.0, 0.1, 0.2])
+DECAY_VALUES = env_list("ASYM_DECAYS", float, [0.4, 0.8, 0.95])
+TRIALS = env_int("ASYM_TRIALS", 24)
+WRITE_GATE = env_float("ASYM_WRITE_GATE", 1.0)
+TOPK_FRACTION = env_float("ASYM_TOPK_FRACTION", 0.2)
+TERNARY_ALPHA = env_float("ASYM_TERNARY_ALPHA", 1.0)
+
+require_positive("ASYM_HEAD_DIM", HEAD_DIM)
+require_positive_list("ASYM_PATTERN_COUNTS", PATTERN_COUNTS)
+require_non_negative_list("ASYM_QUERY_NOISE", QUERY_NOISE_LEVELS)
+require_unit_interval_list("ASYM_DECAYS", DECAY_VALUES, allow_zero=True)
+require_positive("ASYM_TRIALS", TRIALS)
+require_non_negative("ASYM_WRITE_GATE", WRITE_GATE)
+require_unit_interval("ASYM_TOPK_FRACTION", TOPK_FRACTION)
+require_positive("ASYM_TERNARY_ALPHA", TERNARY_ALPHA)
 
 ENCODING_SPECS = [
     {"name": "identity_all", "label": "identity", "q": "identity", "k": "identity", "v": "identity"},
@@ -137,13 +155,9 @@ def query_state(state, query_vec):
     return query_vec @ state
 
 
-def trial_record(rng, pattern_count, query_noise, decay, erasure, spec):
-    keys_raw = normalize_rows(rng.standard_normal((pattern_count, HEAD_DIM)))
-    values_raw = normalize_rows(rng.standard_normal((pattern_count, HEAD_DIM)))
+def trial_record(keys_raw, values_raw, target_idx, noisy_query, pattern_count, query_noise, decay, erasure, spec, scenario_id):
     keys, values, key_params, _, query_params = encode_trial(keys_raw, values_raw, spec)
     state = build_state(keys, values, decay, WRITE_GATE, erasure)
-    target_idx = int(rng.integers(0, pattern_count))
-    noisy_query = keys_raw[target_idx] + query_noise * rng.standard_normal(HEAD_DIM)
     query = normalize_rows(apply_encoder(noisy_query, spec["q"], query_params))
     output = query_state(state, query)
     raw_cosines = [cosine_similarity(output, candidate) for candidate in values_raw]
@@ -153,6 +167,7 @@ def trial_record(rng, pattern_count, query_noise, decay, erasure, spec):
     sorted_raw = np.sort(np.asarray(raw_cosines))[::-1]
     margin = float(sorted_raw[0] - sorted_raw[1]) if sorted_raw.size > 1 else float(sorted_raw[0])
     return {
+        "scenario_id": scenario_id,
         "encoding": spec["name"],
         "encoding_label": spec["label"],
         "pattern_count": int(pattern_count),
@@ -194,6 +209,31 @@ def filter_metric(records, metric_name, **filters):
     return values
 
 
+def paired_metric(records, metric_name, left_encoding, right_encoding, **filters):
+    left = {}
+    right = {}
+    for record in records:
+        matches = True
+        for key, expected in filters.items():
+            value = record[key]
+            if isinstance(expected, float):
+                if not np.isclose(float(value), expected):
+                    matches = False
+                    break
+            else:
+                if value != expected:
+                    matches = False
+                    break
+        if not matches:
+            continue
+        if record["encoding"] == left_encoding:
+            left[record["scenario_id"]] = float(record[metric_name])
+        elif record["encoding"] == right_encoding:
+            right[record["scenario_id"]] = float(record[metric_name])
+    scenario_ids = sorted(set(left) & set(right))
+    return [left[item] for item in scenario_ids], [right[item] for item in scenario_ids]
+
+
 def summarize_by_encoding(records, metric_name, **filters):
     summary = {}
     for spec in ENCODING_SPECS:
@@ -227,15 +267,35 @@ def main():
         for erasure in (False, True):
             for pattern_count in PATTERN_COUNTS:
                 for query_noise in QUERY_NOISE_LEVELS:
-                    for spec in ENCODING_SPECS:
-                        for trial_id in range(TRIALS):
-                            trial_rng = child_rng(rng)
-                            record = trial_record(trial_rng, pattern_count, query_noise, decay, erasure, spec)
+                    for trial_id in range(TRIALS):
+                        trial_rng = child_rng(rng)
+                        keys_raw = normalize_rows(trial_rng.standard_normal((pattern_count, HEAD_DIM)))
+                        values_raw = normalize_rows(trial_rng.standard_normal((pattern_count, HEAD_DIM)))
+                        target_idx = int(trial_rng.integers(0, pattern_count))
+                        noisy_query = keys_raw[target_idx] + query_noise * trial_rng.standard_normal(HEAD_DIM)
+                        scenario_id = (
+                            f"p{pattern_count}_q{query_noise:.4f}_d{decay:.4f}_e{int(erasure)}_t{trial_id}"
+                        )
+                        for spec in ENCODING_SPECS:
+                            record = trial_record(
+                                keys_raw,
+                                values_raw,
+                                target_idx,
+                                noisy_query,
+                                pattern_count,
+                                query_noise,
+                                decay,
+                                erasure,
+                                spec,
+                                scenario_id,
+                            )
                             record["trial_id"] = int(trial_id)
                             all_records.append(record)
 
-    figure_path = SCRIPT_PATH.parent / "asymmetric_outer_product_recall.png"
-    metrics_path = SCRIPT_PATH.parent / "asymmetric_outer_product_recall_metrics.json"
+    output_dir = output_dir_for(SCRIPT_PATH)
+
+    figure_path = output_dir / "asymmetric_outer_product_recall.png"
+    metrics_path = output_dir / "asymmetric_outer_product_recall_metrics.json"
 
     base_decay = 0.4 if any(np.isclose(DECAY_VALUES, 0.4)) else float(DECAY_VALUES[0])
     base_count = 32 if 32 in PATTERN_COUNTS else int(PATTERN_COUNTS[min(len(PATTERN_COUNTS) - 1, 1)])
@@ -370,7 +430,7 @@ def main():
             }
             for spec in ENCODING_SPECS
         ),
-        key=lambda item: -float("-inf") if item["raw_cosine_mean"] is None else item["raw_cosine_mean"],
+        key=lambda item: float("-inf") if item["raw_cosine_mean"] is None else item["raw_cosine_mean"],
     )
 
     threshold_hits = []
@@ -394,19 +454,11 @@ def main():
                     }
                 )
 
-    dense_key_sparse_value = filter_metric(
+    sparse_key_sparse_value, dense_key_sparse_value = paired_metric(
         all_records,
         "raw_cosine",
-        encoding="dense_key_topk20_value",
-        pattern_count=base_count,
-        query_noise=base_noise,
-        decay=base_decay,
-        erasure=False,
-    )
-    sparse_key_sparse_value = filter_metric(
-        all_records,
-        "raw_cosine",
-        encoding="topk20_all",
+        "topk20_all",
+        "dense_key_topk20_value",
         pattern_count=base_count,
         query_noise=base_noise,
         decay=base_decay,
@@ -425,15 +477,18 @@ def main():
         "selected_exact_query_top1": selected_top1,
         "best_exact_query_encoding": best_exact,
         "threshold_hits": threshold_hits,
-        "dense_key_vs_sparse_key_topk": paired_difference_stats(
-            sparse_key_sparse_value,
-            dense_key_sparse_value,
-            SEED,
-        ) if dense_key_sparse_value and sparse_key_sparse_value else None,
         "exact_query_series": exact_series,
         "noise_series": noise_series,
         "decay_series": decay_series,
     }
+
+    statistics = {}
+    if dense_key_sparse_value and sparse_key_sparse_value:
+        statistics["dense_key_vs_sparse_key_topk"] = paired_difference_stats(
+            sparse_key_sparse_value,
+            dense_key_sparse_value,
+            SEED,
+        )
 
     finished = utc_now_iso()
     duration = time.time() - t0
@@ -458,11 +513,11 @@ def main():
         seed_numpy=SEED,
         n_trials=len(all_records),
         summary=summary,
-        statistics={},
+        statistics=statistics,
         trials=all_records,
         artifacts=[
-            {"name": "asymmetric_outer_product_recall.png", "type": "figure"},
-            {"name": "asymmetric_outer_product_recall_metrics.json", "type": "metrics"},
+            {"path": figure_path.as_posix(), "type": "figure"},
+            {"path": metrics_path.as_posix(), "type": "metrics"},
         ],
         warnings=[
             "synthetic gaussian keys and values, not trained activations",

@@ -12,20 +12,38 @@ from shared import (
     build_rng,
     build_run_record,
     child_rng,
-    mean_confidence_interval,
-    paired_difference_stats,
+    env_float,
+    env_int,
+    env_list,
+    independent_difference_stats,
+    output_dir_for,
+    require_positive,
+    require_positive_list,
+    require_unit_interval,
     utc_now_iso,
     write_json,
 )
 
 SCRIPT_PATH = Path(__file__).resolve()
-SEED = 42
-NETWORK_SIZES = [200, 500, 1000, 2000]
-LOAD_FACTORS = [0.02, 0.05, 0.08, 0.10, 0.138, 0.20, 0.30]
-CORRUPTION = 0.05
-TRIALS = 30
-MAX_ITERS = 50
-TERNARY_FIRING_RATE = 0.41
+SEED = env_int("CAPACITY_SEED", 42)
+NETWORK_SIZES = env_list("CAPACITY_NETWORK_SIZES", int, [200, 500, 1000, 2000])
+LOAD_FACTORS = env_list("CAPACITY_LOAD_FACTORS", float, [0.02, 0.05, 0.08, 0.10, 0.138, 0.20, 0.30])
+CORRUPTION = env_float("CAPACITY_CORRUPTION", 0.05)
+TRIALS = env_int("CAPACITY_TRIALS", 30)
+MAX_ITERS = env_int("CAPACITY_MAX_ITERS", 50)
+TERNARY_FIRING_RATE = env_float("CAPACITY_TERNARY_FIRING_RATE", 0.41)
+TARGET_ALPHA = env_float("CAPACITY_TARGET_ALPHA", 0.138)
+
+if not any(np.isclose(alpha, TARGET_ALPHA) for alpha in LOAD_FACTORS):
+    LOAD_FACTORS = sorted([*LOAD_FACTORS, TARGET_ALPHA])
+
+require_positive_list("CAPACITY_NETWORK_SIZES", NETWORK_SIZES)
+require_positive_list("CAPACITY_LOAD_FACTORS", LOAD_FACTORS)
+require_unit_interval("CAPACITY_CORRUPTION", CORRUPTION, allow_zero=True)
+require_positive("CAPACITY_TRIALS", TRIALS)
+require_positive("CAPACITY_MAX_ITERS", MAX_ITERS)
+require_unit_interval("CAPACITY_TERNARY_FIRING_RATE", TERNARY_FIRING_RATE, allow_zero=True)
+require_positive("CAPACITY_TARGET_ALPHA", TARGET_ALPHA)
 
 
 def generate_binary_patterns(rng, n, p):
@@ -115,6 +133,7 @@ def exact_match(retrieved, original):
 
 def run_capacity_sweep(rng, n, load_factors, pattern_type, corruption, trials, max_iters):
     results = []
+    trial_records = []
     for alpha in load_factors:
         p = max(1, int(alpha * n))
         exact_matches = []
@@ -143,6 +162,16 @@ def run_capacity_sweep(rng, n, load_factors, pattern_type, corruption, trials, m
 
             exact_matches.append(exact_match(retrieved, original))
             overlaps.append(overlap(retrieved, original))
+            trial_records.append({
+                "n": n,
+                "alpha": float(alpha),
+                "p": p,
+                "pattern_type": pattern_type,
+                "corruption": float(corruption),
+                "trial_id": int(t),
+                "exact_retrieval": float(exact_matches[-1]),
+                "overlap": float(overlaps[-1]),
+            })
 
         results.append({
             "n": n,
@@ -159,7 +188,7 @@ def run_capacity_sweep(rng, n, load_factors, pattern_type, corruption, trials, m
 
         print(f"  n={n} alpha={alpha:.3f} p={p} {pattern_type}: exact={np.mean(exact_matches):.3f} overlap={np.mean(overlaps):.3f}")
 
-    return results
+    return results, trial_records
 
 
 def main():
@@ -171,18 +200,23 @@ def main():
     rng = build_rng(SEED)
 
     all_results = []
+    trial_records = []
 
     for n in NETWORK_SIZES:
         print(f"network size n={n}")
-        binary_results = run_capacity_sweep(
+        binary_results, binary_trials = run_capacity_sweep(
             child_rng(rng), n, LOAD_FACTORS, "binary", CORRUPTION, TRIALS, MAX_ITERS
         )
         all_results.extend(binary_results)
+        trial_records.extend(binary_trials)
 
-        ternary_results = run_capacity_sweep(
+        ternary_results, ternary_trials = run_capacity_sweep(
             child_rng(rng), n, LOAD_FACTORS, "ternary", CORRUPTION, TRIALS, MAX_ITERS
         )
         all_results.extend(ternary_results)
+        trial_records.extend(ternary_trials)
+
+    output_dir = output_dir_for(SCRIPT_PATH)
 
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
@@ -191,7 +225,7 @@ def main():
         alphas = [r["alpha"] for r in all_results if r["n"] == n and r["pattern_type"] == "binary"]
         exacts = [r["exact_retrieval_mean"] for r in all_results if r["n"] == n and r["pattern_type"] == "binary"]
         ax1.plot(alphas, exacts, marker="o", label=f"n={n}")
-    ax1.axvline(x=0.138, color="red", linestyle="--", alpha=0.5, label="0.138N theoretical")
+    ax1.axvline(x=TARGET_ALPHA, color="red", linestyle="--", alpha=0.5, label=f"target alpha={TARGET_ALPHA:.3f}")
     ax1.set_xlabel("load factor (p/n)")
     ax1.set_ylabel("exact retrieval rate")
     ax1.set_title("binary patterns: capacity curve")
@@ -202,7 +236,7 @@ def main():
         alphas = [r["alpha"] for r in all_results if r["n"] == n and r["pattern_type"] == "ternary"]
         exacts = [r["exact_retrieval_mean"] for r in all_results if r["n"] == n and r["pattern_type"] == "ternary"]
         ax2.plot(alphas, exacts, marker="o", label=f"n={n}")
-    ax2.axvline(x=0.138, color="red", linestyle="--", alpha=0.5, label="0.138N theoretical")
+    ax2.axvline(x=TARGET_ALPHA, color="red", linestyle="--", alpha=0.5, label=f"target alpha={TARGET_ALPHA:.3f}")
     ax2.set_xlabel("load factor (p/n)")
     ax2.set_ylabel("exact retrieval rate")
     ax2.set_title("ternary patterns (41% fr): capacity curve")
@@ -213,7 +247,7 @@ def main():
         alphas = [r["alpha"] for r in all_results if r["n"] == n and r["pattern_type"] == "binary"]
         ovlps = [r["overlap_mean"] for r in all_results if r["n"] == n and r["pattern_type"] == "binary"]
         ax3.plot(alphas, ovlps, marker="o", label=f"n={n}")
-    ax3.axvline(x=0.138, color="red", linestyle="--", alpha=0.5)
+    ax3.axvline(x=TARGET_ALPHA, color="red", linestyle="--", alpha=0.5)
     ax3.set_xlabel("load factor (p/n)")
     ax3.set_ylabel("mean overlap")
     ax3.set_title("binary patterns: overlap vs load")
@@ -224,30 +258,43 @@ def main():
         alphas = [r["alpha"] for r in all_results if r["n"] == n and r["pattern_type"] == "ternary"]
         ovlps = [r["overlap_mean"] for r in all_results if r["n"] == n and r["pattern_type"] == "ternary"]
         ax4.plot(alphas, ovlps, marker="o", label=f"n={n}")
-    ax4.axvline(x=0.138, color="red", linestyle="--", alpha=0.5)
+    ax4.axvline(x=TARGET_ALPHA, color="red", linestyle="--", alpha=0.5)
     ax4.set_xlabel("load factor (p/n)")
     ax4.set_ylabel("mean overlap")
     ax4.set_title("ternary patterns (41% fr): overlap vs load")
     ax4.legend(fontsize=8)
 
     plt.tight_layout()
-    fig_path = SCRIPT_PATH.parent / "capacity_scaling.png"
+    fig_path = output_dir / "capacity_scaling.png"
     plt.savefig(fig_path)
     plt.close()
 
-    binary_at_014 = [r for r in all_results if r["pattern_type"] == "binary" and abs(r["alpha"] - 0.138) < 0.001]
-    ternary_at_014 = [r for r in all_results if r["pattern_type"] == "ternary" and abs(r["alpha"] - 0.138) < 0.001]
+    binary_at_target = [r for r in all_results if r["pattern_type"] == "binary" and abs(r["alpha"] - TARGET_ALPHA) < 1e-6]
+    ternary_at_target = [r for r in all_results if r["pattern_type"] == "ternary" and abs(r["alpha"] - TARGET_ALPHA) < 1e-6]
 
     summary = {
-        "binary_at_0138": {n: next((r["exact_retrieval_mean"] for r in binary_at_014 if r["n"] == n), None) for n in NETWORK_SIZES},
-        "ternary_at_0138": {n: next((r["exact_retrieval_mean"] for r in ternary_at_014 if r["n"] == n), None) for n in NETWORK_SIZES},
+        "target_alpha": float(TARGET_ALPHA),
+        "binary_at_target_alpha": {n: next((r["exact_retrieval_mean"] for r in binary_at_target if r["n"] == n), None) for n in NETWORK_SIZES},
+        "ternary_at_target_alpha": {n: next((r["exact_retrieval_mean"] for r in ternary_at_target if r["n"] == n), None) for n in NETWORK_SIZES},
     }
 
-    if binary_at_014 and ternary_at_014:
-        b_vals = [r["exact_retrieval_mean"] for r in binary_at_014]
-        t_vals = [r["exact_retrieval_mean"] for r in ternary_at_014]
-        if len(b_vals) == len(t_vals):
-            summary["binary_vs_ternary_at_0138"] = paired_difference_stats(t_vals, b_vals, SEED)
+    statistics = {}
+    binary_exact_trials = [
+        record["exact_retrieval"]
+        for record in trial_records
+        if record["pattern_type"] == "binary" and abs(record["alpha"] - TARGET_ALPHA) < 1e-6
+    ]
+    ternary_exact_trials = [
+        record["exact_retrieval"]
+        for record in trial_records
+        if record["pattern_type"] == "ternary" and abs(record["alpha"] - TARGET_ALPHA) < 1e-6
+    ]
+    if binary_exact_trials and ternary_exact_trials:
+        statistics["binary_vs_ternary_at_target_alpha"] = independent_difference_stats(
+            binary_exact_trials,
+            ternary_exact_trials,
+            SEED,
+        )
 
     finished = utc_now_iso()
     duration = time.time() - t0
@@ -265,15 +312,16 @@ def main():
             "trials": TRIALS,
             "max_iters": MAX_ITERS,
             "ternary_firing_rate": TERNARY_FIRING_RATE,
+            "target_alpha": TARGET_ALPHA,
         },
         seed_numpy=SEED,
-        n_trials=len(all_results),
+        n_trials=len(trial_records),
         summary=summary,
-        statistics={},
-        trials=all_results,
+        statistics=statistics,
+        trials=trial_records,
         artifacts=[
-            {"name": "capacity_scaling.png", "type": "figure"},
-            {"name": "capacity_scaling_metrics.json", "type": "metrics"},
+            {"path": fig_path.as_posix(), "type": "figure"},
+            {"path": (output_dir / "capacity_scaling_metrics.json").as_posix(), "type": "metrics"},
         ],
         warnings=[
             "ternary retrieval uses calibrated theta; results depend on calibration quality",
@@ -281,12 +329,12 @@ def main():
         ],
     )
 
-    metrics_path = SCRIPT_PATH.parent / "capacity_scaling_metrics.json"
+    metrics_path = output_dir / "capacity_scaling_metrics.json"
     write_json(metrics_path, record)
 
     print(f"\ndone in {duration:.1f}s")
-    print(f"binary at alpha=0.138: {summary['binary_at_0138']}")
-    print(f"ternary at alpha=0.138: {summary['ternary_at_0138']}")
+    print(f"binary at alpha={TARGET_ALPHA:.3f}: {summary['binary_at_target_alpha']}")
+    print(f"ternary at alpha={TARGET_ALPHA:.3f}: {summary['ternary_at_target_alpha']}")
 
 
 if __name__ == "__main__":

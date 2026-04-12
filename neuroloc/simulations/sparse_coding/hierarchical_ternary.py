@@ -12,20 +12,33 @@ from shared import (
     build_rng,
     build_run_record,
     child_rng,
+    env_int,
+    env_list,
     discrete_mutual_information,
     linear_cka,
     mean_confidence_interval,
+    output_dir_for,
     paired_difference_stats,
+    require_positive,
+    require_positive_list,
+    require_unit_interval_list,
     utc_now_iso,
     write_json,
 )
 
 SCRIPT_PATH = Path(__file__).resolve()
-SEED = 42
-D_VALUES = [64, 128, 256]
-K_FRACTIONS = [0.05, 0.10, 0.20, 0.41]
-N_SAMPLES = 256
-TRIALS = 16
+SEED = env_int("HTERN_SEED", 42)
+D_VALUES = env_list("HTERN_D_VALUES", int, [64, 128, 256])
+K_FRACTIONS = env_list("HTERN_K_FRACTIONS", float, [0.05, 0.10, 0.20, 0.41])
+N_SAMPLES = env_int("HTERN_N_SAMPLES", 256)
+TRIALS = env_int("HTERN_TRIALS", 16)
+
+require_positive_list("HTERN_D_VALUES", D_VALUES)
+require_unit_interval_list("HTERN_K_FRACTIONS", K_FRACTIONS)
+require_positive("HTERN_N_SAMPLES", N_SAMPLES)
+require_positive("HTERN_TRIALS", TRIALS)
+if all(np.isclose(k_fraction, 0.41) for k_fraction in K_FRACTIONS):
+    raise ValueError("HTERN_K_FRACTIONS must include at least one non-0.41 fraction")
 
 
 def standard_ternary(x, alpha=1.0):
@@ -89,17 +102,14 @@ def main():
     all_trials = []
 
     for d in D_VALUES:
-        for k_frac in K_FRACTIONS:
-            for trial in range(TRIALS):
-                trial_rng = child_rng(rng)
-                x = trial_rng.standard_normal((N_SAMPLES, d))
-
-                q_standard = standard_ternary(x)
+        for trial in range(TRIALS):
+            trial_rng = child_rng(rng)
+            x = trial_rng.standard_normal((N_SAMPLES, d))
+            q_standard = standard_ternary(x)
+            m_std = compute_metrics(x, q_standard)
+            for k_frac in K_FRACTIONS:
                 q_hierarchical = hierarchical_ternary(x, k_frac)
-
-                m_std = compute_metrics(x, q_standard)
                 m_hier = compute_metrics(x, q_hierarchical)
-
                 all_trials.append({
                     "d": d,
                     "k_fraction": k_frac,
@@ -113,6 +123,8 @@ def main():
                     "hierarchical_fr": m_hier["firing_rate"],
                     "hierarchical_bpd": m_hier["bits_per_dim"],
                 })
+
+    output_dir = output_dir_for(SCRIPT_PATH)
 
     fig, axes = plt.subplots(1, 3, figsize=(16, 5))
 
@@ -150,27 +162,43 @@ def main():
     ax3.legend()
 
     plt.tight_layout()
-    fig_path = SCRIPT_PATH.parent / "hierarchical_ternary.png"
+    fig_path = output_dir / "hierarchical_ternary.png"
     plt.savefig(fig_path)
     plt.close()
 
     summary = {}
     paired_stats = {}
-    for k in [0.05, 0.10, 0.20]:
-        std_mi = [t["standard_mi"] for t in all_trials if t["k_fraction"] == 0.41 and t["d"] == 256]
-        hier_mi = [t["hierarchical_mi"] for t in all_trials if t["k_fraction"] == k and t["d"] == 256]
-        std_cka = [t["standard_cka"] for t in all_trials if t["k_fraction"] == 0.41 and t["d"] == 256]
-        hier_cka = [t["hierarchical_cka"] for t in all_trials if t["k_fraction"] == k and t["d"] == 256]
+    reference_dimension = 256 if 256 in D_VALUES else max(D_VALUES)
+    standard_anchor_fraction = float(K_FRACTIONS[0])
+    selected_k_values = [k for k in K_FRACTIONS if not np.isclose(k, 0.41)]
+    for k in selected_k_values:
+        reference_records = [t for t in all_trials if np.isclose(t["k_fraction"], k) and t["d"] == reference_dimension]
+        std_mi = [t["standard_mi"] for t in reference_records]
+        hier_mi = [t["hierarchical_mi"] for t in reference_records]
+        std_cka = [t["standard_cka"] for t in reference_records]
+        hier_cka = [t["hierarchical_cka"] for t in reference_records]
         if std_mi and hier_mi:
             paired_stats[f"mi_k{k}_vs_standard"] = paired_difference_stats(std_mi, hier_mi, SEED)
         if std_cka and hier_cka:
             paired_stats[f"cka_k{k}_vs_standard"] = paired_difference_stats(std_cka, hier_cka, SEED)
-        summary[f"k{k}_d256_mi"] = mean_confidence_interval(hier_mi)
-        summary[f"k{k}_d256_cka"] = mean_confidence_interval(hier_cka)
-        summary[f"k{k}_d256_bpd"] = mean_confidence_interval([t["hierarchical_bpd"] for t in all_trials if t["k_fraction"] == k and t["d"] == 256])
+        summary[f"k{k}_reference_mi"] = mean_confidence_interval(hier_mi)
+        summary[f"k{k}_reference_cka"] = mean_confidence_interval(hier_cka)
+        summary[f"k{k}_reference_bpd"] = mean_confidence_interval([t["hierarchical_bpd"] for t in reference_records])
 
-    summary["standard_d256_mi"] = mean_confidence_interval([t["standard_mi"] for t in all_trials if t["k_fraction"] == 0.41 and t["d"] == 256])
-    summary["standard_d256_cka"] = mean_confidence_interval([t["standard_cka"] for t in all_trials if t["k_fraction"] == 0.41 and t["d"] == 256])
+    if selected_k_values:
+        selected_fraction = float(selected_k_values[0])
+        selected_records = [t for t in all_trials if np.isclose(t["k_fraction"], selected_fraction) and t["d"] == reference_dimension]
+        summary["selected_hierarchical_fraction"] = selected_fraction
+        summary["selected_hierarchical_reference_mi"] = mean_confidence_interval([t["hierarchical_mi"] for t in selected_records])
+        summary["selected_hierarchical_reference_cka"] = mean_confidence_interval([t["hierarchical_cka"] for t in selected_records])
+
+    summary["reference_dimension"] = int(reference_dimension)
+    summary["standard_reference_mi"] = mean_confidence_interval(
+        [t["standard_mi"] for t in all_trials if np.isclose(t["k_fraction"], standard_anchor_fraction) and t["d"] == reference_dimension]
+    )
+    summary["standard_reference_cka"] = mean_confidence_interval(
+        [t["standard_cka"] for t in all_trials if np.isclose(t["k_fraction"], standard_anchor_fraction) and t["d"] == reference_dimension]
+    )
 
     finished = utc_now_iso()
     duration = time.time() - t0
@@ -186,6 +214,7 @@ def main():
             "k_fractions": K_FRACTIONS,
             "n_samples": N_SAMPLES,
             "trials": TRIALS,
+            "reference_dimension": reference_dimension,
         },
         seed_numpy=SEED,
         n_trials=len(all_trials),
@@ -193,20 +222,20 @@ def main():
         statistics=paired_stats,
         trials=all_trials,
         artifacts=[
-            {"name": "hierarchical_ternary.png", "type": "figure"},
-            {"name": "hierarchical_ternary_metrics.json", "type": "metrics"},
+            {"path": fig_path.as_posix(), "type": "figure"},
+            {"path": (output_dir / "hierarchical_ternary_metrics.json").as_posix(), "type": "metrics"},
         ],
         warnings=["synthetic gaussian data, not trained model activations"],
     )
 
-    metrics_path = SCRIPT_PATH.parent / "hierarchical_ternary_metrics.json"
+    metrics_path = output_dir / "hierarchical_ternary_metrics.json"
     write_json(metrics_path, record)
 
     print(f"done in {duration:.1f}s, {len(all_trials)} trials")
     for k in K_FRACTIONS:
-        mi = np.mean([t["hierarchical_mi"] for t in all_trials if t["k_fraction"] == k and t["d"] == 256])
-        cka = np.mean([t["hierarchical_cka"] for t in all_trials if t["k_fraction"] == k and t["d"] == 256])
-        bpd = np.mean([t["hierarchical_bpd"] for t in all_trials if t["k_fraction"] == k and t["d"] == 256])
+        mi = np.mean([t["hierarchical_mi"] for t in all_trials if t["k_fraction"] == k and t["d"] == reference_dimension])
+        cka = np.mean([t["hierarchical_cka"] for t in all_trials if t["k_fraction"] == k and t["d"] == reference_dimension])
+        bpd = np.mean([t["hierarchical_bpd"] for t in all_trials if t["k_fraction"] == k and t["d"] == reference_dimension])
         print(f"  k={k:.2f}: MI={mi:.4f} CKA={cka:.4f} bits/dim={bpd:.3f}")
 
 
