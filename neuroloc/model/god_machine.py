@@ -38,6 +38,11 @@ try:
 except Exception:
     chunk_simple_gla = None
 
+try:
+    from fla.ops import fused_chunk_simple_gla
+except Exception:
+    fused_chunk_simple_gla = None
+
 
 def _select_device() -> torch.device:
     if not torch.cuda.is_available():
@@ -747,15 +752,16 @@ class SlotMemory(nn.Module):
 
         g_per_step = log_alpha_per_head.view(1, 1, self.nh).expand(B, T, self.nh).to(x.dtype).contiguous()
 
+        fla_fn = fused_chunk_simple_gla if fused_chunk_simple_gla is not None else chunk_simple_gla
         can_use_fla = (
-            chunk_simple_gla is not None
+            fla_fn is not None
             and q.is_cuda
             and (slot_state.abs().sum() == 0)
             and T > 1
         )
 
         if can_use_fla:
-            read_out, final_state = chunk_simple_gla(
+            read_out, final_state = fla_fn(
                 q=w_read.contiguous(),
                 k=w_write.contiguous(),
                 v=v.contiguous(),
