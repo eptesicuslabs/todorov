@@ -43,6 +43,11 @@ try:
 except Exception:
     fused_chunk_simple_gla = None
 
+try:
+    from fla.ops import fused_recurrent_simple_gla
+except Exception:
+    fused_recurrent_simple_gla = None
+
 
 def _select_device() -> torch.device:
     if not torch.cuda.is_available():
@@ -752,7 +757,7 @@ class SlotMemory(nn.Module):
 
         g_per_step = log_alpha_per_head.view(1, 1, self.nh).expand(B, T, self.nh).to(x.dtype).contiguous()
 
-        fla_fn = fused_chunk_simple_gla if fused_chunk_simple_gla is not None else chunk_simple_gla
+        fla_fn = fused_recurrent_simple_gla
         can_use_fla = (
             fla_fn is not None
             and q.is_cuda
