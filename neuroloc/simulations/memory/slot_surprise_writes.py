@@ -94,7 +94,8 @@ def synthesize_stream(
 
 def surprise_score(key: np.ndarray, anchor: np.ndarray) -> float:
     overlap = float(key @ anchor)
-    return 1.0 - max(-1.0, min(1.0, overlap))
+    clipped = max(-1.0, min(1.0, overlap))
+    return (1.0 - clipped) / 2.0
 
 
 def slot_write_and_retrieve(
@@ -113,6 +114,7 @@ def slot_write_and_retrieve(
     slot_values = np.zeros((slot_count, dim), dtype=np.float64)
     slot_age = np.zeros(slot_count, dtype=np.int64)
     slot_active = np.zeros(slot_count, dtype=bool)
+    slot_holds_target = np.zeros(slot_count, dtype=bool)
     write_count = 0
     target_slot: int | None = None
     total_steps = target_position + intervening_distance + 1
@@ -133,15 +135,18 @@ def slot_write_and_retrieve(
             slot_values[chosen] = current_value
             slot_age[chosen] = 0
             slot_active[chosen] = True
+            slot_holds_target[chosen] = False
             write_count += 1
             if t == target_position:
                 target_slot = chosen
+                slot_holds_target[chosen] = True
     if target_slot is None:
         return {
             "retrieved": False,
             "write_count": write_count,
             "target_cosine": float("nan"),
             "target_exact": 0,
+            "target_evicted": False,
         }
     query = keys[target_position]
     scores = slot_keys @ query
@@ -156,6 +161,7 @@ def slot_write_and_retrieve(
             "write_count": write_count,
             "target_cosine": 0.0,
             "target_exact": 0,
+            "target_evicted": not bool(slot_holds_target[target_slot]),
         }
     weights = weights / total
     output = weights @ slot_values
@@ -164,13 +170,17 @@ def slot_write_and_retrieve(
     target_norm = max(float(np.linalg.norm(target_value)), EPS)
     cosine = float(output @ target_value / (output_norm * target_norm))
     top_slot = int(np.argmax(weights))
-    target_slot_survived = slot_active[target_slot] and np.argmax(weights) == target_slot
+    target_exact = bool(
+        bool(slot_holds_target[target_slot])
+        and int(top_slot) == int(target_slot)
+    )
     return {
         "retrieved": True,
         "write_count": write_count,
         "target_cosine": cosine,
-        "target_exact": int(target_slot_survived),
+        "target_exact": int(target_exact),
         "target_slot_final_age": int(slot_age[target_slot]) if slot_active[target_slot] else -1,
+        "target_evicted": not bool(slot_holds_target[target_slot]),
     }
 
 
@@ -183,21 +193,28 @@ def evaluate_cell(
     tau: float,
     temperature: float,
     trial_count: int,
-) -> list[dict[str, Any]]:
+) -> tuple[list[dict[str, Any]], dict[str, int]]:
     records: list[dict[str, Any]] = []
+    skipped_no_surprise = 0
+    skipped_insufficient_distance = 0
+    skipped_unretrieved = 0
+    evicted_count = 0
+    leading_headroom = max(64, intervening_distance // 2)
     for trial in range(trial_count):
         trial_rng = child_rng(rng)
         anchor = sample_unit_vectors(trial_rng, 1, head_dim)[0]
-        total_length = intervening_distance + 16
+        total_length = intervening_distance + leading_headroom
         keys, values, is_surprising = synthesize_stream(
             trial_rng, anchor, total_length, predictable_fraction
         )
         surprising_positions = np.where(is_surprising)[0]
         if len(surprising_positions) == 0:
+            skipped_no_surprise += 1
             continue
         target_position = int(surprising_positions[0])
         available_distance = total_length - 1 - target_position
         if available_distance < intervening_distance:
+            skipped_insufficient_distance += 1
             continue
         result = slot_write_and_retrieve(
             keys,
@@ -211,7 +228,10 @@ def evaluate_cell(
             temperature,
         )
         if not result["retrieved"]:
+            skipped_unretrieved += 1
             continue
+        if result.get("target_evicted", False):
+            evicted_count += 1
         records.append(
             {
                 "trial": trial,
@@ -224,9 +244,16 @@ def evaluate_cell(
                 "write_count": int(result["write_count"]),
                 "target_cosine": float(result["target_cosine"]),
                 "target_exact": int(result["target_exact"]),
+                "target_evicted": int(bool(result.get("target_evicted", False))),
             }
         )
-    return records
+    skips = {
+        "no_surprise": skipped_no_surprise,
+        "insufficient_distance": skipped_insufficient_distance,
+        "unretrieved": skipped_unretrieved,
+        "evicted_counted_in_records": evicted_count,
+    }
+    return records, skips
 
 
 def format_value(value: float) -> str:
@@ -339,13 +366,19 @@ def main() -> dict[str, Any]:
     start_wall = time.time()
     rng = build_rng(SEED)
     trial_records: list[dict[str, Any]] = []
+    skip_totals = {
+        "no_surprise": 0,
+        "insufficient_distance": 0,
+        "unretrieved": 0,
+        "evicted_counted_in_records": 0,
+    }
     for head_dim in HEAD_DIMS:
         for slots in SLOT_COUNTS:
             for distance in INTERVENING_DISTANCES:
                 for predictable in PREDICTABLE_FRACTIONS:
                     for tau in SURPRISE_TAUS:
                         cell_rng = child_rng(rng)
-                        records = evaluate_cell(
+                        records, skips = evaluate_cell(
                             cell_rng,
                             int(head_dim),
                             int(slots),
@@ -356,6 +389,8 @@ def main() -> dict[str, Any]:
                             int(TRIALS),
                         )
                         trial_records.extend(records)
+                        for key_name in skip_totals:
+                            skip_totals[key_name] += int(skips.get(key_name, 0))
     summary = build_summary(trial_records)
     finished_at = utc_now_iso()
     duration = time.time() - start_wall
@@ -390,8 +425,28 @@ def main() -> dict[str, Any]:
         "pass_predictable": float(PASS_PREDICTABLE),
         "pass_tau": float(PASS_TAU),
     }
-    statistics = {"elapsed_seconds": duration, "trial_record_count": len(trial_records)}
+    statistics = {
+        "elapsed_seconds": duration,
+        "trial_record_count": len(trial_records),
+        "skip_totals": skip_totals,
+    }
     warnings: list[str] = []
+    if skip_totals["no_surprise"] > 0:
+        warnings.append(
+            f"skipped {skip_totals['no_surprise']} trials: no surprising token appeared in the stream"
+        )
+    if skip_totals["insufficient_distance"] > 0:
+        warnings.append(
+            f"skipped {skip_totals['insufficient_distance']} trials: target position too late for requested intervening distance"
+        )
+    if skip_totals["unretrieved"] > 0:
+        warnings.append(
+            f"skipped {skip_totals['unretrieved']} trials: target not written before retrieval"
+        )
+    if skip_totals["evicted_counted_in_records"] > 0:
+        warnings.append(
+            f"target slot was evicted in {skip_totals['evicted_counted_in_records']} recorded trials; target_evicted flag set per record"
+        )
     record = build_run_record(
         simulation_name="slot_surprise_writes",
         script_path=SCRIPT_PATH,

@@ -13,7 +13,7 @@ def test_surprise_score_anchor_self_is_near_zero() -> None:
     assert slot_surprise_writes.surprise_score(anchor, anchor) == pytest.approx(0.0, abs=1e-10)
 
 
-def test_surprise_score_orthogonal_is_one() -> None:
+def test_surprise_score_orthogonal_is_half() -> None:
     rng = np.random.default_rng(1)
     anchor = slot_surprise_writes.sample_unit_vectors(rng, 1, 64)[0]
     orthogonal = np.zeros(64)
@@ -21,6 +21,13 @@ def test_surprise_score_orthogonal_is_one() -> None:
     orthogonal = orthogonal - (orthogonal @ anchor) * anchor
     orthogonal = orthogonal / np.linalg.norm(orthogonal)
     score = slot_surprise_writes.surprise_score(orthogonal, anchor)
+    assert score == pytest.approx(0.5, abs=1e-10)
+
+
+def test_surprise_score_antiparallel_is_one() -> None:
+    rng = np.random.default_rng(11)
+    anchor = slot_surprise_writes.sample_unit_vectors(rng, 1, 64)[0]
+    score = slot_surprise_writes.surprise_score(-anchor, anchor)
     assert score == pytest.approx(1.0, abs=1e-10)
 
 
