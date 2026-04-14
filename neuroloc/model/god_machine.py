@@ -118,6 +118,12 @@ class Config:
 
     use_fla_if_available: bool = True
 
+    slot_num_slots: int = 64
+    slot_log_temperature_init: float = -2.3
+    slot_surprise_tau: float = 0.1
+    slot_gate_init: float = -4.0
+    slot_predict_rank: int = 8
+
     lr: float = 3e-4
     weight_decay: float = 0.1
     beta1: float = 0.9
@@ -652,6 +658,154 @@ class DeltaRuleMemory(nn.Module):
         return out, new_state, aux
 
 
+class SlotMemory(nn.Module):
+
+    def __init__(self, cfg: Config) -> None:
+        super().__init__()
+        self.cfg = cfg
+        d = cfg.d_model
+        self.nh = cfg.delta_num_heads
+        self.hd = cfg.delta_head_dim
+        self.num_slots = int(cfg.slot_num_slots)
+        self.surprise_tau = float(cfg.slot_surprise_tau)
+        self.inner = self.nh * self.hd
+
+        self.q = nn.Linear(d, self.inner, bias=False)
+        self.k = nn.Linear(d, self.inner, bias=False)
+        self.v = nn.Linear(d, self.inner, bias=False)
+        self.o = nn.Linear(self.inner, d, bias=False)
+
+        self.rope = RotaryPE(self.hd)
+
+        self.log_temperature = nn.Parameter(
+            torch.full((self.nh,), float(cfg.slot_log_temperature_init))
+        )
+        self.output_gate_logit = nn.Parameter(
+            torch.full((self.nh,), float(cfg.slot_gate_init))
+        )
+
+        self.predict_rank = max(1, int(cfg.slot_predict_rank))
+        self.predict_down = nn.Linear(d, self.predict_rank, bias=False)
+        self.predict_up = nn.Linear(self.predict_rank, d, bias=False)
+        nn.init.normal_(self.predict_down.weight, std=0.02)
+        nn.init.normal_(self.predict_up.weight, std=0.02)
+
+    def _empty_state(self, batch: int, device: torch.device, dtype: torch.dtype) -> dict[str, Tensor]:
+        return {
+            "slot_keys": torch.zeros(batch, self.nh, self.num_slots, self.hd, device=device, dtype=dtype),
+            "slot_values": torch.zeros(batch, self.nh, self.num_slots, self.hd, device=device, dtype=dtype),
+            "slot_age": torch.zeros(batch, self.nh, self.num_slots, device=device, dtype=torch.float32),
+            "slot_active": torch.zeros(batch, self.nh, self.num_slots, device=device, dtype=torch.float32),
+            "prev_hidden": torch.zeros(batch, self.cfg.d_model, device=device, dtype=dtype),
+        }
+
+    def _surprise(self, current: Tensor, predicted: Tensor) -> Tensor:
+        residual = current - predicted
+        residual_sq = residual.float().pow(2).sum(dim=-1)
+        current_sq = current.float().pow(2).sum(dim=-1).clamp(min=1e-6)
+        ratio = (residual_sq / current_sq).clamp(min=0.0, max=1.0)
+        return ratio
+
+    def forward(
+        self,
+        x: Tensor,
+        state: Any = None,
+        offset: int = 0,
+    ) -> tuple[Tensor, Any, dict]:
+        B, T, _ = x.shape
+        aux: dict = {}
+
+        if state is None:
+            state = self._empty_state(B, x.device, x.dtype)
+        slot_keys = state["slot_keys"]
+        slot_values = state["slot_values"]
+        slot_age = state["slot_age"]
+        slot_active = state["slot_active"]
+        prev_hidden = state["prev_hidden"]
+
+        q = self.q(x).view(B, T, self.nh, self.hd)
+        k = self.k(x).view(B, T, self.nh, self.hd)
+        v = self.v(x).view(B, T, self.nh, self.hd)
+
+        cos, sin = self.rope(T, offset, x.device)
+        cos_h = cos.unsqueeze(0).unsqueeze(0).to(x.dtype)
+        sin_h = sin.unsqueeze(0).unsqueeze(0).to(x.dtype)
+        q = rotary_apply(q.transpose(1, 2), cos_h, sin_h).transpose(1, 2)
+        k = rotary_apply(k.transpose(1, 2), cos_h, sin_h).transpose(1, 2)
+
+        q_norm = F.normalize(q.float(), p=2, dim=-1).to(x.dtype)
+        k_norm = F.normalize(k.float(), p=2, dim=-1).to(x.dtype)
+
+        temperature_per_head = torch.exp(self.log_temperature).clamp(min=1e-3)
+        gate = torch.sigmoid(self.output_gate_logit).view(1, 1, self.nh, 1)
+
+        write_fraction_sum = torch.zeros((), device=x.device, dtype=torch.float32)
+        write_count = torch.zeros((), device=x.device, dtype=torch.float32)
+        outputs: list[Tensor] = []
+        for t in range(T):
+            current_hidden = x[:, t, :]
+            predicted = self.predict_up(self.predict_down(prev_hidden))
+            surprise_scalar = self._surprise(current_hidden, predicted)
+            write_mask = (surprise_scalar >= self.surprise_tau).float()
+            write_fraction_sum = write_fraction_sum + write_mask.sum()
+            write_count = write_count + float(B)
+
+            q_t = q_norm[:, t]
+            k_t = k_norm[:, t]
+            v_t = v[:, t]
+
+            slot_age = slot_age + 1.0
+            active_mask = slot_active
+            key_scores = torch.einsum("bhd,bhnd->bhn", q_t, slot_keys)
+            scaled_scores = key_scores / temperature_per_head.view(1, self.nh, 1)
+            masked_scores = scaled_scores + (active_mask - 1.0) * 1e4
+            weights = F.softmax(masked_scores, dim=-1)
+            weights = weights * (active_mask.sum(dim=-1, keepdim=True) > 0.0).float()
+            read_out = torch.einsum("bhn,bhnd->bhd", weights, slot_values)
+
+            outputs.append(read_out.unsqueeze(2))
+
+            write_mask_3d = write_mask.view(B, 1, 1)
+            inactive_score = (1.0 - active_mask) * 1e6 + slot_age
+            chosen = torch.argmax(inactive_score, dim=-1)
+            chosen_onehot = F.one_hot(chosen, num_classes=self.num_slots).float()
+            final_write = chosen_onehot * write_mask_3d
+            slot_keys = slot_keys * (1.0 - final_write.unsqueeze(-1)) + final_write.unsqueeze(-1) * k_t.unsqueeze(2)
+            slot_values = slot_values * (1.0 - final_write.unsqueeze(-1)) + final_write.unsqueeze(-1) * v_t.unsqueeze(2)
+            slot_active = torch.clamp(slot_active + final_write, max=1.0)
+            slot_age = slot_age * (1.0 - final_write)
+
+            prev_hidden = current_hidden
+
+        out_stacked = torch.cat(outputs, dim=2)
+        out_thd = out_stacked.transpose(1, 2).reshape(B, T, self.inner)
+        gated = out_thd.view(B, T, self.nh, self.hd) * gate
+        out = self.o(gated.reshape(B, T, self.inner))
+
+        new_state = {
+            "slot_keys": slot_keys.detach() if not self.training else slot_keys,
+            "slot_values": slot_values.detach() if not self.training else slot_values,
+            "slot_age": slot_age.detach(),
+            "slot_active": slot_active.detach(),
+            "prev_hidden": prev_hidden.detach(),
+        }
+
+        aux["slot_active_fraction"] = slot_active.float().mean().detach()
+        aux["slot_write_fraction"] = (write_fraction_sum / write_count.clamp(min=1.0)).detach()
+        aux["slot_gate_mean"] = gate.mean().detach()
+        aux["slot_log_temperature_mean"] = self.log_temperature.mean().detach()
+        aux["slot_age_max"] = slot_age.max().detach()
+        aux["slot_age_mean"] = slot_age.mean().detach()
+        aux["delta_path"] = torch.tensor(2.0, device=x.device)
+        aux["delta_erasure_flag"] = torch.tensor(0.0, device=x.device)
+        aux["alpha_base_mean"] = torch.zeros((), device=x.device)
+        aux["alpha_eff_mean"] = torch.zeros((), device=x.device)
+        aux["beta_mean"] = torch.zeros((), device=x.device)
+        aux["state_frobenius"] = slot_values.float().norm(dim=(-1, -2)).mean().detach()
+
+        return out, new_state, aux
+
+
 class CompressedAttention(nn.Module):
 
     def __init__(self, cfg: Config) -> None:
@@ -770,6 +924,8 @@ class Block(nn.Module):
             self.mixer = DeltaRuleMemory(cfg)
         elif layer_type == "ATTN":
             self.mixer = CompressedAttention(cfg)
+        elif layer_type == "SLOT":
+            self.mixer = SlotMemory(cfg)
         else:
             raise ValueError(f"unknown layer type: {layer_type}")
         if cfg.multi_compartment_enabled:
@@ -2951,6 +3107,10 @@ def smoke_test() -> None:
             assert s is not None, f"delta layer {i} returned None state in recurrent mode"
         elif layer_type == "ATTN":
             assert s is not None, f"attn layer {i} returned None cache"
+        elif layer_type == "SLOT":
+            assert isinstance(s, dict), f"slot layer {i} returned non-dict state {type(s)}"
+            for required_key in ("slot_keys", "slot_values", "slot_age", "slot_active", "prev_hidden"):
+                assert required_key in s, f"slot layer {i} missing state key {required_key}"
     log("smoke test single-token recurrent ok")
 
     prompt = b"hello"
