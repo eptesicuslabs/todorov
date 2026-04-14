@@ -123,6 +123,7 @@ class Config:
     slot_surprise_tau: float = 0.1
     slot_gate_init: float = -4.0
     slot_predict_rank: int = 8
+    slot_prediction_lambda: float = 1e-3
 
     lr: float = 3e-4
     weight_decay: float = 0.1
@@ -690,6 +691,12 @@ class SlotMemory(nn.Module):
         nn.init.normal_(self.predict_down.weight, std=0.02)
         nn.init.normal_(self.predict_up.weight, std=0.02)
 
+        self.default_key = nn.Parameter(torch.randn(self.nh, self.hd) * 0.02)
+        self.default_value = nn.Parameter(torch.randn(self.nh, self.hd) * 0.02)
+
+        self.surprise_predict_k = nn.Linear(self.inner, self.inner, bias=False)
+        nn.init.normal_(self.surprise_predict_k.weight, std=0.02)
+
     def _empty_state(self, batch: int, device: torch.device, dtype: torch.dtype) -> dict[str, Tensor]:
         return {
             "slot_keys": torch.zeros(batch, self.nh, self.num_slots, self.hd, device=device, dtype=dtype),
@@ -741,31 +748,48 @@ class SlotMemory(nn.Module):
 
         write_fraction_sum = torch.zeros((), device=x.device, dtype=torch.float32)
         write_count = torch.zeros((), device=x.device, dtype=torch.float32)
+        prediction_loss_sum = torch.zeros((), device=x.device, dtype=torch.float32)
+        prediction_loss_count = torch.zeros((), device=x.device, dtype=torch.float32)
         outputs: list[Tensor] = []
+        default_key_broadcast = self.default_key.unsqueeze(0).unsqueeze(2).expand(B, self.nh, 1, self.hd)
+        default_value_broadcast = self.default_value.unsqueeze(0).unsqueeze(2).expand(B, self.nh, 1, self.hd)
         for t in range(T):
             current_hidden = x[:, t, :]
             predicted = self.predict_up(self.predict_down(prev_hidden))
-            surprise_scalar = self._surprise(current_hidden, predicted)
-            write_mask = (surprise_scalar >= self.surprise_tau).float()
-            write_fraction_sum = write_fraction_sum + write_mask.sum()
-            write_count = write_count + float(B)
+            prediction_residual = current_hidden - predicted
+            prediction_loss_sum = prediction_loss_sum + prediction_residual.float().pow(2).mean()
+            prediction_loss_count = prediction_loss_count + 1.0
 
             q_t = q_norm[:, t]
             k_t = k_norm[:, t]
             v_t = v[:, t]
+            predicted_k_flat = self.surprise_predict_k(prev_hidden).view(B, self.nh, self.hd)
+            predicted_k = F.normalize(predicted_k_flat.float(), p=2, dim=-1).to(x.dtype)
+            k_residual = k_t - predicted_k
+            head_residual_sq = k_residual.float().pow(2).sum(dim=-1)
+            head_k_sq = k_t.float().pow(2).sum(dim=-1).clamp(min=1e-6)
+            surprise_per_head = (head_residual_sq / head_k_sq).clamp(min=0.0, max=1.0)
+            write_mask = (surprise_per_head >= self.surprise_tau).float()
+            write_fraction_sum = write_fraction_sum + write_mask.sum()
+            write_count = write_count + float(B * self.nh)
+            prediction_loss_sum = prediction_loss_sum + (predicted_k - k_t.detach()).float().pow(2).mean()
+            prediction_loss_count = prediction_loss_count + 1.0
 
             slot_age = slot_age + 1.0
             active_mask = slot_active
-            key_scores = torch.einsum("bhd,bhnd->bhn", q_t, slot_keys)
+            slot_keys_full = torch.cat([slot_keys, default_key_broadcast], dim=2)
+            slot_values_full = torch.cat([slot_values, default_value_broadcast], dim=2)
+            default_active = torch.ones(B, self.nh, 1, device=x.device, dtype=active_mask.dtype)
+            active_full = torch.cat([active_mask, default_active], dim=2)
+            key_scores = torch.einsum("bhd,bhnd->bhn", q_t, slot_keys_full)
             scaled_scores = key_scores / temperature_per_head.view(1, self.nh, 1)
-            masked_scores = scaled_scores + (active_mask - 1.0) * 1e4
+            masked_scores = scaled_scores + (active_full - 1.0) * 1e4
             weights = F.softmax(masked_scores, dim=-1)
-            weights = weights * (active_mask.sum(dim=-1, keepdim=True) > 0.0).float()
-            read_out = torch.einsum("bhn,bhnd->bhd", weights, slot_values)
+            read_out = torch.einsum("bhn,bhnd->bhd", weights, slot_values_full)
 
             outputs.append(read_out.unsqueeze(2))
 
-            write_mask_3d = write_mask.view(B, 1, 1)
+            write_mask_3d = write_mask.unsqueeze(-1)
             inactive_score = (1.0 - active_mask) * 1e6 + slot_age
             chosen = torch.argmax(inactive_score, dim=-1)
             chosen_onehot = F.one_hot(chosen, num_classes=self.num_slots).float()
@@ -796,6 +820,8 @@ class SlotMemory(nn.Module):
         aux["slot_log_temperature_mean"] = self.log_temperature.mean().detach()
         aux["slot_age_max"] = slot_age.max().detach()
         aux["slot_age_mean"] = slot_age.mean().detach()
+        prediction_loss = prediction_loss_sum / prediction_loss_count.clamp(min=1.0)
+        aux["slot_prediction_loss"] = prediction_loss
         aux["delta_path"] = torch.tensor(2.0, device=x.device)
         aux["delta_erasure_flag"] = torch.tensor(0.0, device=x.device)
         aux["alpha_base_mean"] = torch.zeros((), device=x.device)
@@ -1263,6 +1289,21 @@ def aggregate_pc_loss(aux: dict, device: torch.device | None = None) -> Tensor:
         pc = layer_aux.get("pc_error_l2")
         if isinstance(pc, Tensor) and pc.requires_grad:
             total = pc if total is None else (total + pc)
+            count += 1
+    if total is None or count == 0:
+        return torch.zeros((), device=device if device is not None else torch.device("cpu"))
+    return total / float(count)
+
+
+def aggregate_slot_prediction_loss(aux: dict, device: torch.device | None = None) -> Tensor:
+    total = None
+    count = 0
+    for layer_aux in aux.values():
+        if not isinstance(layer_aux, dict):
+            continue
+        sp = layer_aux.get("slot_prediction_loss")
+        if isinstance(sp, Tensor) and sp.requires_grad:
+            total = sp if total is None else (total + sp)
             count += 1
     if total is None or count == 0:
         return torch.zeros((), device=device if device is not None else torch.device("cpu"))
@@ -2025,7 +2066,8 @@ def train_model(
                         target.reshape(-1),
                     )
                     pc_loss_val = aggregate_pc_loss(aux, device=main_loss.device)
-                    loss = main_loss + cfg.pc_lambda * pc_loss_val
+                    slot_pred_loss_val = aggregate_slot_prediction_loss(aux, device=main_loss.device)
+                    loss = main_loss + cfg.pc_lambda * pc_loss_val + cfg.slot_prediction_lambda * slot_pred_loss_val
                     loss_scaled = loss / cfg.grad_accum_steps if cfg.grad_accum_steps > 1 else loss
 
                 loss_val = loss.detach().float().item()
@@ -2765,6 +2807,71 @@ def _test_fla_vs_recurrent_parity() -> None:
         _run_fla_parity_variant("fla vs recurrent, erasure=off, bcm=on", bcm_alpha=True, seed=54324, delta_erasure=False)
     else:
         log("  skipping no-erasure parity variants: chunk_simple_gla not available")
+
+
+def _test_slot_memory_parity() -> None:
+    log("slot memory parity test (cpu, no cuda required)")
+    torch.manual_seed(98765)
+    test_cfg = Config(
+        d_model=64,
+        n_layers=1,
+        delta_num_heads=2,
+        delta_head_dim=32,
+        attn_d_c=16,
+        attn_d_R=8,
+        attn_num_heads=2,
+        mlp_ratio=2.0,
+        layer_pattern=("SLOT",),
+        kwta_enabled=False,
+        delta_erasure_enabled=False,
+        bcm_alpha_enabled=False,
+        imagination_enabled=False,
+        pc_diagnostic_enabled=False,
+        multi_compartment_enabled=False,
+        use_fla_if_available=False,
+        slot_num_slots=8,
+        slot_log_temperature_init=-2.3,
+        slot_surprise_tau=0.0,
+        slot_gate_init=0.0,
+        batch_size=1,
+        seq_len=8,
+        max_steps=1,
+        warmup_steps=1,
+        val_interval=100,
+        grad_checkpointing=False,
+        amp=False,
+    )
+    layer = SlotMemory(test_cfg)
+    layer.train(False)
+    B, T, D = 1, 5, test_cfg.d_model
+    unique_patterns = torch.randn(T, D)
+    unique_patterns = unique_patterns / unique_patterns.norm(dim=-1, keepdim=True).clamp(min=1e-6)
+    x = unique_patterns.unsqueeze(0)
+    with torch.no_grad():
+        out_write, state_after_write, aux_write = layer(x)
+        log(
+            "  write pass: "
+            f"slot_write_fraction={float(aux_write['slot_write_fraction'].item()):.3f}, "
+            f"slot_active_fraction={float(aux_write['slot_active_fraction'].item()):.3f}, "
+            f"slot_gate_mean={float(aux_write['slot_gate_mean'].item()):.3f}"
+        )
+        out_read, _, aux_read = layer(x, state=state_after_write, offset=T)
+    active_after_write = float(aux_write["slot_active_fraction"].item())
+    if active_after_write <= 0.0:
+        raise AssertionError(
+            f"slot memory parity: no slots active after write pass (active_fraction={active_after_write})"
+        )
+    read_norm = float(out_read.norm(dim=-1).mean().item())
+    if read_norm <= 1e-4:
+        raise AssertionError(
+            f"slot memory parity: read output norm collapsed to {read_norm:.4e}; slot memory returning zeros"
+        )
+    log(
+        "  read pass: "
+        f"read_out mean norm={read_norm:.4f}, "
+        f"slot_active_fraction={float(aux_read['slot_active_fraction'].item()):.3f}"
+    )
+    log("slot memory parity ok (slots active after writes, read produces non-zero output)")
 
 
 def _test_alpha_eff_math() -> None:
