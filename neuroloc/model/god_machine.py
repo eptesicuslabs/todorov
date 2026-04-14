@@ -3253,11 +3253,13 @@ def smoke_test() -> None:
     _test_alpha_eff_math()
     _test_delta_equivalence()
     _test_fla_vs_recurrent_parity()
+    _test_slot_memory_parity()
     _test_resume_correctness()
 
     _smoke_preset_baseline("run4_erasure_ablation")
     _smoke_preset_baseline("run1_baseline_noerasure")
     _smoke_preset_baseline("run1a_retention_ablation")
+    _smoke_preset_baseline("run2_slot_memory")
 
     log("all smoke checks passed")
 
@@ -3305,6 +3307,25 @@ def _resolve_preset(preset: str) -> tuple[dict[str, Any], str, str]:
             },
             "preset: run1a_retention_ablation (dense k/v, no overwrite subtraction, non-FLA path, slower static retention target ~0.90, all other features off)",
             "run1a_retention_ablation",
+        )
+    if preset == "run2_slot_memory":
+        slot_pattern = tuple(
+            "SLOT" if lt == "DELTA" else lt
+            for lt in ("DELTA", "DELTA", "DELTA", "DELTA", "DELTA", "DELTA", "ATTN")
+        )
+        return (
+            {
+                "kwta_enabled": False,
+                "delta_erasure_enabled": False,
+                "use_fla_if_available": False,
+                "bcm_alpha_enabled": False,
+                "multi_compartment_enabled": False,
+                "imagination_enabled": False,
+                "pc_diagnostic_enabled": False,
+                "layer_pattern": slot_pattern,
+            },
+            "preset: run2_slot_memory (slot memory with softmax addressing replacing delta layers, compressed attention preserved, all other features off)",
+            "run2_slot_memory",
         )
     if preset == "god":
         return ({}, "preset: god (default god_machine config)", "god_run")
@@ -3545,7 +3566,7 @@ def _smoke_preset_baseline(preset_name: str) -> None:
     erasure_enabled = bool(preset_overrides.get("delta_erasure_enabled", False))
     preset_desc = "erasure on" if erasure_enabled else "no erasure"
     log(f"smoke test {preset_name} preset (all features off, dense k/v, {preset_desc})")
-    cfg = Config(
+    base_kwargs: dict[str, Any] = dict(
         d_model=64,
         n_layers=4,
         vocab_size=256,
@@ -3556,7 +3577,6 @@ def _smoke_preset_baseline(preset_name: str) -> None:
         attn_d_R=8,
         attn_num_heads=2,
         mlp_ratio=2.0,
-        layer_pattern=("DELTA", "DELTA", "DELTA", "ATTN"),
         batch_size=2,
         seq_len=32,
         max_steps=5,
@@ -3564,8 +3584,14 @@ def _smoke_preset_baseline(preset_name: str) -> None:
         val_interval=100,
         grad_checkpointing=False,
         amp=False,
-        **preset_overrides,
+        slot_num_slots=8,
     )
+    if "layer_pattern" not in preset_overrides:
+        base_kwargs["layer_pattern"] = ("DELTA", "DELTA", "DELTA", "ATTN")
+    base_kwargs.update(preset_overrides)
+    preset_pattern = base_kwargs["layer_pattern"]
+    base_kwargs["n_layers"] = len(preset_pattern)
+    cfg = Config(**base_kwargs)
     torch.manual_seed(cfg.seed)
     model = GodMachine(cfg)
     input_ids = torch.randint(0, cfg.vocab_size, (2, 32))
