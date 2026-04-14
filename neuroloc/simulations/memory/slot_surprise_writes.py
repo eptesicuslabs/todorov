@@ -66,12 +66,12 @@ def sample_unit_vectors(rng: np.random.Generator, count: int, dim: int) -> np.nd
 
 def synthesize_stream(
     rng: np.random.Generator,
+    anchor: np.ndarray,
     length: int,
-    dim: int,
     predictable_fraction: float,
     surprise_level: float = 1.0,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    anchor = sample_unit_vectors(rng, 1, dim)[0]
+    dim = int(anchor.shape[0])
     keys = np.zeros((length, dim), dtype=np.float64)
     values = np.zeros((length, dim), dtype=np.float64)
     is_surprising = np.zeros(length, dtype=bool)
@@ -190,7 +190,7 @@ def evaluate_cell(
         anchor = sample_unit_vectors(trial_rng, 1, head_dim)[0]
         total_length = intervening_distance + 16
         keys, values, is_surprising = synthesize_stream(
-            trial_rng, total_length, head_dim, predictable_fraction
+            trial_rng, anchor, total_length, predictable_fraction
         )
         surprising_positions = np.where(is_surprising)[0]
         if len(surprising_positions) == 0:
