@@ -685,33 +685,24 @@ class SlotMemory(nn.Module):
             torch.full((self.nh,), float(cfg.slot_gate_init))
         )
 
+        self.prototype_keys = nn.Parameter(torch.randn(self.nh, self.num_slots, self.hd) * 0.02)
+
         self.predict_rank = max(1, int(cfg.slot_predict_rank))
         self.predict_down = nn.Linear(d, self.predict_rank, bias=False)
         self.predict_up = nn.Linear(self.predict_rank, d, bias=False)
         nn.init.normal_(self.predict_down.weight, std=0.02)
         nn.init.normal_(self.predict_up.weight, std=0.02)
 
-        self.default_key = nn.Parameter(torch.randn(self.nh, self.hd) * 0.02)
-        self.default_value = nn.Parameter(torch.randn(self.nh, self.hd) * 0.02)
-
-        self.surprise_predict_k = nn.Linear(self.inner, self.inner, bias=False)
-        nn.init.normal_(self.surprise_predict_k.weight, std=0.02)
+        self.alpha_log = nn.Parameter(
+            torch.full((self.nh,), float(cfg.alpha_log_mean))
+        )
 
     def _empty_state(self, batch: int, device: torch.device, dtype: torch.dtype) -> dict[str, Tensor]:
+        state_dtype = torch.float32 if dtype == torch.float32 else dtype
         return {
-            "slot_keys": torch.zeros(batch, self.nh, self.num_slots, self.hd, device=device, dtype=dtype),
-            "slot_values": torch.zeros(batch, self.nh, self.num_slots, self.hd, device=device, dtype=dtype),
-            "slot_age": torch.zeros(batch, self.nh, self.num_slots, device=device, dtype=torch.float32),
-            "slot_active": torch.zeros(batch, self.nh, self.num_slots, device=device, dtype=torch.float32),
+            "slot_state": torch.zeros(batch, self.nh, self.num_slots, self.hd, device=device, dtype=state_dtype),
             "prev_hidden": torch.zeros(batch, self.cfg.d_model, device=device, dtype=dtype),
         }
-
-    def _surprise(self, current: Tensor, predicted: Tensor) -> Tensor:
-        residual = current - predicted
-        residual_sq = residual.float().pow(2).sum(dim=-1)
-        current_sq = current.float().pow(2).sum(dim=-1).clamp(min=1e-6)
-        ratio = (residual_sq / current_sq).clamp(min=0.0, max=1.0)
-        return ratio
 
     def forward(
         self,
@@ -724,10 +715,7 @@ class SlotMemory(nn.Module):
 
         if state is None:
             state = self._empty_state(B, x.device, x.dtype)
-        slot_keys = state["slot_keys"]
-        slot_values = state["slot_values"]
-        slot_age = state["slot_age"]
-        slot_active = state["slot_active"]
+        slot_state = state["slot_state"]
         prev_hidden = state["prev_hidden"]
 
         q = self.q(x).view(B, T, self.nh, self.hd)
@@ -740,96 +728,92 @@ class SlotMemory(nn.Module):
         q = rotary_apply(q.transpose(1, 2), cos_h, sin_h).transpose(1, 2)
         k = rotary_apply(k.transpose(1, 2), cos_h, sin_h).transpose(1, 2)
 
-        q_norm = F.normalize(q.float(), p=2, dim=-1).to(x.dtype)
-        k_norm = F.normalize(k.float(), p=2, dim=-1).to(x.dtype)
-
         temperature_per_head = torch.exp(self.log_temperature).clamp(min=1e-3)
         gate = torch.sigmoid(self.output_gate_logit).view(1, 1, self.nh, 1)
+        log_alpha_per_head = F.logsigmoid(self.alpha_log)
 
-        write_fraction_sum = torch.zeros((), device=x.device, dtype=torch.float32)
-        write_count = torch.zeros((), device=x.device, dtype=torch.float32)
-        prediction_loss_sum = torch.zeros((), device=x.device, dtype=torch.float32)
-        prediction_loss_count = torch.zeros((), device=x.device, dtype=torch.float32)
-        outputs: list[Tensor] = []
-        default_key_broadcast = self.default_key.unsqueeze(0).unsqueeze(2).expand(B, self.nh, 1, self.hd)
-        default_value_broadcast = self.default_value.unsqueeze(0).unsqueeze(2).expand(B, self.nh, 1, self.hd)
-        for t in range(T):
-            current_hidden = x[:, t, :]
-            predicted = self.predict_up(self.predict_down(prev_hidden))
-            prediction_residual = current_hidden - predicted
-            prediction_loss_sum = prediction_loss_sum + prediction_residual.float().pow(2).mean()
-            prediction_loss_count = prediction_loss_count + 1.0
+        shifted_prev = torch.cat([prev_hidden.unsqueeze(1), x[:, :-1, :]], dim=1)
+        predicted_hidden = self.predict_up(self.predict_down(shifted_prev))
+        prediction_loss = (predicted_hidden - x).float().pow(2).mean()
+        residual_sq = (x - predicted_hidden).float().pow(2).sum(dim=-1)
+        hidden_sq = x.float().pow(2).sum(dim=-1).clamp(min=1e-6)
+        surprise_per_token = (residual_sq / hidden_sq).clamp(min=0.0, max=1.0)
 
-            q_t = q_norm[:, t]
-            k_t = k_norm[:, t]
-            v_t = v[:, t]
-            predicted_k_flat = self.surprise_predict_k(prev_hidden).view(B, self.nh, self.hd)
-            predicted_k = F.normalize(predicted_k_flat.float(), p=2, dim=-1).to(x.dtype)
-            k_residual = k_t - predicted_k
-            head_residual_sq = k_residual.float().pow(2).sum(dim=-1)
-            head_k_sq = k_t.float().pow(2).sum(dim=-1).clamp(min=1e-6)
-            surprise_per_head = (head_residual_sq / head_k_sq).clamp(min=0.0, max=1.0)
-            write_mask = (surprise_per_head >= self.surprise_tau).float()
-            write_fraction_sum = write_fraction_sum + write_mask.sum()
-            write_count = write_count + float(B * self.nh)
-            prediction_loss_sum = prediction_loss_sum + (predicted_k - k_t.detach()).float().pow(2).mean()
-            prediction_loss_count = prediction_loss_count + 1.0
+        k_logits = torch.einsum("bthd,hnd->bthn", k, self.prototype_keys) / temperature_per_head.view(1, 1, self.nh, 1)
+        q_logits = torch.einsum("bthd,hnd->bthn", q, self.prototype_keys) / temperature_per_head.view(1, 1, self.nh, 1)
+        w_write = F.softmax(k_logits, dim=-1)
+        w_read = F.softmax(q_logits, dim=-1)
+        w_write = w_write * surprise_per_token.unsqueeze(-1).unsqueeze(-1).to(w_write.dtype)
 
-            slot_age = slot_age + 1.0
-            active_mask = slot_active
-            slot_keys_full = torch.cat([slot_keys, default_key_broadcast], dim=2)
-            slot_values_full = torch.cat([slot_values, default_value_broadcast], dim=2)
-            default_active = torch.ones(B, self.nh, 1, device=x.device, dtype=active_mask.dtype)
-            active_full = torch.cat([active_mask, default_active], dim=2)
-            key_scores = torch.einsum("bhd,bhnd->bhn", q_t, slot_keys_full)
-            scaled_scores = key_scores / temperature_per_head.view(1, self.nh, 1)
-            masked_scores = scaled_scores + (active_full - 1.0) * 1e4
-            weights = F.softmax(masked_scores, dim=-1)
-            read_out = torch.einsum("bhn,bhnd->bhd", weights, slot_values_full)
+        g_per_step = log_alpha_per_head.view(1, 1, self.nh).expand(B, T, self.nh).to(x.dtype).contiguous()
 
-            outputs.append(read_out.unsqueeze(2))
+        can_use_fla = (
+            chunk_simple_gla is not None
+            and q.is_cuda
+            and (slot_state.abs().sum() == 0)
+            and T > 1
+        )
 
-            write_mask_3d = write_mask.unsqueeze(-1)
-            inactive_score = (1.0 - active_mask) * 1e6 + slot_age
-            chosen = torch.argmax(inactive_score, dim=-1)
-            chosen_onehot = F.one_hot(chosen, num_classes=self.num_slots).float()
-            final_write = chosen_onehot * write_mask_3d
-            slot_keys = slot_keys * (1.0 - final_write.unsqueeze(-1)) + final_write.unsqueeze(-1) * k_t.unsqueeze(2)
-            slot_values = slot_values * (1.0 - final_write.unsqueeze(-1)) + final_write.unsqueeze(-1) * v_t.unsqueeze(2)
-            slot_active = torch.clamp(slot_active + final_write, max=1.0)
-            slot_age = slot_age * (1.0 - final_write)
+        if can_use_fla:
+            read_out, final_state = chunk_simple_gla(
+                q=w_read.contiguous(),
+                k=w_write.contiguous(),
+                v=v.contiguous(),
+                g=g_per_step,
+                scale=1.0,
+                initial_state=None,
+                output_final_state=True,
+            )
+        else:
+            read_out, final_state = self._recurrent_slot_update(
+                w_read, w_write, v, g_per_step, slot_state
+            )
 
-            prev_hidden = current_hidden
-
-        out_stacked = torch.cat(outputs, dim=2)
-        out_thd = out_stacked.transpose(1, 2).reshape(B, T, self.inner)
-        gated = out_thd.view(B, T, self.nh, self.hd) * gate
+        gated = read_out * gate
         out = self.o(gated.reshape(B, T, self.inner))
 
         new_state = {
-            "slot_keys": slot_keys.detach() if not self.training else slot_keys,
-            "slot_values": slot_values.detach() if not self.training else slot_values,
-            "slot_age": slot_age.detach(),
-            "slot_active": slot_active.detach(),
-            "prev_hidden": prev_hidden.detach(),
+            "slot_state": final_state.detach() if not self.training else final_state,
+            "prev_hidden": x[:, -1, :].detach(),
         }
 
-        aux["slot_active_fraction"] = slot_active.float().mean().detach()
-        aux["slot_write_fraction"] = (write_fraction_sum / write_count.clamp(min=1.0)).detach()
+        aux["slot_write_fraction"] = surprise_per_token.mean().detach()
         aux["slot_gate_mean"] = gate.mean().detach()
         aux["slot_log_temperature_mean"] = self.log_temperature.mean().detach()
-        aux["slot_age_max"] = slot_age.max().detach()
-        aux["slot_age_mean"] = slot_age.mean().detach()
-        prediction_loss = prediction_loss_sum / prediction_loss_count.clamp(min=1.0)
+        aux["slot_alpha_mean"] = torch.exp(log_alpha_per_head).mean().detach()
+        aux["slot_allocation_entropy"] = (-w_write * (w_write.clamp(min=1e-9)).log()).sum(dim=-1).mean().detach()
         aux["slot_prediction_loss"] = prediction_loss
-        aux["delta_path"] = torch.tensor(2.0, device=x.device)
+        aux["delta_path"] = torch.tensor(2.0 if can_use_fla else 3.0, device=x.device)
         aux["delta_erasure_flag"] = torch.tensor(0.0, device=x.device)
-        aux["alpha_base_mean"] = torch.zeros((), device=x.device)
-        aux["alpha_eff_mean"] = torch.zeros((), device=x.device)
+        aux["alpha_base_mean"] = torch.sigmoid(self.alpha_log).mean().detach()
+        aux["alpha_eff_mean"] = torch.exp(log_alpha_per_head).mean().detach()
         aux["beta_mean"] = torch.zeros((), device=x.device)
-        aux["state_frobenius"] = slot_values.float().norm(dim=(-1, -2)).mean().detach()
+        aux["state_frobenius"] = final_state.float().norm(dim=(-1, -2)).mean().detach()
 
         return out, new_state, aux
+
+    def _recurrent_slot_update(
+        self,
+        w_read: Tensor,
+        w_write: Tensor,
+        v: Tensor,
+        g_per_step: Tensor,
+        initial_state: Tensor,
+    ) -> tuple[Tensor, Tensor]:
+        B, T, H, N = w_write.shape
+        D = v.shape[-1]
+        state = initial_state.to(v.dtype) if initial_state.numel() > 0 else torch.zeros(B, H, N, D, device=v.device, dtype=v.dtype)
+        outputs: list[Tensor] = []
+        for t in range(T):
+            alpha_t = torch.exp(g_per_step[:, t]).view(B, H, 1, 1)
+            k_t = w_write[:, t].unsqueeze(-1)
+            v_t = v[:, t].unsqueeze(-2)
+            state = state * alpha_t + k_t * v_t
+            q_t = w_read[:, t].unsqueeze(-1)
+            out_t = (q_t * state).sum(dim=-2)
+            outputs.append(out_t.unsqueeze(1))
+        out = torch.cat(outputs, dim=1)
+        return out, state
 
 
 class CompressedAttention(nn.Module):
@@ -2831,8 +2815,8 @@ def _test_slot_memory_parity() -> None:
         use_fla_if_available=False,
         slot_num_slots=8,
         slot_log_temperature_init=-2.3,
-        slot_surprise_tau=0.0,
         slot_gate_init=0.0,
+        alpha_log_mean=3.0,
         batch_size=1,
         seq_len=8,
         max_steps=1,
@@ -2843,23 +2827,25 @@ def _test_slot_memory_parity() -> None:
     )
     layer = SlotMemory(test_cfg)
     layer.train(False)
-    B, T, D = 1, 5, test_cfg.d_model
-    unique_patterns = torch.randn(T, D)
+    T_seq = 5
+    D = test_cfg.d_model
+    unique_patterns = torch.randn(T_seq, D)
     unique_patterns = unique_patterns / unique_patterns.norm(dim=-1, keepdim=True).clamp(min=1e-6)
     x = unique_patterns.unsqueeze(0)
     with torch.no_grad():
         out_write, state_after_write, aux_write = layer(x)
+        state_norm = float(state_after_write["slot_state"].norm().item())
         log(
             "  write pass: "
+            f"slot_state_norm={state_norm:.3f}, "
             f"slot_write_fraction={float(aux_write['slot_write_fraction'].item()):.3f}, "
-            f"slot_active_fraction={float(aux_write['slot_active_fraction'].item()):.3f}, "
+            f"allocation_entropy={float(aux_write['slot_allocation_entropy'].item()):.3f}, "
             f"slot_gate_mean={float(aux_write['slot_gate_mean'].item()):.3f}"
         )
-        out_read, _, aux_read = layer(x, state=state_after_write, offset=T)
-    active_after_write = float(aux_write["slot_active_fraction"].item())
-    if active_after_write <= 0.0:
+        out_read, _, aux_read = layer(x, state=state_after_write, offset=T_seq)
+    if state_norm <= 1e-4:
         raise AssertionError(
-            f"slot memory parity: no slots active after write pass (active_fraction={active_after_write})"
+            f"slot memory parity: state did not accumulate any content (norm={state_norm:.4e})"
         )
     read_norm = float(out_read.norm(dim=-1).mean().item())
     if read_norm <= 1e-4:
@@ -2869,9 +2855,9 @@ def _test_slot_memory_parity() -> None:
     log(
         "  read pass: "
         f"read_out mean norm={read_norm:.4f}, "
-        f"slot_active_fraction={float(aux_read['slot_active_fraction'].item()):.3f}"
+        f"state_frobenius={float(aux_read['state_frobenius'].item()):.3f}"
     )
-    log("slot memory parity ok (slots active after writes, read produces non-zero output)")
+    log("slot memory parity ok (state accumulated, read produces non-zero output)")
 
 
 def _test_alpha_eff_math() -> None:
@@ -3216,7 +3202,7 @@ def smoke_test() -> None:
             assert s is not None, f"attn layer {i} returned None cache"
         elif layer_type == "SLOT":
             assert isinstance(s, dict), f"slot layer {i} returned non-dict state {type(s)}"
-            for required_key in ("slot_keys", "slot_values", "slot_age", "slot_active", "prev_hidden"):
+            for required_key in ("slot_state", "prev_hidden"):
                 assert required_key in s, f"slot layer {i} missing state key {required_key}"
     log("smoke test single-token recurrent ok")
 
