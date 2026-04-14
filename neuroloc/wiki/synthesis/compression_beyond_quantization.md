@@ -173,16 +173,25 @@ nothing in this synthesis is theoretically new. each mechanism has biological pr
 
 each of these is a potential research paper. stacked together, they are a new memory architecture that is mathematically grounded, biologically plausible, engineering-constrained, and testable at scale.
 
+## the correction-field design (2026-04-12)
+
+the correction-field memory design (`correction_field_memory.md`) is the project's first concrete implementation of the compound compression thesis. it stacks mechanisms 1 and 2 (predictive filtering and generative replacement) plus prediction-residual value storage in a single modification to the matrix memory's write path: value projections operate on prediction residuals instead of raw hidden states, and writes are modulated by a surprise ratio. retrieval reconstructs by adding the stored correction to the model's own prediction.
+
+the design addresses the first of the three gaps listed below (how to train generative-replacement memory) by sidestepping it: the model's own forward computation IS the generative decoder, and the prediction head is a lightweight linear map trained alongside the main model via standard backpropagation. the second gap (how to compute surprise) is addressed by a simple norm ratio of the prediction residual to the hidden state. the third gap (how to evaluate compression) remains open.
+
+the design is currently in the cpu simulation validation stage (`simulations/prompts/correction_field_capacity.md`). if the simulation confirms that residual storage increases effective capacity at matched parameters, the correction-field enters the run sequence at the value-compression slot. see `correction_field_memory.md` for the full mathematical formulation and testable predictions.
+
 ## what is not addressed
 
-this synthesis does not address how to train a generative-replacement memory. dreamer v3 trains its world model via next-state prediction on environment observations; for autoregressive language, the analog is next-token prediction on hidden states, which is circular (the hidden states are already the output of next-token prediction). the training objective for a language-state decoder is an open research problem.
+this synthesis does not address how to train a generative-replacement memory. dreamer v3 trains its world model via next-state prediction on environment observations; for autoregressive language, the analog is next-token prediction on hidden states, which is circular (the hidden states are already the output of next-token prediction). the training objective for a language-state decoder is an open research problem. *update 2026-04-12: the correction-field design partially addresses this by using the model's own forward computation as the decoder, with a lightweight prediction head trained jointly.*
 
-this synthesis does not address how to compute the surprise signal in a compound memory architecture. titans uses gradient magnitude of the model's loss; this is expensive (requires a backward pass per token) and may not reflect "surprise" at the appropriate semantic level for long-term memory retention.
+this synthesis does not address how to compute the surprise signal in a compound memory architecture. titans uses gradient magnitude of the model's loss; this is expensive (requires a backward pass per token) and may not reflect "surprise" at the appropriate semantic level for long-term memory retention. *update 2026-04-12: the correction-field design uses a cheaper signal (norm ratio of prediction residual to hidden state) that does not require a backward pass.*
 
 this synthesis does not address how to evaluate memory compression. current benchmarks (longbench, ruler, needle-in-haystack) measure retrieval accuracy on verbatim content, which penalizes lossy-reconstruction mechanisms even when they preserve the semantic content. new benchmarks that measure reconstruction quality at the semantic level are needed.
 
 ## see also
 
+- `correction_field_memory.md` (concrete implementation of mechanisms 1-3, current)
 - `generative_memory_research.md` (curated research library, companion)
 - `compression_and_bottlenecks.md` (biological compression overview, predecessor)
 - `compression_architecture.md` (specific tier proposals, predecessor)

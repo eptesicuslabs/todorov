@@ -4,7 +4,7 @@ canonical persistent project state lives in `neuroloc/wiki/PROJECT_PLAN.md`. tha
 
 ## current phase: neural machine research (neuroloc)
 
-## status: god_run_v2 complete (2026-04-12). F1 math fix did NOT recover retrieval. passkey 0/100 at 256/1024/4096 (CI 3.7%), copy 0/100 at 256/512/1024/2048. bundle-is-broken branch of decision rule. blueprint.md revised with corrected run ordering (dense keys mandatory). run 1 baseline (dense k/v) launching next.
+## status: run1_baseline_noerasure complete (2026-04-14). val_bpb 1.4499, passkey 0/100 at 256. three paid runs (god_run, god_run_v2, run1) all converged on val_bpb ~1.44 and 0% passkey despite radically different feature configurations. the current matrix-memory substrate is theoretically incapable of verbatim retrieval — four stacked failure modes documented in `neuroloc/wiki/synthesis/linear_attention_retrieval_wall.md`. project pivots to slot-based memory with softmax addressing; design in `neuroloc/wiki/synthesis/slot_memory_design.md`. no paid compute until three cpu simulations pass (slot capacity, surprise-gated writes at 256-filler, tiny integration on byte-level).
 
 ## god_run_v2: god_machine.py re-run with all 17 F + 14 G prosecutor fixes (2026-04-12)
 
@@ -36,21 +36,27 @@ perplexity at length: 1.9254 → 1.8941 → 1.5373 → 1.4776 → 1.4192 (monoto
 uses context). delta state structure probe: mean_structure_ratio 0.977, pairwise_cos
 0.003 (statistically noise, not trained memory).
 
-**verdict: F1 math fix was not the root cause. the 5-feature bundle intrinsically destroys
-verbatim memory.** external review (2026-04-12) identified 8 root causes. the two critical
-ones: (1) k-WTA 20% on keys destroys the address space (only ~13/64 key dims survive,
-Hopfield capacity drops from ~9 to ~2 patterns per head); (2) delta erasure with sparse
-keys leaves ghost content in the zeroed dimensions. 6 supporting causes: imagination probe
-creates a gradient bypass that competes with the delta memory, BCM EMA half-life 69 steps
-is too slow, multi-compartment SwiGLU halves effective width, PC head creates loss drag,
-FLA/recurrent numerical drift compounds during chunked eval, q/k normalization timing
-differs between paths. full detail in `memory/project_v2_diagnosis.md`.
+**verdict: F1 math fix was not the root cause. the tested 5-feature bundle still failed
+verbatim memory.** external review (2026-04-12) identified 8 candidate contributing
+mechanisms. the two strongest current review findings are: (1) k-WTA 20% on keys likely
+destroys the address space (only ~13/64 key dims survive, Hopfield capacity drops from ~9
+to ~2 patterns per head); (2) delta erasure with sparse keys likely leaves ghost content
+in the zeroed dimensions. 6 supporting review findings: imagination probe may create a
+gradient bypass that competes with the delta memory, BCM EMA half-life 69 steps may be too
+slow, multi-compartment SwiGLU may reduce effective width, PC head may add loss drag,
+FLA/recurrent numerical drift may compound during chunked eval, q/k normalization timing
+differs between paths. full detail in `neuroloc/output/god_run_v2/run_card.md`.
 
 **revised path forward** (blueprint.md updated):
-- **run 1 baseline dense**: dense k/v, delta erasure on, no BCM, no multi-compartment,
-  no imagination, no PC head. HARD GATE: nonzero passkey at 256. launching next on h200.
-- run 2: add k-WTA 50% on values only (keys stay dense)
-- run 3: add BCM with momentum 0.95, init running_state_norm to 0.01
+- **run 1 baseline dense**: `god_machine.py` preset `run1_baseline_noerasure`; dense k/v,
+  no delta erasure, non-FLA path, no BCM, no multi-compartment, no imagination, no PC head.
+  prelaunch gate: short h200 timing/oom benchmark at full batch/seq on the recurrent path. the full launch now refuses to start without the recorded benchmark manifest in the same output root, rejects resumed benchmark replays, locks the official full run to the canonical 4000-step config, requires the current device to match the benchmarked hardware profile, binds the gate to the recorded benchmark artifacts and git working-tree fingerprint, and forbids FineWeb fallback under the canonical preset name. this is a local structural/provenance guard, not cryptographic attestation.
+  hard retrieval gate after the full run: nonzero passkey at 256, persisted as `retrieval_gate`
+  in the run results. inconclusive eval now fails closed instead of exiting zero.
+- **if run 1 still returns 0% passkey**: run one slower static-retention ablation with erasure still off before declaring the base mechanism suspect. the standalone decay sweep at `d_head=64` only reopens exact-query 32-pattern recall around `decay=0.90`, while the current static init starts much lower.
+- run 2: implement and smoke a value-only 50% k-wta preset before launch. current checked-in `god_machine.py` still sparsifies keys and values together when k-wta is enabled.
+- run 3: after run 2, implement and smoke bcm controls for momentum 0.95 and init `running_state_norm=0.01` before launch. current checked-in code still hardcodes the old 0.99/1.0 behavior.
+- run 4: reintroduce erasure only as an explicit post-baseline ablation after dense-key retrieval is validated
 - not added until validated: imagination, multi-compartment, PC head, any k-WTA on keys
 
 ## god_run: god_machine.py first run (2026-04-11)
@@ -114,6 +120,8 @@ destroyed verbatim memory.
 - f16 (p3): dead imports (field), SEED constant, TernaryQuantizer, AdaptiveSpike. removed.
 - f17 (p3): per-timestep state.norm O(H*D*D). fixed via f1 (alpha_eff hoisted).
 
+local working-tree note: the reviewed `god_machine.py` currently contains a reintroduced, unused `TernaryQuantizer` / `AdaptiveSpike` pair near the top of the file. that is outside the selected run-1 launch surface and not part of the archived f16 fix record above.
+
 **renamed**: run_imagination_test → run_delta_state_structure_probe. "imagination" was a
 misleading metaphor for what is actually a state-structure probe; the byte-level text model
 has no image generation capability.
@@ -126,10 +134,9 @@ smoke test before launch. required_god_keys is derived programmatically from aux
 artifacts: `neuroloc/output/god_run/` (eval_suite.json, metadata.json, stdout.log,
 metrics.jsonl, results.json). run card: `neuroloc/output/god_run/run_card.md`.
 
-**what comes next**: re-run god_machine.py with all F1-F17 fixes applied and full
-telemetry. key question for re-run analysis: did F1 (bcm path divergence) cause retrieval
-failure, or is the 5-feature bundle itself the cause? if retrieval still 0% with F1 fixed,
-fall back to blueprint sequential isolation starting with run 1 (ternary spike baseline).
+**what happened next**: `god_run_v2` re-ran `god_machine.py` with all F1-F17 fixes and full
+telemetry. the result stayed at 0% retrieval, so this archived branch is closed; the live
+next-step plan is the no-erasure baseline summarized near the top of this file.
 
 ## phase 5: runs 010-011 complete
 

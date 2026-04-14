@@ -33,6 +33,11 @@ try:
 except Exception:
     chunk_gated_delta_rule = None
 
+try:
+    from fla.ops import chunk_simple_gla
+except Exception:
+    chunk_simple_gla = None
+
 
 def _select_device() -> torch.device:
     if not torch.cuda.is_available():
@@ -47,7 +52,27 @@ def _select_device() -> torch.device:
 
 
 DEVICE = _select_device()
-DEFAULT_OUTPUT = Path("/kaggle/working") if Path("/kaggle").exists() else Path("neuroloc/output/god_run")
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_OUTPUT_ROOT = Path("/kaggle/working") if Path("/kaggle").exists() else REPO_ROOT / "neuroloc" / "output"
+
+
+def _data_root() -> Path:
+    return Path(os.environ.get("NM_DATA_ROOT", str(REPO_ROOT / "data")))
+
+
+def _absolute_output_path(path: Path) -> Path:
+    if path.is_absolute():
+        return Path(os.path.abspath(os.fspath(path)))
+    return Path(os.path.abspath(os.fspath(REPO_ROOT / path)))
+
+
+def _canonicalize_output_pair(path: Path) -> tuple[Path, Path]:
+    lexical = _absolute_output_path(path)
+    return lexical, lexical.resolve(strict=False)
+
+
+def _canonical_output_path(path: Path) -> Path:
+    return _canonicalize_output_pair(path)[1]
 
 
 def log(msg: str) -> None:
@@ -181,6 +206,54 @@ def rotary_apply(x: Tensor, cos: Tensor, sin: Tensor) -> Tensor:
     cos = cos[..., : d // 2]
     sin = sin[..., : d // 2]
     return torch.cat([x1 * cos - x2 * sin, x2 * cos + x1 * sin], dim=-1)
+
+
+class TernaryQuantizer(torch.autograd.Function):
+
+    @staticmethod
+    def forward(ctx, x: Tensor, threshold: Tensor) -> Tensor:
+        pos = x > threshold
+        neg = x < -threshold
+        out = torch.zeros_like(x)
+        out[pos] = 1.0
+        out[neg] = -1.0
+        return out
+
+    @staticmethod
+    def backward(ctx, grad_output: Tensor) -> tuple[Tensor, None]:
+        return grad_output.clone(), None
+
+
+class AdaptiveSpike(nn.Module):
+
+    def __init__(
+        self,
+        alpha_init: float = 1.0,
+        min_threshold: float = 0.01,
+        max_threshold: float = 10.0,
+    ) -> None:
+        super().__init__()
+        self.min_threshold = float(min_threshold)
+        self.max_threshold = float(max_threshold)
+        self.register_buffer("alpha", torch.tensor(float(alpha_init)), persistent=True)
+        self.register_buffer("running_density", torch.tensor(0.0), persistent=True)
+        self.register_buffer("running_threshold", torch.tensor(float(alpha_init)), persistent=True)
+        self.register_buffer("n_updates", torch.tensor(0, dtype=torch.long), persistent=True)
+
+    def forward(self, x: Tensor) -> Tensor:
+        with torch.no_grad():
+            mean_abs = x.abs().mean()
+            threshold = torch.clamp(
+                self.alpha * mean_abs, self.min_threshold, self.max_threshold
+            )
+        spikes = TernaryQuantizer.apply(x, threshold)
+        if self.training:
+            with torch.no_grad():
+                density = (spikes != 0).float().mean()
+                self.running_density.mul_(0.99).add_(density, alpha=0.01)
+                self.running_threshold.mul_(0.99).add_(threshold, alpha=0.01)
+                self.n_updates += 1
+        return spikes
 
 
 def kwta_select(x: Tensor, k_fraction: float) -> tuple[Tensor, Tensor]:
@@ -442,6 +515,44 @@ class DeltaRuleMemory(nn.Module):
 
         return out, final_state
 
+    def _fla_no_erasure_path(
+        self,
+        q: Tensor,
+        k: Tensor,
+        v: Tensor,
+        beta: Tensor,
+        state: Tensor | None,
+    ) -> tuple[Tensor, Tensor]:
+        B, T, H, D = q.shape
+        target_dtype = q.dtype
+        log_alpha_eff = self._effective_log_alpha(q.device)
+        g = log_alpha_eff.view(1, 1, H).expand(B, T, H).contiguous().to(target_dtype)
+
+        q_norm = F.normalize(q.float(), p=2, dim=-1).to(target_dtype)
+        k_norm = F.normalize(k.float(), p=2, dim=-1).to(target_dtype)
+        beta_broadcast = beta.to(target_dtype).unsqueeze(-1)
+        v_scaled = (v.to(target_dtype) * beta_broadcast).contiguous()
+
+        if state is not None and state.dtype != target_dtype:
+            state = state.to(target_dtype)
+
+        out, final_state = chunk_simple_gla(
+            q=q_norm,
+            k=k_norm,
+            v=v_scaled,
+            g=g,
+            scale=1.0,
+            initial_state=state,
+            output_final_state=True,
+        )
+
+        if final_state is not None and self.bcm_enabled and self.training:
+            with torch.no_grad():
+                current_norm = final_state.float().norm(dim=(-1, -2)).mean(dim=0).clamp(min=1e-6)
+                self.running_state_norm.mul_(0.99).add_(current_norm.detach(), alpha=0.01)
+
+        return out, final_state
+
     def forward(
         self,
         x: Tensor,
@@ -482,17 +593,28 @@ class DeltaRuleMemory(nn.Module):
         aux["alpha_eff_mean"] = alpha_eff_scalar.detach()
         aux["beta_mean"] = beta.mean().detach()
 
-        can_use_fla = (
+        fla_available_base = (
             self.use_fla
-            and chunk_gated_delta_rule is not None
             and q.is_cuda
             and state is None
             and T > 1
+        )
+        can_use_fla_erasure = (
+            fla_available_base
+            and chunk_gated_delta_rule is not None
             and self.delta_erasure
         )
+        can_use_fla_no_erasure = (
+            fla_available_base
+            and chunk_simple_gla is not None
+            and not self.delta_erasure
+        )
 
-        if can_use_fla:
+        if can_use_fla_erasure:
             out_thd, new_state = self._fla_delta_rule_path(q, k, v, beta, state)
+            aux["delta_path"] = torch.tensor(0.0, device=x.device)
+        elif can_use_fla_no_erasure:
+            out_thd, new_state = self._fla_no_erasure_path(q, k, v, beta, state)
             aux["delta_path"] = torch.tensor(0.0, device=x.device)
         else:
             out_thd, new_state = self._recurrent_with_erasure(q, k, v, beta, state)
@@ -791,8 +913,11 @@ def collate_fn(batch: list[Tensor]) -> Tensor:
     return torch.stack([b for b in batch], dim=0)
 
 
-def download_fineweb_edu(max_bytes: int = 5_000_000_000) -> tuple[Any, Any, str]:
-    data_dir = Path("data/fineweb")
+def download_fineweb_edu(
+    max_bytes: int = 5_000_000_000,
+    allow_wikitext_fallback: bool = False,
+) -> tuple[Any, Any, str]:
+    data_dir = _data_root() / "fineweb"
     if (data_dir / "train.bin").exists() and (data_dir / "val.bin").exists():
         log(f"loading cached fineweb-edu from {data_dir}")
         train_np = np.memmap(data_dir / "train.bin", dtype=np.uint8, mode="r")
@@ -821,7 +946,13 @@ def download_fineweb_edu(max_bytes: int = 5_000_000_000) -> tuple[Any, Any, str]
             f.write(val_data)
         return train_data, val_data, "fineweb-edu"
     except Exception as e:
-        log(f"fineweb-edu failed: {e}, falling back to wikitext-2")
+        if not allow_wikitext_fallback:
+            raise RuntimeError(
+                f"fineweb-edu failed to load ({e}) and ALLOW_WIKITEXT_FALLBACK is not set. "
+                "refusing to fall open onto wikitext-2 for a run that should be comparable to fineweb-backed baselines. "
+                "set ALLOW_WIKITEXT_FALLBACK=1 only for an explicitly named fallback/debug run."
+            ) from e
+        log(f"fineweb-edu failed: {e}, falling back to wikitext-2 (ALLOW_WIKITEXT_FALLBACK=1)")
         train, val, src = download_wikitext2()
         return train, val, f"wikitext-2-fallback-from-fineweb ({src})"
 
@@ -835,7 +966,7 @@ def download_wikitext2() -> tuple[bytes, bytes, str]:
         return train_text.encode("utf-8"), val_text.encode("utf-8"), "wikitext-2"
     except Exception as e:
         log(f"wikitext-2 failed: {e}")
-        if not os.environ.get("ALLOW_SYNTHETIC"):
+        if not _env_flag("ALLOW_SYNTHETIC"):
             raise RuntimeError(
                 f"wikitext-2 failed to load ({e}) and ALLOW_SYNTHETIC is not set. "
                 "refusing to train on synthetic random bytes, which would produce a "
@@ -1076,6 +1207,7 @@ def _capture_git_metadata() -> dict:
     try:
         sha_proc = subprocess.run(
             ["git", "rev-parse", "HEAD"],
+            cwd=REPO_ROOT,
             capture_output=True,
             text=True,
             timeout=5,
@@ -1088,6 +1220,7 @@ def _capture_git_metadata() -> dict:
             return result
         dirty_proc = subprocess.run(
             ["git", "status", "--porcelain"],
+            cwd=REPO_ROOT,
             capture_output=True,
             text=True,
             timeout=5,
@@ -1098,6 +1231,79 @@ def _capture_git_metadata() -> dict:
     except Exception as e:
         result["error"] = str(e)
     return result
+
+
+def _capture_git_state_fingerprint(ignore_paths: set[Path] | None = None) -> dict[str, Any]:
+    git = _capture_git_metadata()
+    result: dict[str, Any] = {
+        "sha": git.get("sha"),
+        "dirty": git.get("dirty"),
+        "fingerprint": None,
+        "error": git.get("error"),
+    }
+    if result["error"] is not None or result["sha"] is None or result["dirty"] is None:
+        if result["error"] is None:
+            result["error"] = "git metadata unavailable"
+        return result
+    try:
+        repo_root = REPO_ROOT.resolve()
+        ignored: set[str] = set()
+        for path in ignore_paths or set():
+            try:
+                ignored.add(path.resolve().relative_to(repo_root).as_posix())
+            except ValueError:
+                ignored.add(path.as_posix())
+        status_proc = subprocess.run(
+            ["git", "status", "--porcelain=v1", "-uall"],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        )
+        if status_proc.returncode != 0:
+            result["error"] = status_proc.stderr.strip() or "git status failed"
+            return result
+        diff_proc = subprocess.run(
+            ["git", "diff", "HEAD", "--binary", "--no-ext-diff", "--submodule=diff"],
+            cwd=repo_root,
+            capture_output=True,
+            timeout=10,
+            check=False,
+        )
+        if diff_proc.returncode != 0:
+            stderr = diff_proc.stderr.decode("utf-8", errors="replace") if diff_proc.stderr else ""
+            result["error"] = stderr.strip() or "git diff failed"
+            return result
+        status_lines: list[str] = []
+        untracked_entries: list[dict[str, Any]] = []
+        for raw_line in status_proc.stdout.splitlines():
+            if len(raw_line) < 4:
+                continue
+            rel_path = Path(raw_line[3:]).as_posix()
+            if any(rel_path == ignored_path or rel_path.startswith(f"{ignored_path}/") for ignored_path in ignored):
+                continue
+            status_lines.append(raw_line)
+            if raw_line.startswith("?? "):
+                untracked_path = repo_root / raw_line[3:]
+                entry: dict[str, Any] = {"path": rel_path}
+                if untracked_path.is_file():
+                    entry["sha256"] = _sha256_file(untracked_path)
+                untracked_entries.append(entry)
+        payload = {
+            "sha": result["sha"],
+            "dirty": result["dirty"],
+            "status_lines": status_lines,
+            "diff_hash": hashlib.sha256(diff_proc.stdout).hexdigest(),
+            "untracked": untracked_entries,
+        }
+        result["fingerprint"] = hashlib.sha256(
+            json.dumps(payload, sort_keys=True, default=str).encode("utf-8")
+        ).hexdigest()
+        return result
+    except Exception as e:
+        result["error"] = str(e)
+        return result
 
 
 def _cfg_to_dict(cfg: Config) -> dict:
@@ -1125,7 +1331,7 @@ class MetricsLogger:
         if self._closed:
             return
         try:
-            self._f.write(json.dumps(record, default=str) + "\n")
+            self._f.write(json.dumps(_json_safe(record), default=str, allow_nan=False) + "\n")
             self._f.flush()
         except Exception as e:
             sys.stderr.write(f"metrics log write failed: {e}\n")
@@ -1155,6 +1361,139 @@ def _atomic_tmp_path(path: Path) -> Path:
     return path.parent / (path.name + ".tmp")
 
 
+def _env_flag(name: str, default: bool = False) -> bool:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    value = raw.strip().lower()
+    if value in {"1", "true", "yes", "on"}:
+        return True
+    if value in {"0", "false", "no", "off", ""}:
+        return False
+    raise ValueError(
+        f"invalid boolean env var {name}={raw!r}; expected one of 1/0, true/false, yes/no, on/off"
+    )
+
+
+def _apply_runtime_env_overrides(cfg: Config) -> list[str]:
+    applied: list[str] = []
+    int_overrides = {
+        "NM_BATCH_SIZE": "batch_size",
+        "NM_SEQ_LEN": "seq_len",
+        "NM_MAX_STEPS": "max_steps",
+        "NM_VAL_INTERVAL": "val_interval",
+        "NM_WARMUP_STEPS": "warmup_steps",
+        "NM_MAX_SEQ_LEN": "max_seq_len",
+    }
+    for env_name, attr in int_overrides.items():
+        raw = os.environ.get(env_name)
+        if raw is None:
+            continue
+        value = int(raw)
+        setattr(cfg, attr, value)
+        applied.append(f"{attr}={value}")
+    if cfg.max_seq_len < cfg.seq_len:
+        cfg.max_seq_len = cfg.seq_len
+        applied.append(f"max_seq_len={cfg.max_seq_len}")
+    return applied
+
+
+def _json_safe(value: Any) -> Any:
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    if isinstance(value, dict):
+        return {k: _json_safe(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_json_safe(v) for v in value]
+    return value
+
+
+def _write_json_atomic(path: Path, payload: Any) -> None:
+    tmp = _atomic_tmp_path(path)
+    try:
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(_json_safe(payload), f, indent=2, default=str, allow_nan=False)
+        tmp.replace(path)
+    except Exception:
+        try:
+            tmp.unlink(missing_ok=True)
+        except Exception:
+            pass
+        raise
+
+
+def _device_metadata() -> dict[str, Any]:
+    info: dict[str, Any] = {"device": DEVICE.type}
+    if DEVICE.type == "cuda":
+        try:
+            cap = torch.cuda.get_device_capability()
+            info["device_capability"] = [int(cap[0]), int(cap[1])]
+        except Exception as e:
+            info["device_capability_error"] = str(e)
+        try:
+            info["device_name"] = torch.cuda.get_device_name()
+        except Exception as e:
+            info["device_name_error"] = str(e)
+        try:
+            props = torch.cuda.get_device_properties(0)
+            info["device_total_memory_gb"] = round(props.total_memory / 1e9, 3)
+            info["device_multi_processor_count"] = int(props.multi_processor_count)
+        except Exception as e:
+            info["device_properties_error"] = str(e)
+    return info
+
+
+def _device_capability_tuple(value: Any) -> tuple[int, int]:
+    if isinstance(value, (list, tuple)) and len(value) == 2:
+        return int(value[0]), int(value[1])
+    return (0, 0)
+
+
+def _sha256_file(path: Path) -> str:
+    hasher = hashlib.sha256()
+    with open(path, "rb") as f:
+        while True:
+            chunk = f.read(1024 * 1024)
+            if not chunk:
+                break
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
+
+def _validate_run_name(name: str) -> str:
+    candidate = name.strip()
+    path_obj = Path(candidate)
+    if not candidate or path_obj.name != candidate or path_obj.drive or path_obj.root:
+        raise RuntimeError(
+            f"invalid run name {name!r}. use a plain filename stem without path separators or absolute components."
+        )
+    return candidate
+
+
+def _same_path(a: Path, b: Path) -> bool:
+    return os.path.normcase(os.path.normpath(os.fspath(a))) == os.path.normcase(os.path.normpath(os.fspath(b)))
+
+
+def _require_lexical_path(path: Path, label: str) -> Path:
+    lexical = Path(os.path.abspath(os.fspath(path)))
+    resolved = path.resolve(strict=False)
+    if not _same_path(lexical, resolved):
+        raise RuntimeError(
+            f"{label} {lexical} resolves to {resolved}; symlink and junction path aliases are forbidden on the official run1 surface."
+        )
+    return lexical
+
+
+def _require_path_under(root: Path, path: Path, label: str) -> Path:
+    root_resolved = root.resolve(strict=False)
+    path_resolved = path.resolve(strict=False)
+    try:
+        path_resolved.relative_to(root_resolved)
+    except ValueError as e:
+        raise RuntimeError(f"{label} {path_resolved} escapes {root_resolved}") from e
+    return path_resolved
+
+
 def save_resume_checkpoint(
     path: Path,
     model: nn.Module,
@@ -1167,6 +1506,7 @@ def save_resume_checkpoint(
     train_gen_state: Tensor | None = None,
     step_in_epoch: int = 0,
     epoch_idx: int = 0,
+    launch_contract: dict[str, Any] | None = None,
 ) -> None:
     state: dict[str, Any] = {
         "model": model.state_dict(),
@@ -1183,6 +1523,8 @@ def save_resume_checkpoint(
         "python_rng_state": py_random.getstate(),
         "saved_at": datetime.now().isoformat(),
     }
+    if launch_contract is not None:
+        state["launch_contract"] = launch_contract
     if train_gen_state is not None:
         state["train_gen_state"] = train_gen_state
     if torch.cuda.is_available():
@@ -1220,6 +1562,8 @@ def load_resume_checkpoint(
         "best_val_bpb": ckpt["best_val_bpb"],
         "history": ckpt.get("history", {}),
         "train_gen_state": ckpt.get("train_gen_state"),
+        "config": ckpt.get("config", {}),
+        "launch_contract": ckpt.get("launch_contract"),
     }
 
 
@@ -1249,17 +1593,7 @@ def _write_results_snapshot(
         "final": final,
         "updated_at": datetime.now().isoformat(),
     }
-    tmp = _atomic_tmp_path(path)
-    try:
-        with open(tmp, "w", encoding="utf-8") as f:
-            json.dump(snapshot, f, indent=2, default=str)
-        tmp.replace(path)
-    except Exception:
-        try:
-            tmp.unlink(missing_ok=True)
-        except Exception:
-            pass
-        raise
+    _write_json_atomic(path, snapshot)
 
 
 def train_model(
@@ -1270,7 +1604,9 @@ def train_model(
     output_dir: Path,
     dataset_source: str = "unknown",
     stop_after_steps: int | None = None,
+    launch_contract: dict[str, Any] | None = None,
 ) -> dict:
+    name = _validate_run_name(name)
     log(f"=== training {name} ===")
     torch.manual_seed(cfg.seed)
     np.random.seed(cfg.seed)
@@ -1283,6 +1619,21 @@ def train_model(
     env = _capture_env_metadata()
     git = _capture_git_metadata()
     cfg_hash = _config_hash(cfg_dict)
+    resume_path = output_dir / f"{name}_last.pt"
+    resume_requested = _env_flag("NM_RESUME")
+    existing_artifacts = list(output_dir.iterdir())
+    if resume_requested:
+        if not resume_path.exists():
+            raise RuntimeError(
+                f"NM_RESUME=1 was set, but no resume checkpoint exists at {resume_path}. "
+                f"refusing to treat a dirty or partial directory as resumable without a last checkpoint."
+            )
+    elif existing_artifacts:
+        joined = ", ".join(path.name for path in existing_artifacts[:5])
+        raise RuntimeError(
+            f"output directory {output_dir} is not fresh ({joined}). "
+            f"use a fresh output directory for a fresh benchmark or launch, or set NM_RESUME=1 for an intentional continuation."
+        )
 
     metadata = {
         "run": name,
@@ -1311,9 +1662,14 @@ def train_model(
     log(f"params: {n_params:,}")
     log(f"layers: {len(cfg.layer_types)} ({cfg.layer_pattern} x {cfg.n_layers // len(cfg.layer_pattern)})")
 
+    skip_validation = _env_flag("NM_SKIP_VALIDATION")
     train_ds = ByteDataset(train_data, cfg.seq_len)
-    val_ds = ByteDataset(val_data, cfg.seq_len)
-    log(f"train batches per epoch: {len(train_ds) // cfg.batch_size}, val batches: {len(val_ds) // cfg.batch_size}")
+    val_dl: DataLoader | None = None
+    if skip_validation:
+        log(f"train batches per epoch: {len(train_ds) // cfg.batch_size}, val batches: skipped (NM_SKIP_VALIDATION=1)")
+    else:
+        val_ds = ByteDataset(val_data, cfg.seq_len)
+        log(f"train batches per epoch: {len(train_ds) // cfg.batch_size}, val batches: {len(val_ds) // cfg.batch_size}")
 
     train_generator = torch.Generator()
     train_generator.manual_seed(cfg.seed)
@@ -1325,13 +1681,14 @@ def train_model(
         drop_last=True,
         generator=train_generator,
     )
-    val_dl = DataLoader(
-        val_ds,
-        batch_size=cfg.batch_size,
-        shuffle=False,
-        collate_fn=collate_fn,
-        drop_last=True,
-    )
+    if not skip_validation:
+        val_dl = DataLoader(
+            val_ds,
+            batch_size=cfg.batch_size,
+            shuffle=False,
+            collate_fn=collate_fn,
+            drop_last=True,
+        )
 
     param_groups = _build_param_groups(model, cfg.weight_decay)
     optimizer = torch.optim.AdamW(param_groups, lr=cfg.lr, betas=(cfg.beta1, cfg.beta2))
@@ -1394,10 +1751,20 @@ def train_model(
     except (ValueError, OSError):
         pass
 
-    resume_path = output_dir / f"{name}_last.pt"
     if resume_path.exists():
         try:
             resumed = load_resume_checkpoint(resume_path, model, optimizer, scheduler)
+            resumed_cfg = resumed.get("config", {})
+            resumed_hash = _config_hash(resumed_cfg) if resumed_cfg else None
+            if resumed_hash is not None and resumed_hash != cfg_hash:
+                raise RuntimeError(
+                    f"resume checkpoint config hash {resumed_hash} does not match active config hash {cfg_hash}. "
+                    f"refusing to continue a different preset or override set."
+                )
+            if launch_contract is not None and resumed.get("launch_contract") != launch_contract:
+                raise RuntimeError(
+                    "resume checkpoint launch contract does not match the validated benchmark/full-run contract."
+                )
             step = resumed["step"]
             best_val_bpb = resumed["best_val_bpb"]
             epoch_idx = resumed.get("epoch_idx", 0)
@@ -1438,11 +1805,7 @@ def train_model(
                 "gen_state_restored": saved_gen_state is not None,
             })
         except Exception as e:
-            log(f"resume failed: {e}; starting fresh")
-            step = 0
-            best_val_bpb = float("inf")
-            epoch_idx = 0
-            step_in_epoch = 0
+            raise RuntimeError(f"resume failed: {e}") from e
 
     def _flush_emergency(reason: str, extra: dict | None = None) -> None:
         try:
@@ -1467,6 +1830,7 @@ def train_model(
                 train_gen_state=train_gen_state_at_epoch_start,
                 step_in_epoch=step_in_epoch,
                 epoch_idx=epoch_idx,
+                launch_contract=launch_contract,
             )
         except Exception as e:
             log(f"crash checkpoint save failed: {e}")
@@ -1590,7 +1954,8 @@ def train_model(
                 step += 1
                 step_in_epoch += 1
 
-                if step % cfg.val_interval == 0:
+                if not skip_validation and step % cfg.val_interval == 0:
+                    assert val_dl is not None
                     val_result = run_validation(model, val_dl, use_amp=use_amp, amp_dtype=amp_dtype)
                     history["val_steps"].append(step)
                     for k_v, v_v in val_result.items():
@@ -1614,6 +1979,7 @@ def train_model(
                         train_gen_state=train_gen_state_at_epoch_start,
                         step_in_epoch=step_in_epoch,
                         epoch_idx=epoch_idx,
+                        launch_contract=launch_contract,
                     )
                     _write_results_snapshot(
                         output_dir / f"{name}_results.json",
@@ -1672,6 +2038,21 @@ def train_model(
             for k_v, v_v in final_val.items():
                 skip_record[f"val_{k_v}" if not k_v.startswith("val_") else k_v] = v_v
             metrics_logger.log(skip_record)
+        elif skip_validation:
+            final_val = {
+                "mean_loss": float("nan"),
+                "bpb": float("nan"),
+                "tokens": 0,
+                "precision": "skipped_by_flag",
+            }
+            skip_record = {
+                "event": "final_validation_skipped",
+                "step": step,
+                "reason": "NM_SKIP_VALIDATION",
+            }
+            for k_v, v_v in final_val.items():
+                skip_record[f"val_{k_v}" if not k_v.startswith("val_") else k_v] = v_v
+            metrics_logger.log(skip_record)
         elif already_valed_here:
             last_bpb = history["val_bpb"][-1]
             last_mean_loss = history["val_mean_loss"][-1]
@@ -1690,6 +2071,7 @@ def train_model(
                 dedup_record[f"val_{k_v}" if not k_v.startswith("val_") else k_v] = v_v
             metrics_logger.log(dedup_record)
         else:
+            assert val_dl is not None
             final_val = run_validation(model, val_dl, use_amp=use_amp, amp_dtype=amp_dtype)
             history["val_steps"].append(step)
             for k_v, v_v in final_val.items():
@@ -1716,6 +2098,7 @@ def train_model(
             train_gen_state=train_gen_state_at_epoch_start,
             step_in_epoch=step_in_epoch,
             epoch_idx=epoch_idx,
+            launch_contract=launch_contract,
         )
         _write_results_snapshot(
             output_dir / f"{name}_results.json",
@@ -2137,20 +2520,10 @@ def run_eval_suite(
         f"random_pairwise_cos={imag.get('random_mean_pairwise_cos', 0):.3f} "
         f"[{time.time() - t0:.0f}s]"
     )
-    results["imagination"] = imag
+    results["delta_state_structure_probe"] = imag
 
     eval_path = output_dir / f"{name}_eval_suite.json"
-    tmp = _atomic_tmp_path(eval_path)
-    try:
-        with open(tmp, "w", encoding="utf-8") as f:
-            json.dump(results, f, indent=2, default=str)
-        tmp.replace(eval_path)
-    except Exception:
-        try:
-            tmp.unlink(missing_ok=True)
-        except Exception:
-            pass
-        raise
+    _write_json_atomic(eval_path, results)
     log(f"wrote eval suite to {eval_path}")
     return results
 
@@ -2161,6 +2534,7 @@ def _run_fla_parity_variant(
     bcm_alpha: bool,
     seed: int,
     tol_rel: float = 1e-2,
+    delta_erasure: bool = True,
 ) -> None:
     torch.manual_seed(seed)
     test_cfg = Config(
@@ -2174,7 +2548,7 @@ def _run_fla_parity_variant(
         mlp_ratio=2.0,
         layer_pattern=("DELTA",),
         kwta_enabled=False,
-        delta_erasure_enabled=True,
+        delta_erasure_enabled=delta_erasure,
         bcm_alpha_enabled=bcm_alpha,
         imagination_enabled=False,
         pc_diagnostic_enabled=False,
@@ -2227,9 +2601,14 @@ def _test_fla_vs_recurrent_parity() -> None:
     if not FLA_AVAILABLE or not torch.cuda.is_available():
         log("fla-vs-recurrent parity test skipped (fla not available or no cuda)")
         return
-    log("fla-vs-recurrent parity test (two variants, erasure always on when fla is active)")
-    _run_fla_parity_variant("fla vs recurrent, bcm=off", bcm_alpha=False, seed=54321)
-    _run_fla_parity_variant("fla vs recurrent, bcm=on", bcm_alpha=True, seed=54322)
+    log("fla-vs-recurrent parity test (four variants, erasure-on and erasure-off)")
+    _run_fla_parity_variant("fla vs recurrent, erasure=on, bcm=off", bcm_alpha=False, seed=54321, delta_erasure=True)
+    _run_fla_parity_variant("fla vs recurrent, erasure=on, bcm=on", bcm_alpha=True, seed=54322, delta_erasure=True)
+    if chunk_simple_gla is not None:
+        _run_fla_parity_variant("fla vs recurrent, erasure=off, bcm=off", bcm_alpha=False, seed=54323, delta_erasure=False)
+        _run_fla_parity_variant("fla vs recurrent, erasure=off, bcm=on", bcm_alpha=True, seed=54324, delta_erasure=False)
+    else:
+        log("  skipping no-erasure parity variants: chunk_simple_gla not available")
 
 
 def _test_alpha_eff_math() -> None:
@@ -2406,14 +2785,18 @@ def _test_resume_correctness() -> None:
             dataset_source="synthetic",
             stop_after_steps=2,
         )
-        r2 = train_model(
-            test_cfg,
-            train_data,
-            val_data,
-            name="resume_b",
-            output_dir=tmp_dir / "b",
-            dataset_source="synthetic",
-        )
+        os.environ["NM_RESUME"] = "1"
+        try:
+            r2 = train_model(
+                test_cfg,
+                train_data,
+                val_data,
+                name="resume_b",
+                output_dir=tmp_dir / "b",
+                dataset_source="synthetic",
+            )
+        finally:
+            os.environ.pop("NM_RESUME", None)
 
         bpb_from_scratch = r1["best_val_bpb"]
         bpb_from_resume = r2["best_val_bpb"]
@@ -2605,13 +2988,296 @@ def smoke_test() -> None:
     _test_fla_vs_recurrent_parity()
     _test_resume_correctness()
 
-    _smoke_preset_baseline_dense()
+    _smoke_preset_baseline("run4_erasure_ablation")
+    _smoke_preset_baseline("run1_baseline_noerasure")
+    _smoke_preset_baseline("run1a_retention_ablation")
 
     log("all smoke checks passed")
 
 
-def _smoke_preset_baseline_dense() -> None:
-    log("smoke test run1_baseline_dense preset (all features off, dense k/v, erasure on)")
+def _resolve_preset(preset: str) -> tuple[dict[str, Any], str, str]:
+    if preset == "run4_erasure_ablation":
+        return (
+            {
+                "kwta_enabled": False,
+                "delta_erasure_enabled": True,
+                "use_fla_if_available": False,
+                "bcm_alpha_enabled": False,
+                "multi_compartment_enabled": False,
+                "imagination_enabled": False,
+                "pc_diagnostic_enabled": False,
+            },
+            "preset: run4_erasure_ablation (dense k/v, delta erasure on, non-FLA path, all other features off)",
+            "run4_erasure_ablation",
+        )
+    if preset == "run1_baseline_noerasure":
+        return (
+            {
+                "kwta_enabled": False,
+                "delta_erasure_enabled": False,
+                "use_fla_if_available": True,
+                "bcm_alpha_enabled": False,
+                "multi_compartment_enabled": False,
+                "imagination_enabled": False,
+                "pc_diagnostic_enabled": False,
+            },
+            "preset: run1_baseline_noerasure (dense k/v, no overwrite subtraction, FLA simple_gla path, all other features off)",
+            "run1_baseline_noerasure",
+        )
+    if preset == "run1a_retention_ablation":
+        return (
+            {
+                "kwta_enabled": False,
+                "delta_erasure_enabled": False,
+                "use_fla_if_available": False,
+                "bcm_alpha_enabled": False,
+                "multi_compartment_enabled": False,
+                "imagination_enabled": False,
+                "pc_diagnostic_enabled": False,
+                "alpha_log_mean": 2.2,
+            },
+            "preset: run1a_retention_ablation (dense k/v, no overwrite subtraction, non-FLA path, slower static retention target ~0.90, all other features off)",
+            "run1a_retention_ablation",
+        )
+    if preset == "god":
+        return ({}, "preset: god (default god_machine config)", "god_run")
+    raise ValueError(f"unknown NM_PRESET: {preset}")
+
+
+def _run1_benchmark_manifest_path(output_dir: Path) -> Path:
+    return output_dir.parent / "run1_baseline_noerasure_benchmark_manifest.json"
+
+
+def _run1_benchmark_contract_cfg() -> Config:
+    preset_overrides, _, _ = _resolve_preset("run1_baseline_noerasure")
+    cfg = Config(**preset_overrides)
+    cfg.batch_size = 16
+    cfg.seq_len = 2048
+    cfg.max_seq_len = 2048
+    cfg.max_steps = 20
+    return cfg
+
+
+def _run1_benchmark_contract_hash() -> str:
+    return _config_hash(_cfg_to_dict(_run1_benchmark_contract_cfg()))
+
+
+def _run1_full_contract_hash() -> str:
+    preset_overrides, _, _ = _resolve_preset("run1_baseline_noerasure")
+    return _config_hash(_cfg_to_dict(Config(**preset_overrides)))
+
+
+def _load_json_dict(path: Path) -> dict[str, Any]:
+    with open(path, encoding="utf-8") as f:
+        payload = json.load(f)
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"expected a json object at {path}, got {type(payload).__name__}")
+    return payload
+
+
+def _require_run1_benchmark_manifest(output_dir: Path) -> dict[str, Any]:
+    manifest_path = _run1_benchmark_manifest_path(output_dir)
+    if not manifest_path.exists():
+        raise RuntimeError(
+            f"full run1_baseline_noerasure launch requires benchmark manifest {manifest_path}. "
+            "run the documented 20-step FineWeb benchmark first in the same output root."
+        )
+    payload = _load_json_dict(manifest_path)
+    if payload.get("preset") != "run1_baseline_noerasure":
+        raise RuntimeError(f"benchmark manifest {manifest_path} does not belong to run1_baseline_noerasure")
+    if payload.get("status") != "completed":
+        raise RuntimeError(f"benchmark manifest {manifest_path} is not marked completed")
+    if payload.get("config_hash") != _run1_benchmark_contract_hash():
+        raise RuntimeError(
+            f"benchmark manifest {manifest_path} does not match the required run1 benchmark config hash"
+        )
+    if payload.get("dataset_mode") != "fineweb":
+        raise RuntimeError(f"benchmark manifest {manifest_path} was not produced with NM_DATASET=fineweb")
+    dataset_source = str(payload.get("dataset_source", ""))
+    if not dataset_source.startswith("fineweb-edu"):
+        raise RuntimeError(
+            f"benchmark manifest {manifest_path} recorded dataset_source={dataset_source!r}, expected fineweb-edu"
+        )
+    if int(payload.get("total_steps", -1)) != 20:
+        raise RuntimeError(f"benchmark manifest {manifest_path} did not complete the required 20 steps")
+    if payload.get("device") != "cuda":
+        raise RuntimeError(f"benchmark manifest {manifest_path} was not produced on cuda")
+    cap_raw = payload.get("device_capability")
+    if not isinstance(cap_raw, list) or len(cap_raw) != 2:
+        raise RuntimeError(f"benchmark manifest {manifest_path} is missing a valid cuda capability")
+    cap = _device_capability_tuple(cap_raw)
+    if cap < (9, 0):
+        raise RuntimeError(
+            f"benchmark manifest {manifest_path} was produced on sm_{cap[0]}{cap[1]}, expected sm_90 or newer"
+        )
+    benchmark_output_dir = Path(str(payload.get("output_dir", "")))
+    benchmark_output_dir_lexical = _require_lexical_path(benchmark_output_dir, "benchmark output dir")
+    benchmark_output_dir_resolved = benchmark_output_dir_lexical.resolve(strict=False)
+    manifest_root = _require_lexical_path(manifest_path.parent, "shared output root")
+    if not _same_path(benchmark_output_dir_lexical.parent, manifest_root):
+        raise RuntimeError(
+            f"benchmark manifest {manifest_path} references output dir {benchmark_output_dir_lexical} outside the shared output root"
+        )
+    run_name = str(payload.get("run_name", ""))
+    artifact_hashes = payload.get("artifact_hashes")
+    if not run_name:
+        raise RuntimeError(f"benchmark manifest {manifest_path} is missing run_name")
+    _validate_run_name(run_name)
+    if not isinstance(artifact_hashes, dict):
+        raise RuntimeError(f"benchmark manifest {manifest_path} is missing artifact hashes")
+    metadata_path = _require_path_under(benchmark_output_dir_resolved, benchmark_output_dir_lexical / f"{run_name}_metadata.json", "benchmark metadata")
+    results_path = _require_path_under(benchmark_output_dir_resolved, benchmark_output_dir_lexical / f"{run_name}_results.json", "benchmark results")
+    metrics_path = _require_path_under(benchmark_output_dir_resolved, benchmark_output_dir_lexical / f"{run_name}_metrics.jsonl", "benchmark metrics")
+    for suffix in ("metadata", "results", "metrics"):
+        expected_hash = artifact_hashes.get(suffix)
+        if not isinstance(expected_hash, str) or not expected_hash:
+            raise RuntimeError(f"benchmark manifest {manifest_path} is missing {suffix} hash")
+        artifact_path = metrics_path if suffix == "metrics" else (metadata_path if suffix == "metadata" else results_path)
+        if not artifact_path.exists():
+            raise RuntimeError(
+                f"benchmark manifest {manifest_path} references missing artifact {artifact_path}"
+            )
+        if _sha256_file(artifact_path) != expected_hash:
+            raise RuntimeError(
+                f"benchmark manifest {manifest_path} hash mismatch for {artifact_path}"
+            )
+    metadata_payload = _load_json_dict(metadata_path)
+    results_payload = _load_json_dict(results_path)
+    if metadata_payload.get("run") != run_name:
+        raise RuntimeError(f"benchmark metadata {metadata_path} does not match run_name {run_name}")
+    if metadata_payload.get("config_hash") != payload.get("config_hash"):
+        raise RuntimeError(f"benchmark metadata {metadata_path} does not match manifest config hash")
+    if metadata_payload.get("dataset_source") != payload.get("dataset_source"):
+        raise RuntimeError(f"benchmark metadata {metadata_path} does not match manifest dataset source")
+    if results_payload.get("run") != run_name:
+        raise RuntimeError(f"benchmark results {results_path} do not match run_name {run_name}")
+    if results_payload.get("current_step") != payload.get("total_steps"):
+        raise RuntimeError(f"benchmark results {results_path} do not match manifest total_steps")
+    if results_payload.get("final") is not True:
+        raise RuntimeError(f"benchmark results {results_path} are not a final snapshot")
+    results_metadata = results_payload.get("metadata")
+    if not isinstance(results_metadata, dict) or results_metadata.get("config_hash") != payload.get("config_hash"):
+        raise RuntimeError(f"benchmark results {results_path} do not embed the manifest config hash")
+    manifest_fingerprint = payload.get("git_state_fingerprint")
+    current_git = _capture_git_state_fingerprint(
+        ignore_paths={
+            manifest_path,
+            output_dir,
+            output_dir.parent / f"{output_dir.name}.stdout.log",
+            benchmark_output_dir.parent / f"{run_name}.stdout.log",
+        }
+    )
+    if current_git.get("error") is not None or current_git.get("fingerprint") is None:
+        raise RuntimeError(
+            f"benchmark manifest {manifest_path} cannot validate current git state: {current_git.get('error')}"
+        )
+    if not isinstance(manifest_fingerprint, str) or not manifest_fingerprint:
+        raise RuntimeError(f"benchmark manifest {manifest_path} is missing git_state_fingerprint")
+    if manifest_fingerprint != current_git.get("fingerprint"):
+        raise RuntimeError(
+            f"benchmark manifest {manifest_path} does not match the current git working-tree fingerprint"
+        )
+    return payload
+
+
+def _require_run1_full_output_dir(output_dir: Path, benchmark_manifest: dict[str, Any]) -> Path:
+    shared_root = _require_lexical_path(_run1_benchmark_manifest_path(output_dir).parent, "shared output root")
+    try:
+        output_dir_lexical = _require_lexical_path(output_dir, "full-run output dir")
+        output_dir_resolved = _require_path_under(shared_root, output_dir_lexical, "full-run output dir")
+    except RuntimeError as e:
+        raise RuntimeError(
+            f"full-run output dir {Path(os.path.abspath(os.fspath(output_dir)))} is outside the shared output root {shared_root}"
+        ) from e
+    benchmark_output_dir = _require_lexical_path(Path(str(benchmark_manifest.get("output_dir", ""))), "benchmark output dir")
+    if not _same_path(output_dir_lexical.parent, benchmark_output_dir.parent):
+        raise RuntimeError(
+            f"full-run output dir {output_dir_resolved} is outside the shared output root {benchmark_output_dir.parent}"
+        )
+    return output_dir_lexical
+
+
+def _require_run1_full_launch_device(benchmark_manifest: dict[str, Any]) -> None:
+    current_device = _device_metadata()
+    current_cap = _device_capability_tuple(current_device.get("device_capability"))
+    manifest_cap = _device_capability_tuple(benchmark_manifest.get("device_capability"))
+    if current_device.get("device") != benchmark_manifest.get("device"):
+        raise RuntimeError(
+            "full run1_baseline_noerasure launch must run on the same device class recorded by the benchmark manifest."
+        )
+    if current_device.get("device") != "cuda" or current_cap < (9, 0):
+        raise RuntimeError(
+            "full run1_baseline_noerasure launch requires an sm_90-or-newer cuda device."
+        )
+    if current_cap != manifest_cap:
+        raise RuntimeError(
+            f"full run1_baseline_noerasure launch device sm_{current_cap[0]}{current_cap[1]} does not match "
+            f"benchmark manifest sm_{manifest_cap[0]}{manifest_cap[1]}."
+        )
+    current_memory = current_device.get("device_total_memory_gb")
+    manifest_memory = benchmark_manifest.get("device_total_memory_gb")
+    if current_memory != manifest_memory:
+        raise RuntimeError(
+            f"full run1_baseline_noerasure launch memory profile {current_memory} does not match benchmark manifest {manifest_memory}."
+        )
+    current_sms = current_device.get("device_multi_processor_count")
+    manifest_sms = benchmark_manifest.get("device_multi_processor_count")
+    if current_sms != manifest_sms:
+        raise RuntimeError(
+            f"full run1_baseline_noerasure launch sm count {current_sms} does not match benchmark manifest {manifest_sms}."
+        )
+
+
+def _write_run1_benchmark_manifest(
+    output_dir: Path,
+    run_name: str,
+    cfg: Config,
+    dataset_mode: str,
+    dataset_source: str,
+    total_steps: int,
+) -> Path:
+    manifest_path = _run1_benchmark_manifest_path(output_dir)
+    metadata_path = output_dir / f"{run_name}_metadata.json"
+    results_path = output_dir / f"{run_name}_results.json"
+    metrics_path = output_dir / f"{run_name}_metrics.jsonl"
+    git = _capture_git_metadata()
+    git_state = _capture_git_state_fingerprint(
+        ignore_paths={
+            manifest_path,
+            output_dir.parent / f"{run_name}.stdout.log",
+        }
+    )
+    if git_state.get("error") is not None or git_state.get("fingerprint") is None:
+        raise RuntimeError(f"unable to capture git working-tree fingerprint for benchmark manifest: {git_state.get('error')}")
+    payload = {
+        "preset": "run1_baseline_noerasure",
+        "status": "completed",
+        "config_hash": _config_hash(_cfg_to_dict(cfg)),
+        "dataset_mode": dataset_mode,
+        "dataset_source": dataset_source,
+        "total_steps": int(total_steps),
+        "output_dir": str(output_dir),
+        "run_name": run_name,
+        "completed_at": datetime.now().isoformat(),
+        "git_sha": git.get("sha"),
+        "git_dirty": git.get("dirty"),
+        "git_state_fingerprint": git_state.get("fingerprint"),
+        "artifact_hashes": {
+            "metadata": _sha256_file(metadata_path),
+            "results": _sha256_file(results_path),
+            "metrics": _sha256_file(metrics_path),
+        },
+        **_device_metadata(),
+    }
+    _write_json_atomic(manifest_path, payload)
+    return manifest_path
+
+
+def _smoke_preset_baseline(preset_name: str) -> None:
+    preset_overrides, _, _ = _resolve_preset(preset_name)
+    erasure_enabled = bool(preset_overrides.get("delta_erasure_enabled", False))
+    preset_desc = "erasure on" if erasure_enabled else "no erasure"
+    log(f"smoke test {preset_name} preset (all features off, dense k/v, {preset_desc})")
     cfg = Config(
         d_model=64,
         n_layers=4,
@@ -2624,12 +3290,6 @@ def _smoke_preset_baseline_dense() -> None:
         attn_num_heads=2,
         mlp_ratio=2.0,
         layer_pattern=("DELTA", "DELTA", "DELTA", "ATTN"),
-        kwta_enabled=False,
-        delta_erasure_enabled=True,
-        bcm_alpha_enabled=False,
-        multi_compartment_enabled=False,
-        imagination_enabled=False,
-        pc_diagnostic_enabled=False,
         batch_size=2,
         seq_len=32,
         max_steps=5,
@@ -2637,6 +3297,7 @@ def _smoke_preset_baseline_dense() -> None:
         val_interval=100,
         grad_checkpointing=False,
         amp=False,
+        **preset_overrides,
     )
     torch.manual_seed(cfg.seed)
     model = GodMachine(cfg)
@@ -2656,24 +3317,35 @@ def _smoke_preset_baseline_dense() -> None:
     stats = collect_spike_stats(aux)
     if stats.get("mean_fr", None) != 0.0:
         raise AssertionError(
-            f"baseline preset: mean_fr should be 0.0 with kwta disabled, got {stats.get('mean_fr')}"
+            f"{preset_name}: mean_fr should be 0.0 with kwta disabled, got {stats.get('mean_fr')}"
         )
     for forbidden_key in ("kwta_k_rate_per_layer", "kwta_v_rate_per_layer", "imag_gate_mean_per_layer", "imag_contribution_l2_per_layer", "imag_ratio_per_layer", "pc_error_l2_per_layer", "mlp_compartment_l2_per_layer"):
         if forbidden_key in stats:
             raise AssertionError(
-                f"baseline preset: aux should not contain {forbidden_key} when the "
+                f"{preset_name}: aux should not contain {forbidden_key} when the "
                 f"corresponding feature is disabled. found: {stats[forbidden_key]}"
             )
     required_keys = ("alpha_base_mean_per_layer", "alpha_eff_mean_per_layer", "beta_mean_per_layer", "state_frobenius_per_layer", "delta_path_per_layer", "delta_erasure_flag_per_layer")
     for k in required_keys:
         if k not in stats:
             raise AssertionError(
-                f"baseline preset: expected stats key {k} not present. "
+                f"{preset_name}: expected stats key {k} not present. "
                 f"available: {sorted(stats.keys())[:20]}"
             )
+    erasure_flags = stats["delta_erasure_flag_per_layer"]
+    expected_flag = 1 if erasure_enabled else 0
+    realized_flags = [flag for flag in erasure_flags if flag is not None]
+    if not realized_flags:
+        raise AssertionError(f"{preset_name}: no delta erasure flags were recorded")
+    if any(flag != expected_flag for flag in realized_flags):
+        raise AssertionError(
+            f"{preset_name}: expected delta_erasure_flag_per_layer={expected_flag}, got {erasure_flags}"
+        )
     import tempfile
     with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as tf:
         tmp_path = Path(tf.name)
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as rf:
+        results_path = Path(rf.name)
     try:
         tmp_logger = MetricsLogger(tmp_path)
         step_record: dict[str, Any] = {"event": "step", "step": 0}
@@ -2687,51 +3359,151 @@ def _smoke_preset_baseline_dense() -> None:
         for k in required_keys:
             if k not in roundtrip:
                 raise AssertionError(
-                    f"baseline preset: key {k} computed but not written to jsonl. "
+                    f"{preset_name}: key {k} computed but not written to jsonl. "
                     f"disk keys: {sorted(roundtrip.keys())[:20]}"
                 )
+        gate_record = {
+            "metric": "passkey_256",
+            "threshold": "> 0.0",
+            "is_hard_gate": True,
+            "preset": preset_name,
+            "status": "pass",
+            "passkey_256_accuracy": 0.25,
+        }
+        with open(results_path, "w", encoding="utf-8") as f:
+            json.dump({"run": preset_name}, f, indent=2)
+        _persist_retrieval_gate(results_path, gate_record)
+        with open(results_path, encoding="utf-8") as f:
+            results_payload = json.load(f)
+        if results_payload.get("retrieval_gate") != gate_record:
+            raise AssertionError(
+                f"{preset_name}: retrieval_gate did not roundtrip through results.json. "
+                f"payload keys: {sorted(results_payload.keys())}"
+            )
     finally:
         try:
             tmp_path.unlink()
         except Exception:
             pass
-    log(f"smoke test run1_baseline_dense preset ok (mean_fr=0.0, {len(required_keys)} keys roundtripped, pc_loss device={pc_loss.device})")
+        try:
+            results_path.unlink()
+        except Exception:
+            pass
+    log(f"smoke test {preset_name} preset ok (mean_fr=0.0, {len(required_keys)} keys roundtripped, pc_loss device={pc_loss.device})")
+
+
+def _persist_retrieval_gate(results_path: Path, gate_record: dict[str, Any]) -> None:
+    payload: dict[str, Any]
+    if results_path.exists():
+        with open(results_path, encoding="utf-8") as f:
+            payload = json.load(f)
+    else:
+        payload = {}
+    payload["retrieval_gate"] = _json_safe(gate_record)
+    _write_json_atomic(results_path, payload)
+
+
+def _require_completed_retrieval_gate(
+    gate_record: dict[str, Any] | None,
+    skip_eval: bool,
+    require_pass: bool = False,
+) -> None:
+    if gate_record is None or skip_eval:
+        return
+    status = str(gate_record.get("status", "not_evaluated"))
+    if status == "pass":
+        return
+    if status == "fail":
+        if not require_pass:
+            return
+        metric = str(gate_record.get("metric", "retrieval gate"))
+        accuracy = gate_record.get("passkey_256_accuracy")
+        detail = metric
+        if isinstance(accuracy, (int, float)):
+            detail = f"{metric}={float(accuracy):.1%}"
+        raise RuntimeError(
+            f"retrieval gate failed ({detail}). official run1_baseline_noerasure full launches require retrieval_gate.status == 'pass'."
+        )
+    detail = gate_record.get("reason") or gate_record.get("error") or status
+    raise RuntimeError(
+        f"retrieval gate did not complete ({status}: {detail}). "
+        "official baseline-style launches require a loadable best checkpoint and a completed eval suite."
+    )
 
 
 def main() -> None:
-    if os.environ.get("SMOKE_TEST"):
+    if _env_flag("SMOKE_TEST"):
         smoke_test()
         return
 
-    output_dir = Path(os.environ.get("NM_OUTPUT_DIR", str(DEFAULT_OUTPUT)))
+    preset = os.environ.get("NM_PRESET", "run1_baseline_noerasure")
+    preset_overrides, preset_log, default_run_name = _resolve_preset(preset)
+    output_dir_env = os.environ.get("NM_OUTPUT_DIR")
+    output_dir_lexical, output_dir = _canonicalize_output_pair(Path(output_dir_env or str(DEFAULT_OUTPUT_ROOT / default_run_name)))
+    cfg = Config(**preset_overrides)
+    run_name_env = os.environ.get("NM_RUN_NAME")
+    run_name = _validate_run_name(run_name_env or default_run_name)
+    runtime_overrides = _apply_runtime_env_overrides(cfg)
+    log(preset_log)
+    if runtime_overrides:
+        log(f"runtime overrides: {', '.join(runtime_overrides)}")
+    official_run1 = preset == "run1_baseline_noerasure"
+    gated_baseline_presets = {"run1_baseline_noerasure", "run1a_retention_ablation", "run4_erasure_ablation"}
+    launch_contract: dict[str, Any] | None = None
+    benchmark_mode = (
+        official_run1
+        and cfg.max_steps <= 20
+        and _env_flag("NM_SKIP_VALIDATION")
+        and _env_flag("NM_SKIP_EVAL")
+    )
+    if benchmark_mode:
+        if run_name_env is None:
+            run_name = "run1_baseline_noerasure_bench"
+        if output_dir_env is None:
+            output_dir_lexical, output_dir = _canonicalize_output_pair(DEFAULT_OUTPUT_ROOT / run_name)
+    if benchmark_mode and _env_flag("NM_RESUME"):
+        raise RuntimeError(
+            "benchmark mode requires a fresh directory and does not allow NM_RESUME=1. "
+            "rerun the documented 20-step benchmark from step 0 before authorizing the full launch."
+        )
+    if official_run1 and _env_flag("ALLOW_WIKITEXT_FALLBACK"):
+        raise RuntimeError(
+            "ALLOW_WIKITEXT_FALLBACK=1 is forbidden on the official run1_baseline_noerasure surface. "
+            "use a separately named fallback or debug run instead of the canonical FineWeb branch."
+        )
+    if preset in gated_baseline_presets and not benchmark_mode and (
+        _env_flag("NM_SKIP_VALIDATION") or _env_flag("NM_SKIP_EVAL")
+    ):
+        raise RuntimeError(
+            "NM_SKIP_VALIDATION and NM_SKIP_EVAL are benchmark-only flags on the baseline launch surface. "
+            "full launches must keep validation and eval enabled so the retrieval gate is real."
+        )
+    if official_run1 and not benchmark_mode and not _env_flag("NM_AUTHORIZE_FULL_RUN"):
+        raise RuntimeError(
+            "full run1_baseline_noerasure launch requires NM_AUTHORIZE_FULL_RUN=1 after the benchmark gate has been reviewed."
+        )
+    if official_run1 and not benchmark_mode:
+        if _config_hash(_cfg_to_dict(cfg)) != _run1_full_contract_hash():
+            raise RuntimeError(
+                "official run1_baseline_noerasure full launches must use the canonical 4000-step config with no runtime overrides."
+            )
+        manifest_path = _run1_benchmark_manifest_path(output_dir_lexical)
+        benchmark_manifest = _require_run1_benchmark_manifest(output_dir_lexical)
+        output_dir_lexical = _require_run1_full_output_dir(output_dir_lexical, benchmark_manifest)
+        output_dir = output_dir_lexical.resolve(strict=False)
+        _require_run1_full_launch_device(benchmark_manifest)
+        launch_contract = {
+            "preset": preset,
+            "benchmark_manifest_sha256": _sha256_file(manifest_path),
+            "git_state_fingerprint": benchmark_manifest.get("git_state_fingerprint"),
+            "device": benchmark_manifest.get("device"),
+            "device_capability": benchmark_manifest.get("device_capability"),
+            "device_total_memory_gb": benchmark_manifest.get("device_total_memory_gb"),
+            "device_multi_processor_count": benchmark_manifest.get("device_multi_processor_count"),
+        }
     output_dir.mkdir(parents=True, exist_ok=True)
-
-    preset = os.environ.get("NM_PRESET", "god")
-    if preset == "run1_baseline_dense":
-        cfg = Config(
-            kwta_enabled=False,
-            delta_erasure_enabled=True,
-            bcm_alpha_enabled=False,
-            multi_compartment_enabled=False,
-            imagination_enabled=False,
-            pc_diagnostic_enabled=False,
-        )
-        log(f"preset: run1_baseline_dense (dense k/v, delta erasure on, all other features off)")
-    elif preset == "run1_baseline_noerasure":
-        cfg = Config(
-            kwta_enabled=False,
-            delta_erasure_enabled=False,
-            bcm_alpha_enabled=False,
-            multi_compartment_enabled=False,
-            imagination_enabled=False,
-            pc_diagnostic_enabled=False,
-        )
-        log(f"preset: run1_baseline_noerasure (dense k/v, no features; slower recurrent path only)")
-    else:
-        cfg = Config()
-        log(f"preset: {preset} (default god_machine config)")
     log(f"device: {DEVICE}")
-    log(f"output: {output_dir}")
+    log(f"output: {output_dir_lexical}")
     log(
         f"config: d_model={cfg.d_model} n_layers={cfg.n_layers} "
         f"seq_len={cfg.seq_len} batch_size={cfg.batch_size}"
@@ -2744,13 +3516,43 @@ def main() -> None:
     log(f"layer pattern: {cfg.layer_pattern}")
 
     log("loading training data")
-    if cfg.max_steps <= 50:
+    dataset_mode = os.environ.get("NM_DATASET", "auto").strip().lower()
+    if dataset_mode == "auto":
+        dataset_mode = "wikitext2" if cfg.max_steps <= 50 else "fineweb"
+    if official_run1 and dataset_mode != "fineweb":
+        raise RuntimeError(
+            "official run1_baseline_noerasure launches must use the FineWeb path. set NM_DATASET=fineweb."
+        )
+    if benchmark_mode:
+        if dataset_mode != "fineweb":
+            raise RuntimeError(
+                "benchmark mode requires NM_DATASET=fineweb so the prelaunch gate exercises the real corpus path."
+            )
+        if cfg.batch_size != 16 or cfg.seq_len != 2048 or cfg.max_seq_len != 2048:
+            raise RuntimeError(
+                "benchmark mode requires the full launch shape: batch_size=16, seq_len=2048, max_seq_len=2048."
+            )
+        if _config_hash(_cfg_to_dict(cfg)) != _run1_benchmark_contract_hash():
+            raise RuntimeError(
+                "benchmark mode requires the exact documented run1 benchmark config; remove extra runtime overrides."
+            )
+        device_info = _device_metadata()
+        cap = _device_capability_tuple(device_info.get("device_capability"))
+        if device_info.get("device") != "cuda" or cap < (9, 0):
+            raise RuntimeError(
+                "benchmark mode requires an sm_90-or-newer cuda device so the prelaunch gate measures the real h200 path."
+            )
+    if dataset_mode == "wikitext2":
         train_data, val_data, dataset_source = download_wikitext2()
+    elif dataset_mode == "fineweb":
+        train_data, val_data, dataset_source = download_fineweb_edu(
+            max_bytes=5_000_000_000,
+            allow_wikitext_fallback=_env_flag("ALLOW_WIKITEXT_FALLBACK"),
+        )
     else:
-        train_data, val_data, dataset_source = download_fineweb_edu(max_bytes=5_000_000_000)
+        raise ValueError(f"unknown NM_DATASET: {dataset_mode}")
     log(f"dataset: {dataset_source}  train: {len(train_data):,} bytes, val: {len(val_data):,} bytes")
 
-    run_name = os.environ.get("NM_RUN_NAME", "god_run")
     result = train_model(
         cfg,
         train_data,
@@ -2758,6 +3560,7 @@ def main() -> None:
         name=run_name,
         output_dir=output_dir,
         dataset_source=dataset_source,
+        launch_contract=launch_contract,
     )
 
     log(f"results.json snapshot at {output_dir / f'{run_name}_results.json'}")
@@ -2768,45 +3571,98 @@ def main() -> None:
         f"steps={result['total_steps']} tokens={result['tokens_seen_total']:,}"
     )
 
-    if os.environ.get("NM_SKIP_EVAL"):
+    gate_record: dict[str, Any] | None = None
+    pending_eval_failure: RuntimeError | None = None
+    if preset in ("run1_baseline_noerasure", "run1a_retention_ablation", "run4_erasure_ablation"):
+        gate_record = {
+            "metric": "passkey_256",
+            "threshold": "> 0.0",
+            "is_hard_gate": True,
+            "preset": preset,
+            "status": "not_evaluated",
+        }
+
+    if _env_flag("NM_SKIP_EVAL"):
         log("NM_SKIP_EVAL set, skipping eval suite")
+        if gate_record is not None:
+            gate_record["reason"] = "NM_SKIP_EVAL"
     else:
         best_path = output_dir / f"{run_name}_best.pt"
         if not best_path.exists():
             log(f"eval suite skipped: {best_path} does not exist (no best checkpoint written)")
+            if gate_record is not None:
+                gate_record["reason"] = "best_checkpoint_missing"
         else:
             log("loading best checkpoint for eval suite")
             eval_model = GodMachine(cfg).to(DEVICE)
-            best_state = torch.load(best_path, map_location=DEVICE, weights_only=True)
-            incompat = eval_model.load_state_dict(best_state, strict=False)
-            missing = list(incompat.missing_keys) if hasattr(incompat, "missing_keys") else []
-            unexpected = list(incompat.unexpected_keys) if hasattr(incompat, "unexpected_keys") else []
-            if missing or unexpected:
-                log(
-                    f"checkpoint load mismatch: "
-                    f"missing={missing[:10]}{'...' if len(missing) > 10 else ''} "
-                    f"unexpected={unexpected[:10]}{'...' if len(unexpected) > 10 else ''}"
-                )
-                if missing:
-                    raise RuntimeError(
-                        f"checkpoint load incomplete: {len(missing)} missing keys "
-                        f"(first few: {missing[:5]}). refusing to run eval on uninitialized buffers/weights."
-                    )
-            log(f"loaded {best_path}")
+            checkpoint_stage = "load"
             try:
-                eval_results = run_eval_suite(eval_model, val_data, output_dir, run_name)
-                log(
-                    f"eval suite: passkey@256={eval_results['passkey']['256']['accuracy']:.1%} "
-                    f"copy@256={eval_results['selective_copy']['256']['accuracy']:.1%} "
-                    f"imag_structure={eval_results['imagination'].get('mean_structure_ratio', 0):.3f}"
-                )
+                best_state = torch.load(best_path, map_location=DEVICE, weights_only=True)
+                incompat = eval_model.load_state_dict(best_state, strict=False)
+                missing = list(incompat.missing_keys) if hasattr(incompat, "missing_keys") else []
+                unexpected = list(incompat.unexpected_keys) if hasattr(incompat, "unexpected_keys") else []
+                if missing or unexpected:
+                    log(
+                        f"checkpoint load mismatch: "
+                        f"missing={missing[:10]}{'...' if len(missing) > 10 else ''} "
+                        f"unexpected={unexpected[:10]}{'...' if len(unexpected) > 10 else ''}"
+                    )
+                    message = (
+                        f"checkpoint load mismatch: {len(missing)} missing keys and {len(unexpected)} unexpected keys. "
+                        f"refusing to compute retrieval_gate on a checkpoint that does not exactly match the active preset."
+                    )
+                    if gate_record is not None:
+                        gate_record["status"] = "checkpoint_mismatch"
+                        gate_record["error"] = message
+                    pending_eval_failure = RuntimeError(message)
+                log(f"loaded {best_path}")
+                checkpoint_stage = "eval"
+                if pending_eval_failure is None:
+                    eval_results = run_eval_suite(eval_model, val_data, output_dir, run_name)
+                    if gate_record is not None:
+                        passkey_256 = float(eval_results["passkey"]["256"]["accuracy"])
+                        gate_record["passkey_256_accuracy"] = passkey_256
+                        gate_record["status"] = "pass" if passkey_256 > 0.0 else "fail"
+                        log(f"retrieval gate: {gate_record['status']} (passkey@256={passkey_256:.1%})")
+                    log(
+                        f"eval suite: passkey@256={eval_results['passkey']['256']['accuracy']:.1%} "
+                        f"copy@256={eval_results['selective_copy']['256']['accuracy']:.1%} "
+                        f"imag_structure={eval_results['delta_state_structure_probe'].get('mean_structure_ratio', 0):.3f}"
+                    )
             except Exception as e:
                 log(f"eval suite runtime failure: {type(e).__name__}: {e}")
+                if gate_record is not None:
+                    gate_record["status"] = "checkpoint_load_error" if checkpoint_stage == "load" else "eval_error"
+                    gate_record["error"] = f"{type(e).__name__}: {e}"
+                pending_eval_failure = RuntimeError(f"eval suite runtime failure: {type(e).__name__}: {e}")
             finally:
                 del eval_model
                 gc.collect()
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
+
+    if gate_record is not None:
+        _persist_retrieval_gate(output_dir / f"{run_name}_results.json", gate_record)
+
+    if pending_eval_failure is not None:
+        raise pending_eval_failure
+
+    _require_completed_retrieval_gate(
+        gate_record,
+        skip_eval=_env_flag("NM_SKIP_EVAL"),
+        require_pass=official_run1 and not benchmark_mode,
+    )
+
+    if benchmark_mode:
+        manifest_path = _write_run1_benchmark_manifest(
+            output_dir=output_dir_lexical,
+            run_name=run_name,
+            cfg=cfg,
+            dataset_mode=dataset_mode,
+            dataset_source=dataset_source,
+            total_steps=result["total_steps"],
+        )
+        log(f"benchmark manifest at {manifest_path}")
 
     log("done")
 

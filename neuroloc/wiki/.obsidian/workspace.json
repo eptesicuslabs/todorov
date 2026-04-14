@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "knowledge/papers.md",
+                "file": "knowledge/sleep_and_dreaming_research.md",
                 "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "papers"
+              "title": "sleep_and_dreaming_research"
             }
           }
         ]
@@ -183,6 +183,14 @@
   },
   "active": "94ff5ce434ff2166",
   "lastOpenFiles": [
+    "tests/aesthetic_logger_prototype.md",
+    "tests/thinking_loop_prototype_results.md",
+    "tests/multi_resolution_head_split_results.md",
+    "tests/correction_field_trained_prediction_results.md",
+    "bridge/cortical_microcircuit_to_layer_schedule.md",
+    "bridge/biological_attention_to_mla.md",
+    "PROJECT_PLAN.md",
+    "knowledge/papers.md",
     "knowledge/papers_library.md",
     "knowledge/training_efficiency.md",
     "knowledge/unified_theory.md",

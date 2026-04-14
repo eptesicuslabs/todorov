@@ -1,9 +1,9 @@
 project: todorov
 canonical_plan: neuroloc/wiki/PROJECT_PLAN.md
 current_phase: neural_machine
-current_step: phase_0_project_plan_in_wiki
-status: god_run_v2_confirmed_bundle_broken_phase_0_canonical_wiki_plan_created
-last_updated: "2026-04-12"
+current_step: substrate_pivot_to_slot_memory_cpu_sim_gate
+status: run1_closed_zero_passkey_three_paid_runs_converged_matrix_memory_theoretically_incapable_pivot_to_slot_based_memory_with_softmax_addressing_cpu_sim_gate_before_paid_compute
+last_updated: "2026-04-14"
 tests_passing: 76
 total_tests: 76
 critical_fix: "god_machine.py step logger hardcoded dict dropped 40+ probe metrics, fixed class-wide via merge loop and smoke-test disk round-trip guard; bcm train/eval path divergence fixed by aligning recurrent path to running_state_norm; running_state_norm now training-only mutation; 17 prosecutor findings F1-F17 all fixed"
@@ -20,7 +20,7 @@ run_history:
   run_010: "KDA+MLA scaling probe (NOT todorov baseline -- Mamba3 absent), H200, 267M, BPB 2.375, ratio 0.663x, gates pass but architecture incomplete"
   run_011: "full architecture (KDA+Mamba3+MLA, 6:1:1), H200, 280M, BPB 2.592, ratio 0.722x, 3/4 gates pass (FR measurement bug from gradient checkpointing)"
   god_run: "god_machine.py first run, all 5 blueprint features + imagination probe + PC diagnostic, H200, 283M, fineweb-edu 131M tokens, val_bpb 1.3950 (0.390x vs transformer baseline), RETRIEVAL FAILED (passkey 0.0% at 256/1024/4096, selective_copy 0.0% at 256/512/1024/2048), delta_state_structure_probe mean_structure_ratio=0.981 with pairwise_cos -0.003 (state is noise not content-addressable), telemetry bug lost 40+ probe keys fixed post-hoc"
-  god_run_v2: "god_machine.py re-run with 17 F + 14 G prosecutor fixes including critical F1 torch.exp math correction, H200, 283M, fineweb-edu 131M tokens, 59 min, val_bpb 1.4453 (+0.050 vs v1, 0.404x baseline), RETRIEVAL STILL 0 (passkey 0/100 CI 3.7% at 256/1024/4096, copy 0/100 at 256/512/1024/2048), delta_state_structure_probe mean_structure_ratio 0.977 pairwise_cos 0.003 (noise), F1 math fix NOT the root cause. bundle-is-broken confirmed. external review identified 8 root causes: k-WTA on keys destroys address space (critical), erasure with sparse keys leaves ghost content (critical), imagination gradient bypass, slow BCM EMA, multi-compartment halves FFN width, PC head loss drag, FLA/recurrent numerical drift, q/k normalization timing mismatch"
+  god_run_v2: "god_machine.py re-run with 17 F + 14 G prosecutor fixes including critical F1 torch.exp math correction, H200, 283M, fineweb-edu 131M tokens, 59 min, val_bpb 1.4453 (+0.050 vs v1, 0.404x baseline), RETRIEVAL STILL 0 (passkey 0/100 CI 3.7% at 256/1024/4096, copy 0/100 at 256/512/1024/2048), delta_state_structure_probe mean_structure_ratio 0.977 pairwise_cos 0.003 (noise), F1 math fix NOT the root cause. bundle-is-broken confirmed. external review identified 8 candidate contributing mechanisms: k-WTA on keys likely destroys address space (strongest finding), erasure with sparse keys likely leaves ghost content (strongest finding), imagination probe gradient bypass, slow BCM EMA, multi-compartment effective-width loss, PC head loss drag, FLA/recurrent numerical drift, q/k normalization timing mismatch"
 latest_run: god_run_v2
 god_run_v2_results:
   phase: neural_machine
@@ -45,49 +45,46 @@ god_run_v2_results:
   perplexity_4096: 1.4192
   delta_state_structure_ratio: 0.977
   delta_state_pairwise_cos: 0.003
-  retrieval_verdict: "FAILED. F1 math fix did not recover passkey. bundle-is-broken confirmed. 8 root causes identified in external review."
+  retrieval_verdict: "FAILED. F1 math fix did not recover passkey. bundle-is-broken confirmed. external review identified 8 candidate contributing mechanisms."
   total_time_sec: 3546
   tokens: 131072000
   compute: h200
   seed: 42
-  root_causes:
-    critical_1: "k-WTA 20% on keys destroys address space (13/64 dims survive, Hopfield capacity ~2 patterns/head instead of ~9)"
-    critical_2: "delta erasure with sparse keys leaves ghost content in zeroed dimensions, accumulates across steps"
-    high_3: "imagination probe trainable MLP creates gradient bypass competing with delta memory"
-    high_4: "BCM alpha EMA half-life 69 steps, state saturates before BCM reacts"
-    high_5: "multi-compartment SwiGLU K=4 halves effective FFN width (4x 256-dim independent nets)"
-    medium_6: "PC diagnostic head adds constant loss drag trying to reconstruct input from noise-like delta output"
-    medium_7: "FLA/recurrent numerical drift compounds during chunked eval (rel 1.3e-3 per chunk * 8 chunks)"
+  external_review_findings:
+    critical_1: "k-WTA on keys likely destroys address space (13/64 dims survive, Hopfield capacity ~2 patterns/head instead of ~9)"
+    critical_2: "delta erasure with sparse keys likely leaves ghost content in zeroed dimensions, accumulating across steps"
+    high_3: "imagination probe trainable MLP may create a gradient bypass competing with delta memory"
+    high_4: "BCM alpha EMA half-life 69 steps may be too slow, letting state saturate before correction reacts"
+    high_5: "multi-compartment SwiGLU K=4 may reduce effective FFN width (4x 256-dim independent nets)"
+    medium_6: "PC diagnostic head may add loss drag while reconstructing from noise-like delta output"
+    medium_7: "FLA/recurrent numerical drift may compound during chunked eval (rel 1.3e-3 per chunk * 8 chunks)"
     medium_8: "q/k normalization timing differs between FLA kernel (per-timestep) and recurrent path (pre-loop)"
 latest_run_results:
   phase: neural_machine
-  description: "god_machine.py: all 5 blueprint features active (k-WTA 20%, delta erasure, BCM alpha gamma=0.3, multi-compartment K=4, compressed attention via SDPA), always-on imagination probe, per-layer PC diagnostic. 4000 steps on fineweb-edu byte-level."
-  best_val_bpb: 1.3950
+  description: "god_machine.py re-run with all 17 F + 14 G prosecutor fixes; F1 math corrected (torch.exp instead of torch.sigmoid of logsigmoid); all probe metrics now in jsonl"
+  best_val_bpb: 1.4453
   baseline_best_bpb: 3.580
-  bpb_ratio: 0.390
+  bpb_ratio: 0.404
   param_count: 282953496
   firing_rate: 0.200
-  firing_rate_note: "k-WTA 20% target met exactly throughout training"
   passkey_256: 0.0
   passkey_1024: 0.0
   passkey_4096: 0.0
+  passkey_wilson_95_upper: 0.037
   selective_copy_256: 0.0
   selective_copy_512: 0.0
   selective_copy_1024: 0.0
   selective_copy_2048: 0.0
-  perplexity_256: 1.9354
-  perplexity_512: 1.8437
-  perplexity_1024: 1.4909
-  perplexity_2048: 1.4110
-  perplexity_4096: 1.3751
-  delta_state_structure_ratio: 0.981
-  delta_state_pairwise_cos: -0.003
-  delta_state_note: "state is near-orthogonal across 24 delta layers. NOT the structured-interpolation signature (~0.93) exp_008 reported. delta memory is high-dimensional noise, not a trained content-addressable store."
-  retrieval_verdict: "FAILED. passkey 0/20 at every tested length, selective copy 0/20 at every tested length. 20-trial measurement, Wilson 95% CI upper bound ~14% — underspecified, re-run will use 100 trials."
-  telemetry_bug: "metrics.jsonl missing 40+ probe keys (imag_contribution_ratio_per_layer, pc_error_l2_per_layer, kwta_k_rate_per_layer, alpha_base_mean_per_layer, mlp_compartment_l2_per_layer, etc.). Fixed in code via merge loop; god_run data permanently incomplete. Re-run will have full telemetry."
-  total_time_sec: 3166
+  perplexity_256: 1.9254
+  perplexity_512: 1.8941
+  perplexity_1024: 1.5373
+  perplexity_2048: 1.4776
+  perplexity_4096: 1.4192
+  delta_state_structure_ratio: 0.977
+  delta_state_pairwise_cos: 0.003
+  retrieval_verdict: "FAILED. F1 math fix did not recover passkey. bundle-is-broken confirmed. external review identified 8 candidate contributing mechanisms."
+  total_time_sec: 3546
   tokens: 131072000
-  throughput_tps: 45500
   compute: h200
   seed: 42
-next_action: "launch run 1 baseline dense on h200 (198.145.108.36:10090). preset: run1_baseline_dense (dense k/v, delta erasure on, no BCM/multi-compartment/imagination/PC head). hard gate: nonzero passkey at 256 tokens. if this run produces 0%, the delta-rule architecture itself is suspect and we need to rethink the base mechanism before adding tiers on top. if passkey >0, run 2 adds k-WTA 50% on values only (keys stay dense), run 3 adds BCM with faster EMA. in parallel: start phase 6a aesthetic logging from next_gen.md as a standalone low-risk deliverable."
+next_action: "run a short h200 timing and oom benchmark for neuroloc/model/god_machine.py with preset run1_baseline_noerasure (dense k/v, no overwrite subtraction, non-FLA path, no BCM/multi-compartment/imagination/PC head) at the full launch shape before authorizing the 4000-step run. use NM_DATASET=fineweb, NM_MAX_STEPS=20, NM_SKIP_VALIDATION=1, and NM_SKIP_EVAL=1 so the benchmark exercises only the real recurrent training path and FineWeb data path without spending the full budget on validation or eval. that benchmark now has to start from a fresh directory, rejects NM_RESUME=1, and has to write run1_baseline_noerasure_benchmark_manifest.json in the shared output root; after that gate passes, the full run requires both NM_AUTHORIZE_FULL_RUN=1 and the matching manifest, and the official run-1 surface no longer permits ALLOW_WIKITEXT_FALLBACK=1, runtime-override drift on the canonical 4000-step launch, a full launch on a device class that does not match the benchmarked hardware, or a working-tree/artifact provenance mismatch against the benchmark manifest. the hard retrieval gate remains nonzero passkey at 256 tokens, persisted as retrieval_gate in the run results, and inconclusive eval now fails closed instead of exiting zero. if the full run produces 0%, do one slower static-retention ablation with erasure still off before declaring the delta-rule architecture itself suspect. if passkey >0, implement and smoke a value-only k-wta preset before run 2 because the current checked-in switch still sparsifies keys and values together; after that branch, implement and smoke bcm controls for the planned faster-ema run 3 before launch. erasure returns only as a later explicit ablation. in parallel: start phase 6a aesthetic logging from next_gen.md as a standalone low-risk deliverable."

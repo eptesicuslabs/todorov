@@ -83,9 +83,11 @@ outer-product state). UNLIKE current design:
 - decay rate is activity-dependent (BCM-like: busy memories fade
   faster to prevent saturation, quiet memories persist). validated
   by pilot: gamma=0.3-0.5 stabilizes without degrading retrieval.
-- targeted erasure: when writing a new value for an existing key,
-  ERASE the old value first, then write the new one. this is the
-  actual delta rule, not just decaying accumulation.
+- targeted erasure: when writing a new value for an existing key, the
+  machine can erase the old value first and then write the new one.
+  this remains an explicit experimental branch, not the dense-key
+  baseline default, because the current standalone overwrite sweep at
+  `d_head=64` shows that erasure hurts the first useful retention knee.
 - periodic consolidation: every N steps, compress the memory state
   into a summary snapshot and store it permanently. the fast state
   can then be partially cleared. old snapshots are addressable by
@@ -227,11 +229,15 @@ these three capabilities emerge from the same core operation:
    and predictable (experiment 007). novel: no prior work on k-WTA +
    rate-coded activation compression with CKA validation.
 
-3. **memory capacity**: ANSWERED. binary hopfield saturates at alpha=0.08-0.10
-   with 5% corruption. ternary has ~5x lower practical capacity (experiment
-   006). delta rule erasure is mandatory for practical capacity. recurrent
-   state alone cannot provide eidetic memory -- exact retrieval mode (MLA
-   function) needed for long-range recall.
+3. **memory capacity**: ANSWERED IN PART. binary hopfield saturates at
+  alpha=0.08-0.10 with 5% corruption. ternary has ~5x lower practical
+  capacity (experiment 006). but the current asymmetric dense-key sweep at
+  `d_head=64` changes the erasure claim: the focused overwrite test at the
+  first useful retention knee (`decay=0.90`) shows that erasure hurts every
+  tested encoding at 32 patterns, so overwrite is no longer a baseline
+  assumption for the dense-key branch. recurrent state alone also cannot
+  provide eidetic memory -- exact retrieval mode (MLA function) is still
+  needed for long-range recall.
 
 4. **imagination quality**: ANSWERED. recombined queries produce structured
    interpolation (cosine 0.93), not noise. random queries produce -0.02.
@@ -265,55 +271,95 @@ each feature is validated in isolation before combination. this follows
 the phase 5 sequencing protocol from CLAUDE.md. **the ordering below has
 been revised on 2026-04-12 after god_run_v2's 0% passkey confirmed that
 the prior ordering (k-WTA on both keys AND values) destroys verbatim
-memory. see `memory/project_v2_diagnosis.md` for the 8 root causes.**
+memory. see `neuroloc/output/god_run_v2/run_card.md` for the 8 external review findings.**
 
-**critical invariant (post-god_run_v2)**: keys must stay dense. k-WTA,
-sparsification, and any form of address-space truncation must be applied
-only to values, never to keys. a 20%-sparse key in a 64-dim head carries
+**current working rule (post-god_run_v2)**: keys stay dense in the
+current run ordering. k-WTA, sparsification, and any form of
+address-space truncation are deferred to the value side until isolation
+runs say otherwise. a 20%-sparse key in a 64-dim head carries
 ~13 effective dimensions, which drops Hopfield interference-free capacity
 from ~9 patterns to ~2 patterns per head. delta rule erasure with sparse
 keys also reads only the 13 surviving dimensions of the state, leaving
 "ghost" content in the zeroed dimensions that accumulates and interferes.
-both failure modes are explicit in the empirical data from god_run_v2.
+both failure modes are the strongest current review findings from
+god_run_v2 and motivate the current run ordering.
 
-**run 1 (baseline dense at 350M)**: use `neural_machine.py` with dense
-keys, dense values, and delta erasure on. no activity-adaptive decay,
-standard SwiGLU (not multi-compartment), no imagination probe, no PC
-diagnostic head. target: replicate run_010's 2.375 BPB at 267M scaled up
-to 350M while restoring measurable retrieval. **critical success metric:
-nonzero passkey at 256 or 512 tokens.** if this run produces 0% passkey,
-the problem is deeper than the bundle and the entire delta-rule
-architecture needs rethinking.
+**run 1 (baseline dense)**: use `god_machine.py` with preset
+`run1_baseline_noerasure`: dense keys, dense values, and no delta
+erasure. use the non-FLA path. no activity-adaptive decay, standard SwiGLU (not
+multi-compartment), no imagination probe, no PC diagnostic head.
+target: preserve the run_010 dense-memory quality regime while restoring
+measurable retrieval on the isolated baseline path. **critical success metric: nonzero
+passkey at 256 tokens.** before the full 4000-step launch, the official
+surface now requires a 20-step fineweb-backed h200 benchmark that starts
+from a fresh directory, does not use resume, and writes
+`run1_baseline_noerasure_benchmark_manifest.json` in the shared output
+root; the full launch requires that manifest plus `NM_AUTHORIZE_FULL_RUN=1`,
+checks that the current device matches the benchmarked hardware class,
+locks the official run to the canonical 4000-step config with no runtime
+override drift, binds benchmark provenance to the recorded artifacts and
+git working-tree fingerprint, and treats inconclusive eval outcomes as
+hard failures instead of a completed gate. if this run produces 0% passkey, do one slower
+static-retention ablation with erasure still off before claiming the
+problem is deeper than the bundle.
 
-**run 2 (50% value-side rate-coded compression, dense keys)**: add
-rate-coded 50% selection applied only to values. keys remain dense.
-apply to the neural_machine.py baseline from run 1, not god_machine.
-target: preserve run 1's retrieval accuracy while testing whether value
-sparsity can be recovered without collapsing the address space. if 50%
-works, a follow-up run can try 30% on values; never sparsify keys below
-100%.
+**run 1a contingency (slower static retention, still no erasure)**: if run
+1 still returns 0% passkey, raise the static retention initialization in
+the same `god_machine.py` baseline path without adding activity-adaptive
+decay or overwrite. the standalone decay sweep at `d_head=64` showed that
+exact-query recall first reopens at 32 patterns around `decay=0.90`,
+while the current `god_machine.py` baseline initialization starts much
+lower. target: determine whether the dense-key baseline is failing because
+overwrite was wrong, because static retention is still too low, or
+because the base mechanism is genuinely insufficient.
+
+**run 2 (value-side compression, dense keys)**: the leading candidate
+for value compression is the correction-field design from
+`wiki/synthesis/correction_field_memory.md`. it replaces raw value storage
+with prediction-residual storage: values are projected from
+`r_t = h_t - f(h_{t-1})` instead of `h_t`, and writes are modulated by
+a surprise ratio. retrieval reconstructs as `prediction + correction`.
+the design compounds predictive filtering and generative replacement
+(mechanisms 1 and 2 from the six-mechanism list) plus prediction-residual
+value storage in one mechanism, with ~1% parameter overhead (a
+low-rank prediction head per layer). keys remain dense.
+
+the correction-field design is validated by cpu simulation before entering
+this slot, but the checked-in workspace currently contains only the prompt
+for that harness (`simulations/prompts/correction_field_capacity.md`), not
+the simulation implementation itself. if the eventual simulation does not
+confirm a capacity increase, the fallback is rate-coded 50% selection on
+values only. in either case, do not launch
+run 2 until the checked-in config surface can express value-only
+compression with separate key/value controls and a smoke-tested preset.
+target: preserve run 1's retrieval accuracy while compressing value storage.
 
 **run 3 (activity-adaptive decay with faster EMA)**: add activity-adaptive
 decay on top of run 2. use momentum 0.95 instead of 0.99 (half-life ~14
 steps vs ~69). initialize `running_state_norm` to 0.01 instead of 1.0 so
 the correction is active from step 0 rather than kicking in late after the
-state has already saturated. target: preserve or improve retrieval over
-run 2 while testing whether adaptive retention helps without reintroducing
-the bundle failure mode.
+state has already saturated. this is also a pending implementation branch,
+not a launchable preset on the current checked-in surface: the bcm ema and
+initial norm are still hardcoded, so run 3 requires config-threaded controls
+plus a smoke-tested preset before launch. target: preserve or improve
+retrieval over run 2 while testing whether adaptive retention helps without
+reintroducing the bundle failure mode.
 
-**run 4 (erasure ablation after dense-key validation)**: if the first
-three runs preserve retrieval, run an erasure ablation that compares the
-dense-key baseline with and without the overwrite subtraction under the
-same retrieval gate. target: determine whether erasure is net helpful once
-the address space is no longer sparsified.
+**run 4 (erasure ablation after dense-key validation)**: if the earlier
+runs preserve retrieval, run an erasure ablation that compares the
+no-erasure dense-key baseline against the overwrite-subtraction variant
+under the same retrieval gate. target: determine whether erasure becomes
+net helpful only after the dense-key baseline is already working.
 
 **what is explicitly NOT added unless validated in a dedicated run:**
-- imagination probe (god_run_v2 confirmed it creates a gradient bypass
-  that the model uses instead of learning content-addressable storage,
-  gate rose from 0.12 to 0.22 during training)
-- multi-compartment SwiGLU K=4 (halves effective FFN width; responsible
-  for 283M vs 350M param gap and +0.050 bpb regression in god_run_v2)
-- PC diagnostic head (loss drag, no retrieval benefit)
+- imagination probe (external review flagged it as a likely gradient-bypass
+  mechanism that may let the model lean away from content-addressable
+  storage; gate rose from 0.12 to 0.22 during training)
+- multi-compartment SwiGLU K=4 (external review flagged it as a likely
+  contributor to effective width loss; it is also one source of the 283M
+  vs larger-baseline parameter gap)
+- PC diagnostic head (external review flagged it as likely loss drag with
+  no demonstrated retrieval benefit in the bundled run)
 - retrieval mode / consolidated snapshots (deferred to next_gen.md phase 6
   tiered architecture — not a bolt-on to the single-tier design)
 
@@ -347,35 +393,33 @@ indistinguishable from high-dimensional noise (mean_structure_ratio 0.981, mean_
 compressed-attention path uses context correctly; the delta-rule memory is the channel
 that failed.
 
-interpretation: the compressed-attention + mlp path fit the next-byte distribution while
-the delta-rule memory never became content-addressable. this is the lossy-mechanism
-failure mode predicted by `wiki/synthesis/compression_beyond_quantization.md`. a
-confounder remains: the BCM train/eval path divergence (prosecutor finding F1) meant the
-model was trained under one dynamical rule and evaluated under a different one for
-everything beyond the first chunk. F1 and 16 related prosecutor findings have been fixed,
-and the re-run will determine whether F1 was the primary cause or whether the 5-feature
-bundle itself destroys verbatim memory.
+interpretation at the time: the compressed-attention + mlp path fit the next-byte
+distribution while the delta-rule memory never became content-addressable. this is the
+lossy-mechanism failure mode predicted by
+`wiki/synthesis/compression_beyond_quantization.md`. before the rerun, one confounder
+remained: the BCM train/eval path divergence (prosecutor finding F1) meant the model was
+trained under one dynamical rule and evaluated under a different one for everything beyond
+the first chunk. that unresolved confound is why god_run_v2 was launched.
 
-**decision rule for post-re-run analysis**:
-- if re-run passkey > 0 at any length: F1+F2 was the culprit. proceed with the sequential
-  isolation protocol below as originally planned, using the 5-feature bundle as validated.
-- if re-run passkey still 0 at all lengths: the bundle destroys verbatim memory regardless
-  of path alignment. fall back to run 1 (below) as the honest starting point and introduce
-  one feature at a time, validating retrieval after each.
+historical pre-rerun decision rule: if god_run_v2 had recovered passkey, F1+F2 would have
+been treated as the primary culprit and the five-feature bundle would have stayed in play.
+it did not: god_run_v2 kept passkey at 0/100, so the bundle-is-broken branch below is the
+resolved project state.
 
 **god_run_v2 (2026-04-12)**: the re-run. all 17 F1-F17 + 14 G1-G14 prosecutor findings
 fixed, including the critical F1 `torch.sigmoid → torch.exp` math correction for the
 log-space gate and F2 `running_state_norm` training-only gating. 283m params, same
 pipeline, 4000 steps, 131m tokens, 59 min runtime. **result: val_bpb 1.4453 (+0.050 vs
 v1), passkey 0/100 at 256/1024/4096 (Wilson 95% CI upper 3.7%), copy 0/100 at every
-length. F1 math fix did NOT recover retrieval.** the 5-feature bundle is intrinsically
-broken: dense-key requirement for content-addressable storage is violated by k-WTA at
-20% on keys. decision rule hits the bundle-is-broken branch: fall back to run 1.
+length. F1 math fix did NOT recover retrieval.** the tested 5-feature bundle failed, and
+the strongest current review findings point to key-side k-WTA plus sparse-key erasure as
+the leading contributors. decision rule hits the bundle-is-broken branch: fall back to run 1.
 
-external review (2026-04-12) identified 8 root causes. the two critical ones are k-WTA
-on keys (destroys address space, drops per-head capacity from ~9 patterns to ~2) and
-delta erasure with sparse keys (ghost content accumulates in zeroed dimensions). the
-six supporting causes are listed in `memory/project_v2_diagnosis.md` and inform the
+external review (2026-04-12) identified 8 candidate contributing mechanisms. the two
+strongest are k-WTA on keys (destroys address space, drops per-head capacity from ~9
+patterns to ~2) and delta erasure with sparse keys (ghost content accumulates in zeroed
+dimensions). the six supporting review findings are listed in
+`neuroloc/output/god_run_v2/run_card.md` and inform the
 revised run ordering below.
 
 see `neuroloc/output/god_run/run_card.md`, `neuroloc/output/god_run_v2/run_card.md`,

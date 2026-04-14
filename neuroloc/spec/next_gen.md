@@ -10,10 +10,17 @@ but regardless of that outcome the next generation of the architecture moves in 
 direction. blueprint.md covers sequential feature isolation on the current single-tier
 design; this file covers the next architectural leap.
 
-## direction (set by deyan 2026-04-11)
+## direction (set by deyan 2026-04-11, compression elevated 2026-04-12)
 
-1. **compression**: 5-tier memory architecture from
-   `wiki/bridge/memory_compression_to_tiered_architecture.md`.
+1. **compression** (primary): the correction-field memory design from
+   `wiki/synthesis/correction_field_memory.md` is the concrete mechanism for the first
+   three of the six biological compression mechanisms. the 5-tier architecture from
+   `wiki/bridge/memory_compression_to_tiered_architecture.md` is the longer-term target;
+   the correction-field is the first tier validated by simulation before gpu spend.
+   compression is the lead research direction because the matrix memory's capacity
+   ceiling at d_head=64 (~8 patterns crossing 0.5 cosine in simulation round b at
+   decay=0.40; ~9 from the 0.14*d theoretical formula) is the binding constraint on
+   everything else. nothing else matters until the memory can hold retrievable content.
 2. **thinking**: intermediate representations generated during reasoning and fed back into
    the forward path.
 3. **imagination**: promoted from "gated residual probe" to core computational primitive
@@ -35,9 +42,10 @@ design; this file covers the next architectural leap.
   modality, every feedback loop must be added one at a time with isolation gates.
 - logging must round-trip to disk. no in-memory assertions without a jsonl (or image file)
   read-back verification. same rule that god_run v1 violated and god_run_v2 fixes.
-- **keys must stay dense.** this is the hardest rule learned from god_run_v2: k-WTA at
-  20% on keys drops the per-head content-addressable capacity from ~9 Hopfield patterns
-  to ~2, and delta erasure with sparse keys leaves ghost content in the zeroed dimensions
+- **keys must stay dense.** this is the hardest rule learned from god_run_v2: competitive
+  top-k selection at 20% on keys drops the per-head content-addressable capacity from ~9
+  interference-free patterns to ~2, and delta erasure with sparse keys leaves ghost content
+  in the zeroed dimensions
   that accumulates across steps. any form of sparsity, compression, or address-space
   truncation must be applied to VALUES only, never to KEYS. a memory tier that compresses
   keys is no longer content-addressable. this invariant applies to all five tiers,
@@ -67,24 +75,45 @@ design; this file covers the next architectural leap.
 - total cost: a few hundred lines of code, no math, no architectural change.
 - validates: the logging infrastructure for everything that follows.
 
-### phase 6b: prediction-head prototype (tier 1 precursor)
+### phase 6b: correction-field validation (compression primary)
 
-- auxiliary objective: train a lightweight decoder `g_l: h_l -> h_{l-1}.detach()` at every
-  layer. mse loss, small lambda. this is the prediction-head from god_machine's pc_diagnostic
-  but at the residual-stream level between adjacent layers.
-- measure: on held-out validation set, what fraction of hidden-state variance does the
-  prediction head explain? if predict error is 90%+ of identity, tier 1 is viable.
-- standalone experiment on god_machine_v2's frozen weights. no training from scratch.
+- **cpu simulation first**: run `simulations/memory/correction_field_capacity.py` to test
+  whether storing prediction residuals increases effective capacity at matched parameters.
+  the simulation uses synthetic prediction quality to control the compression ratio
+  without needing a trained model. the checked-in harness now lives at
+  `simulations/memory/correction_field_capacity.py`; treat its results as evidence only
+  after the required prosecutor review and a recorded run artifact.
+- **if simulation confirms capacity increase**: implement the correction-field write path
+  in `god_machine.py` as a new config option. the prediction head is a low-rank linear map
+  W_down @ W_up (d x r x d, r=64) per layer, ~131k params per layer, ~3.1m total (~1%
+  overhead). the value projection's input switches from h_t to r_t = h_t - f(h_{t-1}).
+  keys remain dense (from raw h_t). the write gate gains a surprise modulation factor.
+- **validation on h200**: train a correction-field preset at 283m scale. gate: passkey
+  at 256 tokens with at least 4/100 successes (wilson 95% lower bound > 0%) AND measurable
+  capacity increase over the raw-value baseline (measured via the structure ratio probe).
+- **cross-layer depth gradient measurement**: at convergence, measure frobenius norm of
+  S_L at each layer L, normalized by the raw-value baseline. the prediction is monotonic
+  decrease with depth.
+- replaces the prior phase 6b plan (inter-layer prediction head) because the correction-
+  field design IS the prediction head, applied within each layer's matrix memory rather
+  than between layers. the self-compression property subsumes the "90% variance explained"
+  gate: if the prediction head explains 90% of variance, the state stores ~3x less
+  information per token, which is directly measurable as capacity increase.
 
-### phase 6c: vq-vae on hidden states (tier 2 prototype)
+### phase 6c: codebook compression of corrections (tier 2 prototype)
 
-- train a vq-vae encoder/decoder on a corpus of hidden-state snapshots from the trained
-  god_machine. 8192-entry codebook, 64-dim latents. measure reconstruction mse and
-  downstream task retention.
+- if phase 6b confirms the correction-field design, apply discrete codebook indexing to
+  the corrections stored in the slow heads. train a learned codebook encoder/decoder on
+  correction vectors (prediction residuals), not on raw hidden-state snapshots. 8192-entry
+  codebook, 64-dim latents. measure reconstruction quality of corrections and downstream
+  retrieval retention.
+- this replaces the prior plan to apply discrete codebook compression to raw hidden states.
+  corrections are smaller and more structured than raw states, so the codebook should
+  achieve better coverage with fewer entries.
 - standalone, takes ~1-2 weeks of compute on a single gpu.
-- validates: whether transformer hidden states are amenable to discrete codebook
-  representation. the vq-vae literature is about input compression (images, audio), not
-  transformer memory compression, so this is new empirical territory.
+- validates: whether prediction residuals from the correction-field layer are amenable to
+  discrete codebook representation and whether codebook-compressed corrections preserve
+  retrieval quality.
 
 ### phase 6d: schema learning (tier 3 prototype)
 
@@ -111,7 +140,7 @@ design; this file covers the next architectural leap.
   variable number of "think steps" before emitting the next token.
 - text-only first. measure reasoning benchmarks (GSM8K, math, reading comprehension) against
   the non-thinking baseline.
-- this is BAGEL's "thinking in images" reframed for text.
+- this is the intermediate-representation feedback mechanism reframed for text.
 
 ### phase 8: vision modality
 
@@ -145,34 +174,48 @@ the concrete forward path is dual-tracked:
 
 **track 1 (single-tier fix, corrected sequential isolation, near-term):**
 
-follow the revised blueprint.md ordering: run 1 ternary-spike baseline at 350M, run 2
-k-WTA 50% on values only (dense keys), run 3 delta erasure with dense keys, run 4 BCM
-with faster EMA. each run gates on retrieval (passkey > 0 at 256 tokens is a HARD gate,
-a run that drops passkey to 0 is rejected regardless of BPB improvement). do NOT add
-imagination, multi-compartment, or PC diagnostic until retrieval is validated at each
-step.
+follow the revised blueprint.md ordering: run 1 is the `god_machine.py` preset
+`run1_baseline_noerasure` at 283m (dense keys, dense values, no erasure, non-FLA path,
+no auxiliary mechanisms), run 2 is value-side compression with dense keys (leading
+candidate: correction-field design from `wiki/synthesis/correction_field_memory.md`),
+run 3 is activity-adaptive decay with faster EMA, run 4 is erasure ablation after the
+dense-key baseline is validated. each run gates on retrieval (passkey > 0 at 256 tokens
+is a HARD gate, a run that drops passkey to 0 is rejected regardless of BPB improvement).
+do NOT add imagination, multi-compartment, or PC diagnostic until retrieval is validated
+at each step. see blueprint.md for the full run-by-run detail.
 
-**track 2 (tiered architecture + aesthetic logging, phase 6+):**
+**track 2 (compression + aesthetic logging, phase 6+):**
 
 - phase 6a (aesthetic logging): start immediately after god_run_v2 artifact pull. independent
   of track 1. matplotlib PNG artifacts per val_interval showing the creative side of the
   model — delta state frobenius heatmap, imag_ratio/alpha_eff_mean time series, kwta rate
   distributions, top-k predictions on a fixed prompt. low risk, lightweight, validates
   the logging infrastructure for phases 7+.
-- phase 6b (prediction-head prototype): standalone, uses god_run_v2's frozen checkpoint
-  as source. validates whether tier 1 (predictive residual) is viable.
-- phase 6c (vq-vae on hidden states): standalone, standalone.
-- phase 6d (schema learning): standalone.
-- phase 6e (5-tier integration): new file `tiered_machine.py`, retains god_machine_v2
-  as ablation baseline. dense-key invariant enforced at every tier.
+- phase 6b (correction-field validation): cpu simulation first
+  (`simulations/memory/correction_field_capacity.py`), then implementation in god_machine.py,
+  then h200 validation. this is the primary compression milestone. the correction-field
+  design compounds three of the six biological compression mechanisms (predictive filtering,
+  generative reconstruction, residual coding) in a single write-read modification to the
+  existing matrix memory. see `wiki/synthesis/correction_field_memory.md` for the full design.
+- phase 6c (codebook compression of corrections): if phase 6b succeeds, apply discrete
+  codebook indexing to the corrections stored in the slow heads. this compounds mechanism 4
+  (content-addressable indexing) with the first three. replaces the prior "vq-vae on hidden
+  states" plan because it compresses corrections (smaller, structured) not raw states.
+- phase 6d (schema learning): extract reusable correction templates from the codebook. each
+  new correction is stored as (template_id, small delta). adds schema-delta encoding
+  (mechanism 3 from the six-mechanism list) on top of the correction-field (mechanisms 1-2)
+  and codebook (mechanism 4). standalone.
+- phase 6e (5-tier integration): new file `tiered_machine.py`, retains god_machine as
+  ablation baseline. dense-key invariant enforced at every tier. the correction-field is tier
+  0-1, codebook is tier 2, schema is tier 3, generative-only is tier 4.
 - phase 7 (thinking): intermediate-rep feedback during generation. only after phase 6e.
 - phase 8 (vision): multimodal encoder feeding the tiered stream.
 
-track 1 runs in parallel with track 2 phase 6a-6d. track 2 phase 6e happens only after
-track 1 gives us a working baseline with nonzero retrieval. if track 1 run 1 itself fails
-(i.e., ternary-spike baseline also produces 0% passkey), then the entire delta-rule
-architecture is suspect and we re-examine the base mechanism before building tiers on
-top of it.
+track 1 runs in parallel with track 2 phase 6a-6b. track 2 phase 6c+ happens only after
+track 1 gives us a working baseline with nonzero retrieval AND track 2 phase 6b confirms
+the correction-field capacity increase in simulation. if track 1 run 1 itself fails
+(i.e., baseline dense also produces 0% passkey), then the entire delta-rule mechanism is
+suspect and we re-examine the base mechanism before building compression tiers on top of it.
 
 immediate next action: finish pulling god_run_v2 artifacts, write the run card, commit
 and push. then start phase 6a aesthetic logging prototype as a standalone skill, writing
