@@ -21,8 +21,8 @@ math and the behaviour of the reused decay code, not on probe data.
 
 fix committed as `7abb781` (alpha_log_mean=5.0, alpha_eff=sigmoid(5.0)=0.9933,
 0.9933^256 ≈ 0.18). see `wiki/mistakes/run2_slot_memory_decay_copy_paste.md` —
-including the follow-up audit showing all four paid runs inherited the same
-broken default, and the `_assert_preset_retention_safe` structural guard added
+including the follow-up audit showing all four paid runs that preceded the
+retention fix inherited the same broken default, and the `_assert_preset_retention_safe` structural guard added
 after the audit.
 
 ## empirical status (2026-04-15, second launch — retention fixed)
