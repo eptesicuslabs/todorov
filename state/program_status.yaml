@@ -63,30 +63,29 @@ god_run_v2_results:
     medium_8: "q/k normalization timing differs between FLA kernel (per-timestep) and recurrent path (pre-loop)"
 latest_run_results:
   phase: neural_machine
-  description: "god_machine.py re-run with all 17 F + 14 G prosecutor fixes; F1 math corrected (torch.exp instead of torch.sigmoid of logsigmoid); all probe metrics now in jsonl"
-  best_val_bpb: 1.4453
-  baseline_best_bpb: 3.580
-  bpb_ratio: 0.404
-  param_count: 282953496
-  firing_rate: 0.200
+  description: "run2_slot_memory_retention_fixed: slot substrate (24 SLOT + 4 ATTN), alpha_log_mean=5.0 explicit (alpha_eff=0.9933, retention 0.18 at 256), FLA active via fused_recurrent_simple_gla, structural retention guard accepted preset on first construction, NM_AUTHORIZE_FULL_RUN enforced, retrieval_gate fail-closed wiring active. user halted pod after partial eval"
+  best_val_bpb: 1.4777
+  param_count: 355281024
   passkey_256: 0.0
   passkey_1024: 0.0
-  passkey_4096: 0.0
+  passkey_4096: not_reached
   passkey_wilson_95_upper: 0.037
-  selective_copy_256: 0.0
-  selective_copy_512: 0.0
-  selective_copy_1024: 0.0
-  selective_copy_2048: 0.0
-  perplexity_256: 1.9254
-  perplexity_512: 1.8941
-  perplexity_1024: 1.5373
-  perplexity_2048: 1.4776
-  perplexity_4096: 1.4192
-  delta_state_structure_ratio: 0.977
-  delta_state_pairwise_cos: 0.003
-  retrieval_verdict: "FAILED. F1 math fix did not recover passkey. bundle-is-broken confirmed. external review identified 8 candidate contributing mechanisms."
-  total_time_sec: 3546
+  selective_copy_256: not_reached
+  selective_copy_512: not_reached
+  selective_copy_1024: not_reached
+  selective_copy_2048: not_reached
+  perplexity_at_length: not_reached
+  delta_state_structure_probe: "not_reached. would have returned the expected error 'no DELTA layers had populated state' for SLOT-only preset"
+  retrieval_gate_status: "not_persisted_eval_killed_before_exit"
+  retrieval_verdict: "0% passkey at 256 and 1024 in partial eval. interpreted as evidence about training-objective vs architectural-goal mismatch, not about substrate viability. cpu gates A and B confirm slot mechanism retrieves in isolation. analysis at neuroloc/wiki/synthesis/training_objective_vs_architectural_goal.md."
+  total_time_sec: 4309
   tokens: 131072000
+  throughput_tok_per_sec: 33000
+  alpha_log_mean: 5.0
+  alpha_eff: 0.9933
   compute: h200
   seed: 42
+  git_sha: edcfe5d
+  config_hash: e6d28a824e52c58b
+  run_card: neuroloc/wiki/tests/run2_slot_memory_retention_fixed_results.md
 next_action: "the next paid run is no longer another LM training on fineweb-edu. five consecutive paid runs (god_run, god_run_v2, run1_baseline_noerasure, run2_slot_memory, run2_slot_memory_retention_fixed) have produced 0% passkey at 256 tokens across two substrates and two retention regimes. the consistent 0% under all combinations of architectural variables tested, combined with cpu gates A and B passing in isolation, points the diagnosis at the training objective. analysis at neuroloc/wiki/synthesis/training_objective_vs_architectural_goal.md. the next paid run must train on a corpus shaped to require memory: synthetic cognition curriculum (passkey, copy, associative recall, simple algorithmic), mixed pretraining (70% fineweb plus 30% synthetic cognition), or two-phase pretraining (synthetic cognition until passkey > 0 then fineweb for general competence). measurement bar is not nonzero passkey alone; per allen-zhu et al. 2024 a successful paid run must demonstrate exceeding the ~2-3 bits-per-parameter knowledge ceiling of vanilla transformers at matched parameter count. before launch, build the synthetic cognition corpus generator and a passkey-shaped training pipeline in the project. the existing infrastructure (NM_AUTHORIZE_FULL_RUN gate, retrieval_gate persistence, fail-closed eval, _assert_preset_retention_safe, FLA pinned in requirements.txt) all remains correct and reusable. in parallel: phase 6a aesthetic logging from next_gen.md remains a standalone low-risk track."

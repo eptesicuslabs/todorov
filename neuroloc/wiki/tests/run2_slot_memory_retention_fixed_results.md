@@ -72,9 +72,10 @@ retrieval is unchanged.
   ceiling of vanilla transformers. matching val_bpb at matched parameter
   count means matching knowledge density at best, not exceeding it.
 - whether longer training would change retrieval. four prior runs at 4000
-  steps converged on 0% passkey; there is no evidence that a fifth run
-  with the same loss would differ. the prediction is that 8000 or 16000
-  steps on fineweb-edu would also produce 0% passkey.
+  steps converged on 0% passkey, and this run is the fifth at 0% passkey
+  on the same regime; there is no evidence that a sixth run with the same
+  loss would differ. the prediction is that 8000 or 16000 steps on
+  fineweb-edu would also produce 0% passkey.
 
 ## diagnosis
 
@@ -86,13 +87,13 @@ overlap, and gradient descent does not bridge them on its own. a memory
 substrate trained on a loss that does not require memory does not learn
 to use memory.
 
-the consistent 0% passkey across four runs, three substrate variants, and
-two retention regimes is now interpreted as evidence about the training
+the consistent 0% passkey across five paid runs, two substrate variants,
+and two retention regimes is now interpreted as evidence about the training
 objective, not about the architecture.
 
 ## cost
 
-- training: ~$3-4 of paid h200 compute (~75 min at typical $3/hr rate)
+- training: ~$3-4 of paid h200 compute (72 min at typical $3/hr rate)
 - eval (partial before kill): ~$0.50
 - prior failed launch attempt (FLA-not-installed, killed at 17 min): ~$1
 - total: ~$5

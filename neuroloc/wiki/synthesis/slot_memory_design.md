@@ -1,6 +1,6 @@
 # slot memory design
 
-## empirical status (2026-04-15, UPDATED after run 2)
+## empirical status (2026-04-15, first launch of run2_slot_memory)
 
 the first paid test of this design (run2_slot_memory, 2026-04-15) returned val_bpb
 1.5107 and passkey 0/100 at every tested length. **this run does NOT falsify the
@@ -25,7 +25,7 @@ including the follow-up audit showing all four paid runs inherited the same
 broken default, and the `_assert_preset_retention_safe` structural guard added
 after the audit.
 
-## empirical status (2026-04-15, AFTER second run)
+## empirical status (2026-04-15, second launch — retention fixed)
 
 the second paid test (`run2_slot_memory_retention_fixed`, 2026-04-15)
 trained 4000 steps on fineweb-edu with the retention fix applied

@@ -153,7 +153,7 @@ that is not the bar.
 - the eval suite. the cognitive probes are exactly the right measurement;
   they are simply being applied to checkpoints that were not asked to learn
   cognition.
-- the paid compute infrastructure. the run completed cleanly in ~75 minutes
+- the paid compute infrastructure. the run completed cleanly in 72 minutes
   at ~33k tokens per second. cost was acceptable. the gates and provenance
   enforcement worked correctly.
 
@@ -164,7 +164,7 @@ on fineweb-edu". the next paid run is "the first run on a corpus designed to
 exercise the architecture's memory substrate". val_bpb becomes a sanity
 metric for trainability rather than a primary outcome.
 
-four prior paid runs have shown 0% passkey on fineweb-edu. that pattern is
+five paid runs have shown 0% passkey on fineweb-edu. that pattern is
 now explained, not by the architecture being broken, but by a category
 mismatch between the training objective and the architectural goal. there
 is no reason to expect a fifth paid run on fineweb-edu to be any different,
