@@ -707,6 +707,8 @@ class SlotMemory(nn.Module):
             torch.full((self.nh,), float(cfg.alpha_log_mean))
         )
 
+        self.use_fla = bool(cfg.use_fla_if_available) and FLA_AVAILABLE
+
     def _empty_state(self, batch: int, device: torch.device, dtype: torch.dtype) -> dict[str, Tensor]:
         state_dtype = torch.float32 if dtype == torch.float32 else dtype
         return {
@@ -759,7 +761,8 @@ class SlotMemory(nn.Module):
 
         fla_fn = fused_recurrent_simple_gla
         can_use_fla = (
-            fla_fn is not None
+            self.use_fla
+            and fla_fn is not None
             and q.is_cuda
             and (slot_state.abs().sum() == 0)
             and T > 1
@@ -3337,7 +3340,7 @@ def _resolve_preset_raw(preset: str) -> tuple[dict[str, Any], str, str]:
             {
                 "kwta_enabled": False,
                 "delta_erasure_enabled": False,
-                "use_fla_if_available": False,
+                "use_fla_if_available": True,
                 "bcm_alpha_enabled": False,
                 "multi_compartment_enabled": False,
                 "imagination_enabled": False,
@@ -3346,7 +3349,7 @@ def _resolve_preset_raw(preset: str) -> tuple[dict[str, Any], str, str]:
                 "alpha_log_mean": 5.0,
                 "slot_log_temperature_init": -1.0,
             },
-            "preset: run2_slot_memory (slot memory with softmax addressing replacing delta layers, compressed attention preserved, alpha_log_mean=5.0 so decay~0.993 survives 256-token intervening)",
+            "preset: run2_slot_memory (slot memory with softmax addressing replacing delta layers, compressed attention preserved, alpha_log_mean=5.0 so decay~0.9933 survives 256-token intervening, FLA fused_recurrent_simple_gla enabled)",
             "run2_slot_memory",
         )
     if preset == "god":
@@ -3763,7 +3766,12 @@ def main() -> None:
     if runtime_overrides:
         log(f"runtime overrides: {', '.join(runtime_overrides)}")
     official_run1 = preset == "run1_baseline_noerasure"
-    gated_baseline_presets = {"run1_baseline_noerasure", "run1a_retention_ablation", "run4_erasure_ablation"}
+    gated_baseline_presets = {
+        "run1_baseline_noerasure",
+        "run1a_retention_ablation",
+        "run4_erasure_ablation",
+        "run2_slot_memory",
+    }
     launch_contract: dict[str, Any] | None = None
     benchmark_mode = (
         official_run1
@@ -3796,6 +3804,12 @@ def main() -> None:
     if official_run1 and not benchmark_mode and not _env_flag("NM_AUTHORIZE_FULL_RUN"):
         raise RuntimeError(
             "full run1_baseline_noerasure launch requires NM_AUTHORIZE_FULL_RUN=1 after the benchmark gate has been reviewed."
+        )
+    if preset in gated_baseline_presets and not official_run1 and not benchmark_mode and not _env_flag("NM_AUTHORIZE_FULL_RUN"):
+        raise RuntimeError(
+            f"full {preset} launch requires NM_AUTHORIZE_FULL_RUN=1. "
+            f"gated baseline presets persist a hard retrieval_gate and fail closed on 0% passkey; "
+            f"the env flag is the explicit acknowledgement that this paid launch is intended."
         )
     if official_run1 and not benchmark_mode:
         if _config_hash(_cfg_to_dict(cfg)) != _run1_full_contract_hash():
@@ -3888,7 +3902,7 @@ def main() -> None:
 
     gate_record: dict[str, Any] | None = None
     pending_eval_failure: RuntimeError | None = None
-    if preset in ("run1_baseline_noerasure", "run1a_retention_ablation", "run4_erasure_ablation"):
+    if preset in gated_baseline_presets:
         gate_record = {
             "metric": "passkey_256",
             "threshold": "> 0.0",
@@ -3965,7 +3979,7 @@ def main() -> None:
     _require_completed_retrieval_gate(
         gate_record,
         skip_eval=_env_flag("NM_SKIP_EVAL"),
-        require_pass=official_run1 and not benchmark_mode,
+        require_pass=(preset in gated_baseline_presets) and not benchmark_mode,
     )
 
     if benchmark_mode:
