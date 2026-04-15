@@ -164,14 +164,13 @@ def make_slot_config() -> Config:
         delta_head_dim=max(32, D_MODEL // 4),
         alpha_log_mean=5.0,
         alpha_log_std=0.3,
-        attn_d_c=64,
-        attn_d_R=16,
+        attn_d_c=max(32, D_MODEL // 2),
+        attn_d_R=max(8, D_MODEL // 8),
         attn_num_heads=4,
         mlp_ratio=2.0,
         layer_pattern=layer_pattern,
         kwta_enabled=False,
         delta_erasure_enabled=False,
-        use_fla_if_available=True,
         bcm_alpha_enabled=False,
         multi_compartment_enabled=False,
         imagination_enabled=False,
@@ -207,8 +206,8 @@ def make_matrix_config() -> Config:
         delta_head_dim=max(32, D_MODEL // 4),
         alpha_log_mean=5.0,
         alpha_log_std=0.3,
-        attn_d_c=64,
-        attn_d_R=16,
+        attn_d_c=max(32, D_MODEL // 2),
+        attn_d_R=max(8, D_MODEL // 8),
         attn_num_heads=4,
         mlp_ratio=2.0,
         layer_pattern=layer_pattern,
@@ -249,6 +248,13 @@ def run_passkey_test(
     cosines: list[float] = []
     model.eval()
     chunk_size = min(config.seq_len, 256)
+    if chunk_size < config.seq_len:
+        raise ValueError(
+            f"run_passkey_test currently indexes target_start as an absolute position "
+            f"but the single-shot logits returned after a chunked forward only cover the "
+            f"last chunk. pick SEQ_LEN <= 256 or generalize target_start to a "
+            f"chunk-relative offset. got SEQ_LEN={config.seq_len} chunk_size={chunk_size}"
+        )
     marker_start = list(MARK_START_BYTES)
     marker_end = list(MARK_END_BYTES)
     marker_query = list(MARK_QUERY_BYTES)
