@@ -107,6 +107,8 @@ the external-opinion synthesis (2026-04-14, pasted into the project conversation
 
 ## see also
 
+- `wiki/synthesis/training_objective_vs_architectural_goal.md` (supersedes the causal diagnosis in this article — slot-buffer replacement is necessary but not sufficient; the training objective must reward memory use, otherwise SGD never learns to route information through any memory substrate)
+- `wiki/tests/run2_slot_memory_retention_fixed_results.md` (the paid run that empirically demonstrated the supersession: slot substrate with retention fixed and FLA active still produced 0/100 passkey on natural-text training)
 - `wiki/synthesis/correction_field_memory.md` (prior substrate proposal, reconstruction-side only; memory-capacity claim falsified)
 - `wiki/synthesis/compression_beyond_quantization.md` (compound compression thesis — slot buffer natively implements mechanisms 3 and 4)
 - `wiki/synthesis/slot_memory_design.md` (the proposed replacement substrate)
