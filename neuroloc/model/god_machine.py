@@ -3320,8 +3320,11 @@ def _resolve_preset(preset: str) -> tuple[dict[str, Any], str, str]:
                 "imagination_enabled": False,
                 "pc_diagnostic_enabled": False,
                 "layer_pattern": slot_pattern,
+                "alpha_log_mean": 5.0,
+                "alpha_log_std": 0.1,
+                "slot_log_temperature_init": -1.0,
             },
-            "preset: run2_slot_memory (slot memory with softmax addressing replacing delta layers, compressed attention preserved, all other features off)",
+            "preset: run2_slot_memory (slot memory with softmax addressing replacing delta layers, compressed attention preserved, alpha_log_mean=5.0 so decay~0.993 survives 256-token intervening)",
             "run2_slot_memory",
         )
     if preset == "god":
