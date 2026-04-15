@@ -286,9 +286,14 @@ def train_and_evaluate(config: Config, name: str, rng: np.random.Generator) -> d
     val_bpbs: list[float] = []
     best_val_bpb = float("inf")
 
+    train_iter = iter(train_loader)
     for step in range(MAX_STEPS):
         model.train()
-        batch = next(iter(train_loader))
+        try:
+            batch = next(train_iter)
+        except StopIteration:
+            train_iter = iter(train_loader)
+            batch = next(train_iter)
         input_ids, targets = batch[0].to(device), batch[1].to(device)
         logits, _, _ = model(input_ids)
         loss = criterion(logits.view(-1, 256), targets.view(-1))
@@ -298,13 +303,19 @@ def train_and_evaluate(config: Config, name: str, rng: np.random.Generator) -> d
         scheduler.step()
         optimizer.zero_grad()
         step_losses.append(float(loss.item()))
+        if step < 5 or (step + 1) % max(1, MAX_STEPS // 50) == 0:
+            print(f"[{name}] step {step+1}/{MAX_STEPS} loss={loss.item():.4f}", flush=True)
 
         if (step + 1) % max(1, MAX_STEPS // 10) == 0:
             model.eval()
             total_loss = 0.0
             total_tokens = 0
             with torch.no_grad():
+                vb_count = 0
                 for vbatch in val_loader:
+                    if vb_count >= 20:
+                        break
+                    vb_count += 1
                     v_input, v_target = vbatch[0].to(device), vbatch[1].to(device)
                     v_logits, _, _ = model(v_input)
                     v_loss = criterion(v_logits.view(-1, 256), v_target.view(-1))
