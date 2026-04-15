@@ -71,12 +71,17 @@ the `delta_state_structure_probe` entry in
 }
 ```
 
-`run_delta_state_structure_probe` in `god_machine.py` skips any block whose
-`layer_type != "DELTA"`. the `run2_slot_memory` preset replaces every DELTA
-block with SLOT, so the probe loops over all blocks, finds none of type DELTA,
-and returns the error dict with no `mean_structure_ratio` key. the `0.000`
-that appears in the step log is the `.get('mean_structure_ratio', 0)` default
-used by the logger, not a measurement.
+`run_delta_state_structure_probe` in `god_machine.py` (at the `for layer_idx,
+(block, state) in enumerate(zip(model.blocks, states)): if block.layer_type
+!= "DELTA" or state is None: continue` loop around line 2573) filters every
+per-block iteration by layer type and populated state; if no iteration survives
+the filter, the function returns `{"error": "no DELTA layers had populated
+state", "per_layer": per_layer}`. the `run2_slot_memory` preset replaces every
+DELTA block with SLOT, so every block fails the first branch of the filter and
+`per_layer` stays empty. the `mean_structure_ratio` key is never added to the
+result dict. the `0.000` that appears in the step log is the
+`.get('mean_structure_ratio', 0)` default used by the logger when the key is
+absent, not a measurement.
 
 the probe was inapplicable to a SLOT-only model. run 2 provides no structural
 state evidence either supporting or contradicting the evaporation diagnosis.

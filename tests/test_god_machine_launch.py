@@ -3,6 +3,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -1071,9 +1072,37 @@ def test_resolve_preset_raises_for_god_preset() -> None:
     ],
 )
 def test_named_presets_all_set_alpha_log_mean_explicitly(preset: str) -> None:
-    overrides, _, _ = god_machine._resolve_preset(preset)
+    overrides, _, _ = god_machine._resolve_preset_raw(preset)
     assert "alpha_log_mean" in overrides, (
         f"preset {preset!r} must explicitly set alpha_log_mean so the retention "
         f"guard accepts it and future agents cannot reintroduce the inherited-default "
-        f"bug documented in wiki/mistakes/run2_slot_memory_decay_copy_paste.md"
+        f"bug documented in wiki/mistakes/run2_slot_memory_decay_copy_paste.md. "
+        f"this test reads the raw preset definition directly to bypass the guard, "
+        f"so it catches cases where the guard silently allows a bug through."
     )
+
+
+def test_resolve_preset_wires_retention_guard_into_resolution_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sentinel_preset = "sentinel_missing_alpha_log_mean"
+
+    def fake_raw(preset: str) -> tuple[dict[str, Any], str, str]:
+        if preset == sentinel_preset:
+            return (
+                {
+                    "kwta_enabled": False,
+                    "delta_erasure_enabled": False,
+                },
+                f"preset: {sentinel_preset} (diagnostic)",
+                sentinel_preset,
+            )
+        raise ValueError(preset)
+
+    monkeypatch.setattr(god_machine, "_resolve_preset_raw", fake_raw)
+
+    overrides, _, _ = god_machine._resolve_preset_raw(sentinel_preset)
+    assert "alpha_log_mean" not in overrides
+
+    with pytest.raises(RuntimeError, match="alpha_log_mean"):
+        god_machine._resolve_preset(sentinel_preset)
