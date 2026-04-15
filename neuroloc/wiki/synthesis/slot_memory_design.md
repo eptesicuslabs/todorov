@@ -20,11 +20,47 @@ evidence is available from run 2; the evaporation diagnosis rests on the init
 math and the behaviour of the reused decay code, not on probe data.
 
 fix committed as `7abb781` (alpha_log_mean=5.0, alpha_eff=sigmoid(5.0)=0.9933,
-0.9933^256 ≈ 0.18). not relaunched at time of writing. the substrate's actual
-retrieval capability remains untested at paid scale. see
-`wiki/mistakes/run2_slot_memory_decay_copy_paste.md` — including the follow-up
-audit showing all four paid runs inherited the same broken default, and the
-`_assert_preset_retention_safe` structural guard added after the audit.
+0.9933^256 ≈ 0.18). see `wiki/mistakes/run2_slot_memory_decay_copy_paste.md` —
+including the follow-up audit showing all four paid runs inherited the same
+broken default, and the `_assert_preset_retention_safe` structural guard added
+after the audit.
+
+## empirical status (2026-04-15, AFTER second run)
+
+the second paid test (`run2_slot_memory_retention_fixed`, 2026-04-15)
+trained 4000 steps on fineweb-edu with the retention fix applied
+(`alpha_log_mean=5.0` explicitly), FLA actually active
+(`flash-linear-attention` was missing from the pod the first time —
+mistake at `wiki/mistakes/run2_slot_memory_fla_silent_fall_through.md` and
+fix in commit `edcfe5d` pinning it in `requirements.txt`), and the structural
+guard accepting the preset as compliant. throughput 33,000 tok/s, val_bpb
+trajectory descended cleanly: 3.16 → 1.99 → 1.88 → 1.82 → 1.77 → 1.60 → 1.58
+→ 1.56 → 1.54 → 1.53 → 1.51 → 1.49 → 1.48 → 1.4777 (best). no instability,
+no NaN, alpha_eff_mean stayed at 0.9933 throughout.
+
+partial eval: passkey@256 = 0/100, passkey@1024 = 0/100. the user halted the
+pod before passkey@4096 / selective_copy / structure_probe completed, so the
+retrieval_gate was not persisted.
+
+**this result is consistent with all four prior paid runs** (matrix
+substrates and slot substrates, broken retention and fixed retention all
+produced 0/100 at 256). the consistent 0% under all combinations rules out
+both substrate change and retention change as sufficient by themselves.
+
+cpu gates A and B prove the slot mechanism CAN retrieve when addresses are
+placed by hand. the substrate is functional. the absence of any retrieval
+under SGD on fineweb-edu therefore points the diagnosis at the training
+objective, not the substrate. natural text rewards local distributional
+structure; the four attention layers in the model handle that on their own;
+the 24 memory layers are unconstrained by the loss and collapse toward
+inactive (mean output gate stayed at 0.018 throughout the run).
+
+see `wiki/synthesis/training_objective_vs_architectural_goal.md` for the
+full analysis. the slot-memory hypothesis is now NEITHER confirmed NOR
+falsified at paid scale; it has not been tested under a training objective
+that rewards what the substrate provides. that is the next paid run.
+
+run card at `neuroloc/wiki/tests/run2_slot_memory_retention_fixed_results.md`.
 
 
 
