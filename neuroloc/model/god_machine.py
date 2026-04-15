@@ -3261,7 +3261,28 @@ def smoke_test() -> None:
     log("all smoke checks passed")
 
 
+def _assert_preset_retention_safe(preset_name: str, overrides: dict[str, Any]) -> None:
+    pattern = overrides.get("layer_pattern", Config().layer_pattern)
+    if any(lt in ("DELTA", "SLOT") for lt in pattern):
+        if "alpha_log_mean" not in overrides:
+            raise RuntimeError(
+                f"preset {preset_name!r} uses DELTA or SLOT layers but does not "
+                f"explicitly override alpha_log_mean. the Config default (-0.5) gives "
+                f"alpha_eff=sigmoid(-0.5)=0.377 and 0.377^256 is below float32 epsilon, "
+                f"so memory state evaporates before a 256-token passkey can read it. "
+                f"set alpha_log_mean explicitly in the preset overrides. "
+                f"see wiki/mistakes/run2_slot_memory_decay_copy_paste.md and "
+                f"wiki/synthesis/linear_attention_retrieval_wall.md evidence line 4."
+            )
+
+
 def _resolve_preset(preset: str) -> tuple[dict[str, Any], str, str]:
+    result = _resolve_preset_raw(preset)
+    _assert_preset_retention_safe(preset, result[0])
+    return result
+
+
+def _resolve_preset_raw(preset: str) -> tuple[dict[str, Any], str, str]:
     if preset == "run4_erasure_ablation":
         return (
             {
@@ -3272,8 +3293,9 @@ def _resolve_preset(preset: str) -> tuple[dict[str, Any], str, str]:
                 "multi_compartment_enabled": False,
                 "imagination_enabled": False,
                 "pc_diagnostic_enabled": False,
+                "alpha_log_mean": 2.2,
             },
-            "preset: run4_erasure_ablation (dense k/v, delta erasure on, non-FLA path, all other features off)",
+            "preset: run4_erasure_ablation (dense k/v, delta erasure on, non-FLA path, static retention 0.90, all other features off)",
             "run4_erasure_ablation",
         )
     if preset == "run1_baseline_noerasure":
@@ -3286,8 +3308,9 @@ def _resolve_preset(preset: str) -> tuple[dict[str, Any], str, str]:
                 "multi_compartment_enabled": False,
                 "imagination_enabled": False,
                 "pc_diagnostic_enabled": False,
+                "alpha_log_mean": 2.2,
             },
-            "preset: run1_baseline_noerasure (dense k/v, no overwrite subtraction, FLA simple_gla path, all other features off)",
+            "preset: run1_baseline_noerasure (dense k/v, no overwrite subtraction, FLA simple_gla path, static retention 0.90, all other features off)",
             "run1_baseline_noerasure",
         )
     if preset == "run1a_retention_ablation":
@@ -3321,7 +3344,6 @@ def _resolve_preset(preset: str) -> tuple[dict[str, Any], str, str]:
                 "pc_diagnostic_enabled": False,
                 "layer_pattern": slot_pattern,
                 "alpha_log_mean": 5.0,
-                "alpha_log_std": 0.1,
                 "slot_log_temperature_init": -1.0,
             },
             "preset: run2_slot_memory (slot memory with softmax addressing replacing delta layers, compressed attention preserved, alpha_log_mean=5.0 so decay~0.993 survives 256-token intervening)",

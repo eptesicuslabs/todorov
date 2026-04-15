@@ -11,9 +11,19 @@ decayed to `10^-109` over 256 tokens — below float32 epsilon — so no retriev
 architecturally possible regardless of substrate. the run measured the retention
 bug, not the substrate.
 
-fix committed as `7abb781` (alpha_log_mean=5.0, alpha_eff=0.993). not relaunched
-at time of writing. the substrate's actual retrieval capability remains untested
-at paid scale. see `wiki/mistakes/run2_slot_memory_decay_copy_paste.md`.
+the delta_state_structure_probe for run 2 reported `mean_structure_ratio=0.000`,
+which is exactly the signature of an evaporated state (closed-gate readout returns
+zero magnitude, so structure ratio is zero by construction). this is corroborating
+evidence for the retention-bug diagnosis: an empty state produces a structure
+ratio of zero, whereas a noise state (as in god_run_v2) produces a ratio near 1.0.
+run 2's zero is confirmatory, not ambiguous.
+
+fix committed as `7abb781` (alpha_log_mean=5.0, alpha_eff=sigmoid(5.0)=0.9933,
+0.9933^256 ≈ 0.18). not relaunched at time of writing. the substrate's actual
+retrieval capability remains untested at paid scale. see
+`wiki/mistakes/run2_slot_memory_decay_copy_paste.md` — including the follow-up
+audit showing all four paid runs inherited the same broken default, and the
+`_assert_preset_retention_safe` structural guard added after the audit.
 
 
 

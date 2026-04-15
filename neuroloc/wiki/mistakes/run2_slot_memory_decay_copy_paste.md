@@ -56,8 +56,8 @@ when writing the preset, the exact sequence should have been:
    so the prosecutor review surface includes it
 
 the fix committed as `7abb781` sets `alpha_log_mean=5.0` in the slot preset so
-`alpha_eff = 0.993`, giving `0.993^256 ≈ 0.16`. passkey content retains 16% of
-its original magnitude at distance 256 — far above float epsilon.
+`alpha_eff = sigmoid(5.0) = 0.9933`, giving `0.9933^256 ≈ 0.18`. passkey content
+retains ~18% of its original magnitude at distance 256 — far above float epsilon.
 
 ## cost of this mistake
 
@@ -85,14 +85,55 @@ before any preset is smoked, benchmarked, or launched:
 3. pod launches must halt if the preset does not set `alpha_log_mean` explicitly
    and the substrate needs retention. a missing override is a bug, not a default.
 
+## audit: the bug class spans every paid run, not just run 2
+
+after committing `7abb781`, a grep of every preset override dict in
+`_resolve_preset` showed the inheritance bug was wider than the single run-2
+site. the full picture:
+
+- `god` (default Config, empty overrides): `alpha_log_mean=-0.5` inherited.
+  used by god_run and god_run_v2. state evaporation active.
+- `run1_baseline_noerasure`: `alpha_log_mean=-0.5` inherited. used by the
+  first of the four paid failures. state evaporation active.
+- `run4_erasure_ablation`: `alpha_log_mean=-0.5` inherited. never launched,
+  but was queued. state evaporation would have been active on launch.
+- `run2_slot_memory` (before `7abb781`): `alpha_log_mean=-0.5` inherited.
+  used by run 2. state evaporation active.
+- `run1a_retention_ablation`: `alpha_log_mean=2.2` explicitly set. the only
+  preset that did not inherit the bug. never launched.
+
+this means the "four stacked failure modes" theory from the eight-cause
+external review — k-wta on keys, delta erasure ghosting, imagination gradient
+bypass, BCM slow EMA — is suspect. every one of the four paid runs had state
+evaporation active underneath whatever other feature was being studied. any
+one of the eight flagged causes could have been misdiagnosed as causing zero
+retrieval when the real cause (or a co-cause) was the retention init.
+
+## structural guard added
+
+commit following `7abb781` adds `_assert_preset_retention_safe` in
+`god_machine.py`. the guard runs at every `_resolve_preset` call and raises
+if a preset uses DELTA or SLOT layers and does not explicitly override
+`alpha_log_mean`. this makes the inheritance-of-broken-default bug class
+impossible to reintroduce by silence. process rules alone could not prevent
+the next instance; a code-level assertion can.
+
+the audit prompted adding `alpha_log_mean=2.2` to `run1_baseline_noerasure`
+and `run4_erasure_ablation` as well. the `god` preset remains broken by
+design — it is legacy and should not be used; the guard will fire on any
+future attempt to invoke it, which is the correct behavior.
+
 ## current state
 
-- fix `7abb781` on origin/master: slot preset now forces `alpha_log_mean=5.0` and
-  `alpha_log_std=0.1`
+- fix `7abb781` on origin/master: slot preset now forces `alpha_log_mean=5.0`.
+  the dead `alpha_log_std=0.1` override was removed after prosecutor C1.
+- follow-up fix on origin/master: `run1_baseline_noerasure` and
+  `run4_erasure_ablation` each explicitly set `alpha_log_mean=2.2`.
+  `_assert_preset_retention_safe` added as structural guard. see prosecutor
+  findings C1, C2, I1, I2, I3.
 - pod halted, no paid compute running
 - substrate question (does slot memory retrieve with proper retention?) remains
   open
-- four "all zero" runs in the record, but three of them had either (a) k-wta on
-  keys destroying address space or (b) state evaporation from the retention init.
-  the architecture has not yet been tested under both dense keys AND non-evaporating
-  retention
+- four "all zero" runs in the record. every one had state evaporation active
+  (alpha_eff=0.377). the architecture has never been tested under both dense
+  keys AND non-evaporating retention. the next run must fix both.
