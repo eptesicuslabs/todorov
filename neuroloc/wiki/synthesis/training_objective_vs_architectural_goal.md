@@ -173,12 +173,19 @@ corpus to behave differently.
 
 ## see also
 
-- `wiki/synthesis/slot_memory_design.md` — the substrate design; gates A and B
+- `wiki/tests/run2_slot_memory_retention_fixed_results.md` — the run card
+  for the fifth paid run, the empirical trigger for this article
+- `wiki/synthesis/slot_memory_design.md` — the substrate design; cpu gates
+  A and B; the substrate that was tested at paid scale here
+- `wiki/mistakes/run2_slot_memory_decay_copy_paste.md` — the first-launch
+  retention bug that obscured the substrate question for one run
+- `wiki/mistakes/run2_slot_memory_fla_silent_fall_through.md` — the
+  second-launch FLA-not-installed silent slowdown that delayed this run
 - `wiki/tests/encoding_simulation_round_b.md` — capacity ceiling under the
   matrix-memory operation
-- `wiki/synthesis/linear_attention_retrieval_wall.md` — the four-failure-modes
-  theory; this realisation supersedes its causal claim by adding a fifth and
-  more fundamental cause (the loss does not exercise the substrate)
+- `wiki/synthesis/linear_attention_retrieval_wall.md` — the failure-modes
+  catalogue; this realisation supersedes its causal claim by identifying
+  a more fundamental cause (the loss does not exercise the substrate)
 - `spec/blueprint.md` — the architecture's stated computational goal
 - `spec/next_gen.md` — the longer-horizon roadmap; cognition-shaped
   pretraining belongs here

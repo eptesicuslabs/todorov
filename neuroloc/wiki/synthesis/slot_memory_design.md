@@ -249,7 +249,11 @@ no paid compute until steps 2-5 all pass. sunk cost (three failed runs) teaches 
 
 ## see also
 
-- `wiki/synthesis/linear_attention_retrieval_wall.md` (why the current substrate fails — sets up this design)
+- `wiki/synthesis/training_objective_vs_architectural_goal.md` (the post-paid-run analysis: why the slot substrate trained cleanly to val_bpb 1.4777 and still produced 0/100 passkey under SGD on natural text — the training loss does not exercise the substrate)
+- `wiki/tests/run2_slot_memory_retention_fixed_results.md` (the paid run card: headline numbers, comparison to the four prior paid runs, what was validated and what was not)
+- `wiki/mistakes/run2_slot_memory_decay_copy_paste.md` (the first-launch retention bug that obscured the substrate question for one paid run)
+- `wiki/mistakes/run2_slot_memory_fla_silent_fall_through.md` (the FLA-not-installed silent slowdown on the second launch attempt of the retention-fixed run)
+- `wiki/synthesis/linear_attention_retrieval_wall.md` (why the matrix substrate fails — sets up this design)
 - `wiki/synthesis/correction_field_memory.md` (surprise-gated writes — the write policy A in this design uses the same predictive filtering mechanism)
 - `wiki/synthesis/compression_beyond_quantization.md` (six-mechanism compound compression — slot buffer natively implements 1-4)
 - `wiki/bridge/memory_compression_to_tiered_architecture.md` (5-tier architecture — slot buffer is the tier 1-2 substrate)

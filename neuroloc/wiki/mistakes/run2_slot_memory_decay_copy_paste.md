@@ -159,9 +159,29 @@ future attempt to invoke it, which is the correct behavior.
   `run4_erasure_ablation` each explicitly set `alpha_log_mean=2.2`.
   `_assert_preset_retention_safe` added as structural guard. see prosecutor
   findings C1, C2, I1, I2, I3.
-- pod halted, no paid compute running
-- substrate question (does slot memory retrieve with proper retention?) remains
-  open
-- four "all zero" runs in the record. every one had state evaporation active
-  (alpha_eff=0.377). the architecture has never been tested under both dense
-  keys AND non-evaporating retention. the next run must fix both.
+- substrate question (does slot memory retrieve with proper retention?) was
+  TESTED on 2026-04-15 by `run2_slot_memory_retention_fixed` and the answer
+  is "not under SGD on natural text": the run trained cleanly to val_bpb
+  1.4777 with `alpha_log_mean=5.0` (alpha_eff=0.9933, retention 0.18 at 256)
+  and FLA active, but partial eval reported passkey 0/100 at 256 and 1024
+  before the user halted the pod. there are now FIVE "all zero" paid runs
+  in the record. four of those five had state evaporation active
+  (alpha_eff=0.377); the fifth (`run2_slot_memory_retention_fixed`) had
+  retention fixed and still produced 0/100. the consistent 0% under all
+  combinations of architectural variables tested moves the diagnosis off
+  the architecture and onto the training objective. analysis at
+  `wiki/synthesis/training_objective_vs_architectural_goal.md`. the next
+  paid run must train on a corpus that exercises memory routing; another
+  LM run on fineweb-edu is predicted to also produce 0/100 and is not
+  authorised. run card at
+  `wiki/tests/run2_slot_memory_retention_fixed_results.md`.
+- additional mistake from the second-launch attempt of
+  `run2_slot_memory_retention_fixed`: `flash-linear-attention` was not
+  pinned in `requirements.txt` and the pod did not have it, so SlotMemory
+  silently fell through to the python recurrent loop at 655 tok/s instead
+  of the fused triton kernel's 33,000 tok/s. fix in commit `edcfe5d`
+  pinned `flash-linear-attention>=0.4.0` and `datasets>=2.19.0`. mistake
+  doc at `wiki/mistakes/run2_slot_memory_fla_silent_fall_through.md`.
+  outstanding structural improvement: `god_machine.py` startup should
+  warn or fail when any layer's `use_fla=False` after a preset asks for
+  FLA; this guard is not yet committed.
