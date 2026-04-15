@@ -11,13 +11,9 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 
-SIM_ROOT = Path(__file__).resolve().parent
-if str(SIM_ROOT) not in sys.path:
-    sys.path.insert(0, str(SIM_ROOT))
-
-_neuroloc_model = SIM_ROOT.parent / "model"
-_project_root = SIM_ROOT.parent.parent
-for p in [str(SIM_ROOT), str(_neuroloc_model), str(_project_root)]:
+SIM_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+for p in [str(SIM_ROOT), str(PROJECT_ROOT)]:
     if p not in sys.path:
         sys.path.insert(0, p)
 
