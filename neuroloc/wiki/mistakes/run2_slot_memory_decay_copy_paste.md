@@ -59,6 +59,29 @@ the fix committed as `7abb781` sets `alpha_log_mean=5.0` in the slot preset so
 `alpha_eff = sigmoid(5.0) = 0.9933`, giving `0.9933^256 ≈ 0.18`. passkey content
 retains ~18% of its original magnitude at distance 256 — far above float epsilon.
 
+## what the run 2 eval artifact actually says about state structure
+
+the `delta_state_structure_probe` entry in
+`neuroloc/output/run2_slot_memory/run2_slot_memory_eval_suite.json` is:
+
+```json
+"delta_state_structure_probe": {
+  "error": "no DELTA layers had populated state",
+  "per_layer": {}
+}
+```
+
+`run_delta_state_structure_probe` in `god_machine.py` skips any block whose
+`layer_type != "DELTA"`. the `run2_slot_memory` preset replaces every DELTA
+block with SLOT, so the probe loops over all blocks, finds none of type DELTA,
+and returns the error dict with no `mean_structure_ratio` key. the `0.000`
+that appears in the step log is the `.get('mean_structure_ratio', 0)` default
+used by the logger, not a measurement.
+
+the probe was inapplicable to a SLOT-only model. run 2 provides no structural
+state evidence either supporting or contradicting the evaporation diagnosis.
+the evaporation diagnosis rests on the init math alone, not on probe data.
+
 ## cost of this mistake
 
 one paid h200 run wasted. the pod time was ~72 minutes of training + ~20 minutes

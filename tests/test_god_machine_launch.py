@@ -1026,3 +1026,54 @@ def test_full_launch_device_helper_rejects_same_capability_different_hardware(mo
     )
     with pytest.raises(RuntimeError, match="memory profile"):
         god_machine._require_run1_full_launch_device(manifest)
+
+
+def test_assert_preset_retention_safe_raises_when_delta_layer_missing_override() -> None:
+    overrides = {"kwta_enabled": False, "delta_erasure_enabled": False}
+    with pytest.raises(RuntimeError, match="alpha_log_mean"):
+        god_machine._assert_preset_retention_safe("unguarded_delta_preset", overrides)
+
+
+def test_assert_preset_retention_safe_raises_for_slot_layer_without_override() -> None:
+    overrides = {
+        "kwta_enabled": False,
+        "layer_pattern": ("SLOT", "SLOT", "ATTN"),
+    }
+    with pytest.raises(RuntimeError, match="alpha_log_mean"):
+        god_machine._assert_preset_retention_safe("unguarded_slot_preset", overrides)
+
+
+def test_assert_preset_retention_safe_accepts_explicit_override() -> None:
+    overrides = {"kwta_enabled": False, "alpha_log_mean": 2.2}
+    god_machine._assert_preset_retention_safe("compliant_preset", overrides)
+
+
+def test_assert_preset_retention_safe_accepts_non_retentive_layer_pattern() -> None:
+    overrides = {
+        "kwta_enabled": False,
+        "layer_pattern": ("ATTN",),
+    }
+    god_machine._assert_preset_retention_safe("attn_only_preset", overrides)
+
+
+def test_resolve_preset_raises_for_god_preset() -> None:
+    with pytest.raises(RuntimeError, match="alpha_log_mean"):
+        god_machine._resolve_preset("god")
+
+
+@pytest.mark.parametrize(
+    "preset",
+    [
+        "run4_erasure_ablation",
+        "run1_baseline_noerasure",
+        "run1a_retention_ablation",
+        "run2_slot_memory",
+    ],
+)
+def test_named_presets_all_set_alpha_log_mean_explicitly(preset: str) -> None:
+    overrides, _, _ = god_machine._resolve_preset(preset)
+    assert "alpha_log_mean" in overrides, (
+        f"preset {preset!r} must explicitly set alpha_log_mean so the retention "
+        f"guard accepts it and future agents cannot reintroduce the inherited-default "
+        f"bug documented in wiki/mistakes/run2_slot_memory_decay_copy_paste.md"
+    )
