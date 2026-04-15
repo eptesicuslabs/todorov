@@ -178,7 +178,7 @@ def make_slot_config() -> Config:
         slot_num_slots=64,
         slot_log_temperature_init=-1.0,
         slot_surprise_tau=0.1,
-        slot_gate_init=-4.0,
+        slot_gate_init=0.0,
         slot_predict_rank=8,
         slot_prediction_lambda=1e-3,
         lr=LR,
