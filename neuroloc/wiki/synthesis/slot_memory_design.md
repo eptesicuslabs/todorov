@@ -1,5 +1,22 @@
 # slot memory design
 
+## empirical status (2026-04-15, UPDATED after run 2)
+
+the first paid test of this design (run2_slot_memory, 2026-04-15) returned val_bpb
+1.5107 and passkey 0/100 at every tested length. **this run does NOT falsify the
+slot-memory hypothesis**, because the preset inherited `alpha_log_mean=-0.5` from
+`Config` defaults, reproducing the state-evaporation failure mode documented in
+`wiki/synthesis/linear_attention_retrieval_wall.md` evidence line 4. the state
+decayed to `10^-109` over 256 tokens — below float32 epsilon — so no retrieval was
+architecturally possible regardless of substrate. the run measured the retention
+bug, not the substrate.
+
+fix committed as `7abb781` (alpha_log_mean=5.0, alpha_eff=0.993). not relaunched
+at time of writing. the substrate's actual retrieval capability remains untested
+at paid scale. see `wiki/mistakes/run2_slot_memory_decay_copy_paste.md`.
+
+
+
 ## the core change
 
 replace the matrix memory `S ∈ R^{B×H×D×D}` with a **slot memory** `M ∈ R^{B×H×N×D}` where N is a fixed number of slots and D is the per-slot content dimension. reads use softmax addressing over slots. writes use a learned allocation policy that places content into the most appropriate slot.

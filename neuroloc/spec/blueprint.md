@@ -2,6 +2,12 @@
 
 see also: `neuroloc/wiki/PROJECT_PLAN.md` is the canonical persistent project state. that file holds the current run, current question, hypothesis under test, decision rules, prior runs index, open research questions, and project glossary. this blueprint covers the design intent and feature definitions; PROJECT_PLAN.md covers what is being run right now and what we have learned. update both when the project state changes.
 
+## status banner (2026-04-15)
+
+four paid runs have produced 0% passkey at 256 tokens: god_run (2026-04-11), god_run_v2 (2026-04-12), run1_baseline_noerasure (2026-04-14), run2_slot_memory (2026-04-15). the fourth failure was a SELF-INFLICTED config bug — the slot preset inherited `alpha_log_mean=-0.5` and reproduced a state-evaporation failure mode already documented in `wiki/synthesis/linear_attention_retrieval_wall.md`. fix committed as `7abb781` (alpha_log_mean=5.0). paid compute halted. the slot substrate hypothesis has NOT yet had a fair test. mistake analysis in `wiki/mistakes/run2_slot_memory_decay_copy_paste.md`.
+
+new hard rule: every preset must explicitly override `alpha_log_mean`. prosecutor passes on presets must cross-check init against `mistakes/` and `synthesis/` articles. a missing override is a bug, not a default.
+
 ## context
 
 todorov proved that biological computation math outperforms standard

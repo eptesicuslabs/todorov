@@ -1,9 +1,9 @@
 project: todorov
 canonical_plan: neuroloc/wiki/PROJECT_PLAN.md
 current_phase: neural_machine
-current_step: substrate_pivot_to_slot_memory_cpu_sim_gate
-status: run1_closed_zero_passkey_three_paid_runs_converged_matrix_memory_theoretically_incapable_pivot_to_slot_based_memory_with_softmax_addressing_cpu_sim_gate_before_paid_compute
-last_updated: "2026-04-14"
+current_step: run2_slot_memory_closed_decay_init_bug_self_inflicted_fix_committed_not_relaunched
+status: run2_slot_memory_val_bpb_1_5107_passkey_0_all_lengths_root_cause_alpha_log_mean_minus_0_5_inherited_from_config_defaults_reproduced_state_evaporation_bug_documented_4_days_prior_fix_7abb781_committed_pod_halted_substrate_hypothesis_untested
+last_updated: "2026-04-15"
 tests_passing: 76
 total_tests: 76
 critical_fix: "god_machine.py step logger hardcoded dict dropped 40+ probe metrics, fixed class-wide via merge loop and smoke-test disk round-trip guard; bcm train/eval path divergence fixed by aligning recurrent path to running_state_norm; running_state_norm now training-only mutation; 17 prosecutor findings F1-F17 all fixed"

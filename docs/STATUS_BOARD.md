@@ -4,7 +4,7 @@ canonical persistent project state lives in `neuroloc/wiki/PROJECT_PLAN.md`. tha
 
 ## current phase: neural machine research (neuroloc)
 
-## status: run1_baseline_noerasure complete (2026-04-14). val_bpb 1.4499, passkey 0/100 at 256. three paid runs (god_run, god_run_v2, run1) all converged on val_bpb ~1.44 and 0% passkey despite radically different feature configurations. the current matrix-memory substrate is theoretically incapable of verbatim retrieval — four stacked failure modes documented in `neuroloc/wiki/synthesis/linear_attention_retrieval_wall.md`. project pivots to slot-based memory with softmax addressing; design in `neuroloc/wiki/synthesis/slot_memory_design.md`. no paid compute until three cpu simulations pass (slot capacity, surprise-gated writes at 256-filler, tiny integration on byte-level).
+## status: run2_slot_memory complete (2026-04-15). val_bpb 1.5107, passkey 0/100 at every tested length. FOUR paid runs all returning 0% passkey. run 2 failure was a SELF-INFLICTED CONFIG BUG — the slot preset inherited `alpha_log_mean=-0.5` from Config defaults, reproducing the exact state-evaporation failure mode documented in `wiki/synthesis/linear_attention_retrieval_wall.md` four days earlier by the same author who built the slot preset. mistake documented in `wiki/mistakes/run2_slot_memory_decay_copy_paste.md`. fix committed as `7abb781`. pod halted. the slot substrate hypothesis has NOT been fairly tested because run 2 measured the inherited-decay bug, not the substrate. new hard rule: every preset must explicitly override alpha_log_mean; every prosecutor pass must cross-check init against `mistakes/` and `synthesis/` articles.
 
 ## god_run_v2: god_machine.py re-run with all 17 F + 14 G prosecutor fixes (2026-04-12)
 
