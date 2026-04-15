@@ -128,7 +128,7 @@ of state, and quantised activations make those bytes count for more in the
 downstream computation. the project's whole reason to exist is the product.
 if neither is exercised by the training objective, the resulting model is
 strictly worse than a same-budget transformer (more flops per token, no
-matching knowledge density). that is the failure pattern of all four prior
+matching knowledge density). that is the failure pattern of all five paid runs to date
 paid runs.
 
 success therefore requires BOTH:

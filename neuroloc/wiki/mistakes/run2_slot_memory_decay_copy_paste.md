@@ -132,7 +132,7 @@ site. the full picture:
 
 this means the "four stacked failure modes" theory from the eight-cause
 external review — k-wta on keys, delta erasure ghosting, imagination gradient
-bypass, BCM slow EMA — is suspect. every one of the four paid runs had state
+bypass, BCM slow EMA — is suspect. every one of the four paid runs the audit covered (god_run, god_run_v2, run1_baseline_noerasure, run2_slot_memory) had state
 evaporation active underneath whatever other feature was being studied. any
 one of the eight flagged causes could have been misdiagnosed as causing zero
 retrieval when the real cause (or a co-cause) was the retention init.

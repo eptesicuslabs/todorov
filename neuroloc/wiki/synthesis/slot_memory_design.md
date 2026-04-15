@@ -42,7 +42,7 @@ partial eval: passkey@256 = 0/100, passkey@1024 = 0/100. the user halted the
 pod before passkey@4096 / selective_copy / structure_probe completed, so the
 retrieval_gate was not persisted.
 
-**this result is consistent with all four prior paid runs** (matrix
+**this result is consistent with all five paid runs to date** (matrix
 substrates and slot substrates, broken retention and fixed retention all
 produced 0/100 at 256). the consistent 0% under all combinations rules out
 both substrate change and retention change as sufficient by themselves.
