@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 import time
 import json
@@ -9,6 +10,7 @@ from typing import Any
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 
 SIM_ROOT = Path(__file__).resolve().parents[1]
@@ -32,16 +34,26 @@ from shared import (
 from neuroloc.model.god_machine import Config, GodMachine
 
 SEED = env_int("SLOT_INT_SEED", 42)
-D_MODEL = env_int("SLOT_INT_D_MODEL", 64)
+D_MODEL = env_int("SLOT_INT_D_MODEL", 128)
 N_LAYERS = env_int("SLOT_INT_N_LAYERS", 7)
-MAX_STEPS = env_int("SLOT_INT_MAX_STEPS", 200)
+MAX_STEPS = env_int("SLOT_INT_MAX_STEPS", 800)
 SEQ_LEN = env_int("SLOT_INT_SEQ_LEN", 256)
 BATCH_SIZE = env_int("SLOT_INT_BATCH_SIZE", 8)
-LR = env_float("SLOT_INT_LR", 3e-4)
-PASSKEY_LENGTH = env_int("SLOT_INT_PASSKEY_LEN", 5)
-PASSKEY_DISTANCE = env_int("SLOT_INT_PASSKEY_DISTANCE", 256)
+LR = env_float("SLOT_INT_LR", 1e-3)
+PASSKEY_LENGTH = env_int("SLOT_INT_PASSKEY_LEN", 3)
+PASSKEY_DISTANCE = env_int("SLOT_INT_PASSKEY_DISTANCE", 128)
 PASSKEY_TRIALS = env_int("SLOT_INT_PASSKEY_TRIALS", 50)
 PASSKEY_THRESHOLD = env_float("SLOT_INT_PASSKEY_THRESHOLD", 0.05)
+PASSKEY_LOSS_WEIGHT = env_float("SLOT_INT_PASSKEY_LOSS_WEIGHT", 10.0)
+
+_TRAIN_DISTANCES_STR = os.environ.get("SLOT_INT_TRAIN_DISTANCES", "16,64,128")
+TRAIN_DISTANCES = tuple(int(x) for x in _TRAIN_DISTANCES_STR.split(",") if x.strip())
+
+PASSKEY_ALPHABET_BYTES = tuple(list(range(48, 58)) + list(range(97, 103)))
+
+MARK_START_BYTES = (255, 254, 253)
+MARK_END_BYTES = (253, 254, 255)
+MARK_QUERY_BYTES = (252, 251, 250)
 
 require_positive("SLOT_INT_D_MODEL", D_MODEL)
 require_positive("SLOT_INT_N_LAYERS", N_LAYERS)
@@ -49,6 +61,14 @@ require_positive("SLOT_INT_MAX_STEPS", MAX_STEPS)
 require_positive("SLOT_INT_SEQ_LEN", SEQ_LEN)
 require_positive("SLOT_INT_BATCH_SIZE", BATCH_SIZE)
 require_positive("SLOT_INT_PASSKEY_TRIALS", PASSKEY_TRIALS)
+require_positive("SLOT_INT_PASSKEY_LEN", PASSKEY_LENGTH)
+if not TRAIN_DISTANCES:
+    raise ValueError("SLOT_INT_TRAIN_DISTANCES must be a non-empty comma-separated list of integers")
+for _d in TRAIN_DISTANCES:
+    if _d <= 0:
+        raise ValueError(f"SLOT_INT_TRAIN_DISTANCES contains non-positive value {_d}")
+if PASSKEY_LOSS_WEIGHT < 1.0:
+    raise ValueError(f"SLOT_INT_PASSKEY_LOSS_WEIGHT must be >= 1.0, got {PASSKEY_LOSS_WEIGHT}")
 
 
 class ByteDataset(Dataset):
@@ -66,34 +86,71 @@ class ByteDataset(Dataset):
         return ids[:-1], ids[1:]
 
 
-def generate_synthetic_corpus(size: int, seed: int, block_seq_len: int = 256) -> bytes:
+def generate_synthetic_corpus(
+    size: int,
+    seed: int,
+    distances: tuple[int, ...] | None = None,
+    block_seq_len: int = 256,
+) -> bytes:
     rng = np.random.default_rng(seed)
-    MARK_START = [255, 254, 253]
-    MARK_END = [253, 254, 255]
-    MARK_QUERY = [252, 251, 250]
+    if distances is None:
+        distances = TRAIN_DISTANCES
+    mark_start = list(MARK_START_BYTES)
+    mark_end = list(MARK_END_BYTES)
+    mark_query = list(MARK_QUERY_BYTES)
     passkey_len = PASSKEY_LENGTH
-    marker_bytes = 3 + passkey_len + 3 + 3 + passkey_len
-    if block_seq_len <= marker_bytes + 20:
-        raise ValueError(
-            f"block_seq_len={block_seq_len} too small to fit two markers plus two "
-            f"{passkey_len}-byte passkeys plus minimum filler"
-        )
+    alphabet = np.array(PASSKEY_ALPHABET_BYTES, dtype=np.int64)
+    marker_overhead = 3 + passkey_len + 3 + 3 + passkey_len
+    min_opening = 5
+    for d in distances:
+        needed = marker_overhead + d + min_opening
+        if block_seq_len < needed:
+            raise ValueError(
+                f"block_seq_len={block_seq_len} too small for mid-filler distance {d} "
+                f"plus marker overhead {marker_overhead} plus minimum opening {min_opening}"
+            )
     out: list[int] = []
     while len(out) < size:
-        passkey_digits = rng.integers(48, 58, size=passkey_len).tolist()
-        filler_budget = block_seq_len - marker_bytes
-        insert_start = int(rng.integers(5, max(6, filler_budget // 2)))
-        between = filler_budget - insert_start
+        d = int(rng.choice(distances))
+        passkey_digits = alphabet[rng.integers(0, len(alphabet), size=passkey_len)].tolist()
+        remaining = block_seq_len - marker_overhead - d
+        opening_filler_len = int(rng.integers(min_opening, max(min_opening + 1, remaining)))
+        trailing_filler_len = remaining - opening_filler_len
         block: list[int] = []
-        block.extend(rng.integers(32, 127, size=insert_start).tolist())
-        block.extend(MARK_START)
+        block.extend(rng.integers(32, 127, size=opening_filler_len).tolist())
+        block.extend(mark_start)
         block.extend(passkey_digits)
-        block.extend(MARK_END)
-        block.extend(rng.integers(32, 127, size=between).tolist())
-        block.extend(MARK_QUERY)
+        block.extend(mark_end)
+        block.extend(rng.integers(32, 127, size=d).tolist())
+        block.extend(mark_query)
         block.extend(passkey_digits)
+        if trailing_filler_len > 0:
+            block.extend(rng.integers(32, 127, size=trailing_filler_len).tolist())
         out.extend(block)
     return bytes(out[:size])
+
+
+def compute_passkey_target_mask(input_ids: torch.Tensor, passkey_len: int) -> torch.Tensor:
+    B, T = input_ids.shape
+    mask = torch.zeros_like(input_ids, dtype=torch.float)
+    if T < 3 + passkey_len:
+        return mask
+    q0, q1, q2 = MARK_QUERY_BYTES
+    query_at = (
+        (input_ids[:, : T - 2] == q0)
+        & (input_ids[:, 1 : T - 1] == q1)
+        & (input_ids[:, 2 : T] == q2)
+    )
+    for k in range(passkey_len):
+        start_idx = k + 2
+        if start_idx >= T:
+            break
+        src_len = min(T - start_idx, query_at.shape[1])
+        mask[:, start_idx : start_idx + src_len] = torch.maximum(
+            mask[:, start_idx : start_idx + src_len],
+            query_at[:, :src_len].float(),
+        )
+    return mask
 
 
 def make_slot_config() -> Config:
@@ -104,7 +161,7 @@ def make_slot_config() -> Config:
         vocab_size=256,
         max_seq_len=SEQ_LEN,
         delta_num_heads=4,
-        delta_head_dim=32,
+        delta_head_dim=max(32, D_MODEL // 4),
         alpha_log_mean=5.0,
         alpha_log_std=0.3,
         attn_d_c=64,
@@ -147,7 +204,7 @@ def make_matrix_config() -> Config:
         vocab_size=256,
         max_seq_len=SEQ_LEN,
         delta_num_heads=4,
-        delta_head_dim=32,
+        delta_head_dim=max(32, D_MODEL // 4),
         alpha_log_mean=5.0,
         alpha_log_std=0.3,
         attn_d_c=64,
@@ -157,7 +214,7 @@ def make_matrix_config() -> Config:
         layer_pattern=layer_pattern,
         kwta_enabled=False,
         delta_erasure_enabled=False,
-        use_fla_if_available=False,
+        use_fla_if_available=True,
         bcm_alpha_enabled=False,
         multi_compartment_enabled=False,
         imagination_enabled=False,
@@ -171,7 +228,7 @@ def make_matrix_config() -> Config:
         grad_clip=1.0,
         grad_accum_steps=1,
         grad_checkpointing=False,
-        amp=False,
+        amp=True,
         seed=SEED,
     )
 
@@ -186,19 +243,19 @@ def run_passkey_test(
     seed: int,
 ) -> dict[str, Any]:
     rng = np.random.default_rng(seed)
+    alphabet = list(PASSKEY_ALPHABET_BYTES)
     correct = 0
     total = 0
     cosines: list[float] = []
     model.eval()
     chunk_size = min(config.seq_len, 256)
+    marker_start = list(MARK_START_BYTES)
+    marker_end = list(MARK_END_BYTES)
+    marker_query = list(MARK_QUERY_BYTES)
     with torch.no_grad():
         for trial in range(trials):
-            passkey = int(rng.integers(10 ** (length - 1), 10 ** length))
-            passkey_bytes = list(str(passkey).encode("ascii"))
-            marker_start = [255, 254, 253]
-            marker_end = [253, 254, 255]
-            marker_query = [252, 251, 250]
-            filler = rng.integers(32, 127, size=distance * 2).tolist()
+            passkey_bytes = [int(alphabet[i]) for i in rng.integers(0, len(alphabet), size=length)]
+            filler = rng.integers(32, 127, size=max(distance * 2, 64)).tolist()
             overhead = len(marker_start) + len(passkey_bytes) + len(marker_end) + len(marker_query)
             max_insert = max(1, distance - overhead - 20)
             insert_pos = int(rng.integers(5, max(6, min(max_insert, distance // 3))))
@@ -209,7 +266,7 @@ def run_passkey_test(
             total_seq_len = config.seq_len
             if len(seq) < total_seq_len:
                 remaining = total_seq_len - len(seq)
-                seq = seq + rng.integers(0, 256, size=remaining).tolist()
+                seq = seq + rng.integers(32, 127, size=remaining).tolist()
             seq = seq[:total_seq_len]
             input_ids = torch.tensor([seq], dtype=torch.long, device=device)
             states: list[Any] | None = None
@@ -227,7 +284,9 @@ def run_passkey_test(
                     break
             if query_pos is None:
                 query_pos = len(seq) - 1
-            target_start = query_pos
+            target_start = query_pos - 1
+            if target_start < 0:
+                target_start = 0
             if target_start + length > logits.shape[1]:
                 target_start = max(0, logits.shape[1] - length)
             predicted = logits[0, target_start : target_start + length, :].argmax(dim=-1).cpu().numpy().tolist()
@@ -257,10 +316,18 @@ def train_and_evaluate(config: Config, name: str, rng: np.random.Generator) -> d
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = GodMachine(config).to(device)
     param_count = sum(p.numel() for p in model.parameters())
-    print(f"[{name}] d_model={config.d_model} n_layers={config.n_layers} params={param_count:,} device={device}", flush=True)
+    print(
+        f"[{name}] d_model={config.d_model} n_layers={config.n_layers} params={param_count:,} "
+        f"train_distances={TRAIN_DISTANCES} passkey_loss_weight={PASSKEY_LOSS_WEIGHT} device={device}",
+        flush=True,
+    )
 
     corpus_size = SEQ_LEN * BATCH_SIZE * MAX_STEPS * 2
-    corpus = generate_synthetic_corpus(max(corpus_size, 100_000), seed=int(rng.integers(0, 2**31)))
+    corpus = generate_synthetic_corpus(
+        max(corpus_size, 100_000),
+        seed=int(rng.integers(0, 2**31)),
+        distances=TRAIN_DISTANCES,
+    )
     val_size = max(SEQ_LEN * 20, 50_000)
     val_start = len(corpus) - val_size
     train_data = corpus[:val_start]
@@ -280,7 +347,7 @@ def train_and_evaluate(config: Config, name: str, rng: np.random.Generator) -> d
     scheduler = torch.optim.lr_scheduler.LinearLR(
         optimizer, start_factor=0.1, total_iters=config.warmup_steps
     )
-    criterion = nn.CrossEntropyLoss()
+    criterion_unweighted = nn.CrossEntropyLoss()
 
     step_losses: list[float] = []
     val_bpbs: list[float] = []
@@ -296,15 +363,27 @@ def train_and_evaluate(config: Config, name: str, rng: np.random.Generator) -> d
             batch = next(train_iter)
         input_ids, targets = batch[0].to(device), batch[1].to(device)
         logits, _, _ = model(input_ids)
-        loss = criterion(logits.view(-1, 256), targets.view(-1))
-        loss.backward()
+        loss_per_token = F.cross_entropy(
+            logits.reshape(-1, 256),
+            targets.reshape(-1),
+            reduction="none",
+        ).view(input_ids.shape[0], input_ids.shape[1])
+        passkey_mask = compute_passkey_target_mask(input_ids, PASSKEY_LENGTH)
+        weights = 1.0 + (PASSKEY_LOSS_WEIGHT - 1.0) * passkey_mask
+        weighted_loss = (loss_per_token * weights).sum() / weights.sum().clamp(min=1.0)
+        weighted_loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), config.grad_clip)
         optimizer.step()
         scheduler.step()
         optimizer.zero_grad()
-        step_losses.append(float(loss.item()))
+        step_losses.append(float(weighted_loss.item()))
         if step < 5 or (step + 1) % max(1, MAX_STEPS // 50) == 0:
-            print(f"[{name}] step {step+1}/{MAX_STEPS} loss={loss.item():.4f}", flush=True)
+            passkey_count = int(passkey_mask.sum().item())
+            print(
+                f"[{name}] step {step+1}/{MAX_STEPS} weighted_loss={weighted_loss.item():.4f} "
+                f"passkey_tokens_in_batch={passkey_count}",
+                flush=True,
+            )
 
         if (step + 1) % max(1, MAX_STEPS // 10) == 0:
             model.eval()
@@ -318,14 +397,18 @@ def train_and_evaluate(config: Config, name: str, rng: np.random.Generator) -> d
                     vb_count += 1
                     v_input, v_target = vbatch[0].to(device), vbatch[1].to(device)
                     v_logits, _, _ = model(v_input)
-                    v_loss = criterion(v_logits.view(-1, 256), v_target.view(-1))
+                    v_loss = criterion_unweighted(v_logits.view(-1, 256), v_target.view(-1))
                     total_loss += float(v_loss.item()) * v_target.numel()
                     total_tokens += v_target.numel()
             val_bpb = total_loss / max(total_tokens, 1) / 0.6931
             val_bpbs.append(val_bpb)
             if val_bpb < best_val_bpb:
                 best_val_bpb = val_bpb
-            print(f"[{name}] step {step+1}/{MAX_STEPS} loss={loss.item():.4f} val_bpb={val_bpb:.4f} best={best_val_bpb:.4f}", flush=True)
+            print(
+                f"[{name}] step {step+1}/{MAX_STEPS} weighted_loss={weighted_loss.item():.4f} "
+                f"val_bpb_unweighted={val_bpb:.4f} best={best_val_bpb:.4f}",
+                flush=True,
+            )
             model.train()
 
     passkey_result = run_passkey_test(
@@ -363,7 +446,8 @@ def main() -> dict[str, Any]:
     matrix_config = make_matrix_config()
 
     slot_result = train_and_evaluate(slot_config, "slot_memory", rng)
-    torch.cuda.empty_cache() if torch.cuda.is_available() else None
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
     matrix_result = train_and_evaluate(matrix_config, "matrix_memory", rng)
 
     slot_exact = slot_result["passkey_exact_rate"]
@@ -413,7 +497,11 @@ def main() -> dict[str, Any]:
         "passkey_length": PASSKEY_LENGTH,
         "passkey_distance": PASSKEY_DISTANCE,
         "passkey_trials": PASSKEY_TRIALS,
+        "passkey_loss_weight": PASSKEY_LOSS_WEIGHT,
+        "train_distances": list(TRAIN_DISTANCES),
+        "passkey_alphabet_size": len(PASSKEY_ALPHABET_BYTES),
         "alpha_log_mean": 5.0,
+        "fla_enabled": True,
     }
 
     script_path = Path(__file__).resolve()
@@ -434,17 +522,18 @@ def main() -> dict[str, Any]:
         trials=[slot_result, matrix_result],
         artifacts=[],
         warnings=[
-            "tiny-scale integration test at d_model=128, not full scale. "
-            "results are directional evidence, not conclusive proof. "
-            "the passkey threshold is intentionally low (5%) because tiny models "
-            "have limited capacity; the relevant comparison is slot vs matrix, "
-            "not absolute passkey rate.",
+            "tiny-scale integration test. results are directional evidence, not "
+            "conclusive proof. the passkey threshold is intentionally low (5%) "
+            "because tiny models have limited capacity; the relevant comparison "
+            "is slot vs matrix under identical training and data.",
         ],
     )
     write_json(metrics_path, record)
 
     print(f"\n{'='*60}")
-    print(f"INTEGRATION GATE: slot_vs_matrix at d_model={D_MODEL}")
+    print(f"INTEGRATION GATE: slot_vs_matrix at d_model={D_MODEL}, L={PASSKEY_LENGTH}, "
+          f"alphabet={len(PASSKEY_ALPHABET_BYTES)}, loss_weight={PASSKEY_LOSS_WEIGHT}, "
+          f"train_distances={list(TRAIN_DISTANCES)}")
     print(f"{'='*60}")
     print(f"slot_memory: exact={slot_exact:.3f} cosine={slot_cosine:.4f} bpb={slot_result['best_val_bpb']:.4f}")
     print(f"matrix_memory: exact={matrix_exact:.3f} cosine={matrix_cosine:.4f} bpb={matrix_result['best_val_bpb']:.4f}")
