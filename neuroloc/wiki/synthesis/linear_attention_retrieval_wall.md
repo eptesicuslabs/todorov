@@ -103,7 +103,7 @@ arora et al. icml 2024 "based" (arxiv 2402.18668) theorem 3.1 formalized a relat
 
 continuing the current substrate is a rigorous dead end. the project moves from tuning the current substrate to replacing it.
 
-the external-opinion synthesis (2026-04-14, pasted into the project conversation) ranked three alternatives: orthogonalized precision-matrix write (larimar-inspired recursive-least-squares), discrete slot buffer with exponential addressing, test-time fast-weight mlp (titans-inspired). the project chose the slot-buffer direction because it solves all four failure modes cleanly and has the lowest cpu-simulation validation cost. design details are in `wiki/synthesis/slot_memory_design.md`.
+the external-opinion synthesis (2026-04-14, pasted into the project conversation) ranked three alternatives: orthogonalized precision-matrix write (larimar-inspired recursive-least-squares), discrete slot buffer with exponential addressing, test-time fast-weight mlp (titans-inspired). the project chose the slot-buffer direction because it solves the failure modes catalogued in this article cleanly and has the lowest cpu-simulation validation cost. design details are in `wiki/synthesis/slot_memory_design.md`.
 
 ## see also
 

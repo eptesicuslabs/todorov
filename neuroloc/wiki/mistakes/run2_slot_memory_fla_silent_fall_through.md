@@ -70,3 +70,14 @@ before any paid launch:
 
 these three checks add ~30 seconds of pod time and would have prevented the
 entire 20-minute fall-through episode.
+
+## see also
+
+- `wiki/tests/run2_slot_memory_retention_fixed_results.md` — the run card
+  for the run whose first launch attempt hit this issue
+- `wiki/synthesis/training_objective_vs_architectural_goal.md` — the
+  realisation triggered by the second launch attempt's results
+- `wiki/mistakes/run2_slot_memory_decay_copy_paste.md` — the prior
+  mistake on the same run, the inherited-retention bug
+- `wiki/synthesis/slot_memory_design.md` — the substrate that depends on
+  the FLA kernel
