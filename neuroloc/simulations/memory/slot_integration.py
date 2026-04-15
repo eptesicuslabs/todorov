@@ -66,9 +66,34 @@ class ByteDataset(Dataset):
         return ids[:-1], ids[1:]
 
 
-def generate_synthetic_corpus(size: int, seed: int) -> bytes:
+def generate_synthetic_corpus(size: int, seed: int, block_seq_len: int = 256) -> bytes:
     rng = np.random.default_rng(seed)
-    return bytes(rng.integers(0, 256, size=size, dtype=np.uint8).tolist())
+    MARK_START = [255, 254, 253]
+    MARK_END = [253, 254, 255]
+    MARK_QUERY = [252, 251, 250]
+    passkey_len = PASSKEY_LENGTH
+    marker_bytes = 3 + passkey_len + 3 + 3 + passkey_len
+    if block_seq_len <= marker_bytes + 20:
+        raise ValueError(
+            f"block_seq_len={block_seq_len} too small to fit two markers plus two "
+            f"{passkey_len}-byte passkeys plus minimum filler"
+        )
+    out: list[int] = []
+    while len(out) < size:
+        passkey_digits = rng.integers(48, 58, size=passkey_len).tolist()
+        filler_budget = block_seq_len - marker_bytes
+        insert_start = int(rng.integers(5, max(6, filler_budget // 2)))
+        between = filler_budget - insert_start
+        block: list[int] = []
+        block.extend(rng.integers(32, 127, size=insert_start).tolist())
+        block.extend(MARK_START)
+        block.extend(passkey_digits)
+        block.extend(MARK_END)
+        block.extend(rng.integers(32, 127, size=between).tolist())
+        block.extend(MARK_QUERY)
+        block.extend(passkey_digits)
+        out.extend(block)
+    return bytes(out[:size])
 
 
 def make_slot_config() -> Config:
