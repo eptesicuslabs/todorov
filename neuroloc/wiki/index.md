@@ -192,14 +192,19 @@ frozen evidence records, one per paid run:
 - comparisons/pga_vs_grid_cells.md -- G(3,0,1) PGA vs grid cell computations
 - comparisons/gwt_vs_transformer.md -- global workspace vs residual stream
 
-## synthesis (5 articles)
+## synthesis (10 articles)
+- synthesis/training_objective_vs_architectural_goal.md -- root-cause analysis after five paid runs: LM loss on fineweb-edu does not exercise the memory substrate
+- synthesis/slot_memory_design.md -- softmax addressing over prototype keys, surprise-gated lru writes, output gate; substrate for run2_slot_memory
+- synthesis/correction_field_memory.md -- prediction-residual value storage; memory_capacity_delta=0 falsified by trained-prediction sim
+- synthesis/compression_beyond_quantization.md -- six-mechanism compound compression thesis
+- synthesis/linear_attention_retrieval_wall.md -- SUPERSEDED: the five-failure-mode diagnosis. retained for evidence continuity
 - synthesis/sparsity_from_biology_to_ternary_spikes.md -- metabolic mandate, energy-information tradeoff, gradient flow constraint, 41% vs cortical 2-10%
 - synthesis/timescale_separation.md -- nested oscillatory clocks, cross-frequency coupling, todorov's two fixed timescales
 - synthesis/local_vs_global_computation.md -- cortical local recurrence, dendritic compartments, source segregation vs residual stream
 - synthesis/compression_and_bottlenecks.md -- DG pattern separation, hippocampal indexing, consolidation pipeline, capacity limits as features
 - synthesis/recurrence_vs_feedforward.md -- canonical microcircuit recurrence, attractor dynamics, error correction, KDA/Mamba3 comparison
 
-## bridge (18 articles)
+## bridge (19 articles)
 - bridge/neuron_models_to_atmn.md -- ATMN: no leak, batch reset, proposed fix
 - bridge/sparse_coding_to_ternary_spikes.md -- 41% vs cortical 2-10%, STE constraint
 - bridge/population_coding_to_spike_health.md -- MI, CKA, firing rate as population metrics
@@ -218,6 +223,7 @@ frozen evidence records, one per paid run:
 - bridge/global_workspace_to_residual_stream.md -- shared bus, NOT global workspace
 - bridge/positional_encoding_to_rope.md -- theta phase precession, grid cell phase, tonotopy to RoPE rotation
 - bridge/normalization_to_rmsnorm.md -- divisive normalization, synaptic scaling, gain control to RMSNorm
+- bridge/memory_compression_to_tiered_architecture.md -- 5-tier memory architecture proposal for phase 6+
 
 ## tests (20 records)
 
@@ -247,7 +253,7 @@ frozen evidence records, one per paid run:
 - tests/thinking_loop_prototype_results.md -- recurrent hidden-state refinement pilot on modular arithmetic
 - tests/aesthetic_logger_prototype.md -- phase 6a logging module, implemented not yet wired (current status)
 
-## simulations (28 scripts across 17 directories)
+## simulations (35+ scripts across 18 directories plus 3 root-level utilities)
 - simulations/single_neuron/ (3 scripts: lif_fi_curve leak-validation, adex_patterns, izhikevich_gallery)
 - simulations/plasticity/ (3 scripts: stdp_weight_evolution, homeostatic_scaling, bcm_alpha_pilot)
 - simulations/sparse_coding/ (2 scripts: sparse_coding_demo, hierarchical_ternary)
@@ -256,7 +262,7 @@ frozen evidence records, one per paid run:
 - simulations/neuromodulation/ (1 script: dopamine_rpe)
 - simulations/lateral_inhibition/ (1 script: wta_dynamics)
 - simulations/oscillations/ (1 script: gamma_ping)
-- simulations/memory/ (3 scripts: pattern_completion, capacity_scaling, imagination_recombination)
+- simulations/memory/ (10 scripts: pattern_completion, capacity_scaling, imagination_recombination, asymmetric_outer_product_recall, correction_field_capacity, correction_field_trained_prediction, multi_resolution_head_split, slot_buffer_capacity, slot_surprise_writes, slot_integration)
 - simulations/attention/ (1 script: biased_competition)
 - simulations/dendritic/ (1 script: multicompartment_neuron)
 - simulations/energy/ (1 script: energy_comparison)
@@ -264,9 +270,10 @@ frozen evidence records, one per paid run:
 - simulations/spatial/ (2 scripts: grid_cell_model, gp_vs_bilinear_pilot)
 - simulations/consciousness/ (1 script: ignition_dynamics)
 - simulations/prototypes/ (3 scripts: rate_coded_spike, linoss_dynamics, forward_learning)
-- simulations/shared.py (metrics schema and utilities)
+- simulations/reasoning/ (1 script: thinking_loop_prototype)
+- simulations/shared.py, simulations/suite_registry.py, simulations/suite_runner.py (root-level utilities)
 
-## knowledge (39 articles)
+## knowledge (40 articles)
 - knowledge/unified_theory.md -- crbr formulation unifying kda, mamba-3, mla, spikes, swiglu, and gp under one mathematical object
 - knowledge/delta_rule_theory.md -- delta-rule linear attention, online regression view, and fast-weight state updates
 - knowledge/kda_channel_gating.md -- kimi delta attention with channel-wise forgetting and constrained dplr implementation notes
@@ -310,18 +317,18 @@ frozen evidence records, one per paid run:
 - knowledge/unified_learning_hypothesis.md -- the forward pass IS the learning step: outer product = hebbian, BCM alpha = metaplasticity, delta rule = error correction, k-WTA = competition, prediction error = teaching signal. unified learning where computation and training are the same operation. testable hypothesis with specific experiment design.
 - knowledge/compression_novelty.md -- novelty analysis of hierarchical k-WTA + ternary compression. confirmed novel: no prior work on runtime activations with CKA quality validation. closest: ComPEFT (EMNLP 2024) on weight deltas. architecture-agnostic, applies to any activation tensor.
 - knowledge/biological_vision_research.md -- curated research library on biological vision, retinal processing, center-surround receptive fields, ventral/dorsal streams, and visual cortex hierarchies
+- knowledge/generative_memory_research.md -- curated library on memory compression via generative models: quantization ceilings, Dreamer V3, INRs, hypernetworks, Larimar, Memorizing Transformers, Titans, DeltaKV
 
 ## statistics
 - total mechanism articles: 61
 - total bridge notes: 19
 - total synthesis articles: 10 (9 current + 1 superseded)
 - total test records: 20 (5 paid-run cards + 5 pilots + 10 simulation results including aesthetic_logger_prototype + god_run_findings; excluding tests/index.md)
-- total simulations: 28
 - total entity notes: 33
 - total comparison articles: 13
 - total concept articles: 7
 - total knowledge articles: 40
 - total mistake docs: 2
 - total navigation / meta: 4 (INDEX.md, OPERATING_DIRECTIVE.md, PROJECT_PLAN.md, _audit_2026-04-16.md)
-- last updated: 2026-04-16
+- total simulations: 35+ scripts across 18 named directories plus 3 root-level utilities (shared.py, suite_registry.py, suite_runner.py)
 - last updated: 2026-04-16
