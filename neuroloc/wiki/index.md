@@ -255,7 +255,7 @@ frozen evidence records, one per paid run:
 - tests/thinking_loop_prototype_results.md -- recurrent hidden-state refinement pilot on modular arithmetic
 - tests/aesthetic_logger_prototype.md -- phase 6a logging module, implemented not yet wired (current status)
 
-## simulations (35+ scripts across 18 directories plus 3 root-level utilities)
+## simulations (35+ scripts across 17 script-containing directories plus 3 root-level utilities)
 - simulations/single_neuron/ (3 scripts: lif_fi_curve leak-validation, adex_patterns, izhikevich_gallery)
 - simulations/plasticity/ (3 scripts: stdp_weight_evolution, homeostatic_scaling, bcm_alpha_pilot)
 - simulations/sparse_coding/ (2 scripts: sparse_coding_demo, hierarchical_ternary)
