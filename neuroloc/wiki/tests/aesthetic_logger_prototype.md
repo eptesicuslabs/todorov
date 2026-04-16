@@ -1,7 +1,9 @@
 # aesthetic logger prototype
 
+status: current (as of 2026-04-16).
+
 date: 2026-04-14
-status: implemented, not yet wired into train_model
+implementation status: implemented, not yet wired into train_model
 module: `neuroloc/model/aesthetic_logger.py`
 test: `tests/test_aesthetic_logger.py`
 related spec: `neuroloc/spec/next_gen.md` phase 6a
