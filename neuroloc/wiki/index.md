@@ -54,7 +54,7 @@ frozen evidence records, one per paid run:
 - [[mistakes/run2_slot_memory_decay_copy_paste]] — inherited retention bug
 - [[mistakes/run2_slot_memory_fla_silent_fall_through]] — FLA not installed silent slowdown
 
-## flat catalog — all 206 articles by topic
+## flat catalog — articles by topic (sums to 205 content articles; add 6 navigation/meta files plus tests/index.md for 212 total wiki markdown files on disk)
 
 ## mechanisms (61 articles)
 
