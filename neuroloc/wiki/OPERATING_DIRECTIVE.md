@@ -295,3 +295,4 @@ author, and a one-line description of what changed and why.
 
 - `neuroloc/wiki/PROJECT_PLAN.md` — canonical project state. this directive governs how that file is maintained.
 - `CLAUDE.md` — agent-facing rules for code. this directive covers the wiki/state side.
+- `neuroloc/wiki/INDEX.md` — human-readable navigation map of the wiki.
