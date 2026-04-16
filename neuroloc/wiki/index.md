@@ -219,12 +219,33 @@ frozen evidence records, one per paid run:
 - bridge/positional_encoding_to_rope.md -- theta phase precession, grid cell phase, tonotopy to RoPE rotation
 - bridge/normalization_to_rmsnorm.md -- divisive normalization, synaptic scaling, gain control to RMSNorm
 
-## tests (5 records)
+## tests (20 records)
+
+### paid-run cards (5)
+- tests/god_run_results.md -- first paid neural-machine run, 2026-04-11, 283M params, val_bpb 1.3950, passkey 0/20
+- tests/god_run_v2_results.md -- paid re-run with 17+14 prosecutor fixes, 2026-04-12, val_bpb 1.4453, passkey 0/100
+- tests/run1_baseline_noerasure_results.md -- paid run with all bundle features off, 2026-04-14, 353M, val_bpb 1.4499, passkey 0/100
+- tests/run2_slot_memory_first_launch_results.md -- first slot-memory paid run, 2026-04-15, inherited retention bug, val_bpb 1.5107, passkey 0/100
+- tests/run2_slot_memory_retention_fixed_results.md -- fifth paid run, 2026-04-15, retention fixed, FLA active, val_bpb 1.4777, passkey 0/100
+
+### pilot experiments (5)
 - tests/2026-04-07_pattern_completion_baseline.md -- first dated experiment record; repaired ca3-like attractor baseline with shuffled control, sweeps, and metrics json
 - tests/2026-04-07_kwta_vs_threshold_pilot.md -- lateral-inhibition bridge pilot; matched-sparsity threshold vs k-wta with exact-support and active-fraction metrics
 - tests/2026-04-08_leak_vs_carry_pilot.md -- single-neuron bridge pilot; explicit leak vs atmn-style carry with paired-pulse retention, drift scaling, and passive lif anchor metrics
 - tests/2026-04-09_bcm_alpha_pilot.md -- plasticity bridge pilot; bcm-like adaptive alpha with activity-dependent forgetting and state norm stabilization
 - tests/2026-04-09_gp_vs_bilinear_pilot.md -- spatial bridge pilot; pga geometric product vs random bilinear at random initialization
+
+### simulation results and analyses (10)
+- tests/god_run_findings.md -- original long-form synthesis of god_run's results
+- tests/decay_sweep_results.md -- asymmetric matrix memory d_head=64 decay sweep; retention knee at decay=0.90 (32 patterns), decay=0.95 (64 patterns)
+- tests/head_dim_sweep_results.md -- head-dim 32-256 sweep at d_head=64; p*(d) sub-linear; retention dominates width
+- tests/overwrite_sweep_results.md -- erasure at decay=0.90 hurts all 7 encodings at 32-pattern knee
+- tests/encoding_simulation_round_a.md -- symmetric memory sign-only vs three-level encoding comparison
+- tests/encoding_simulation_round_b.md -- asymmetric matrix memory encoding comparison; capacity ceiling below symmetric
+- tests/correction_field_trained_prediction_results.md -- trained-predictor correction-field sim; memory_capacity_delta=0 at every quality
+- tests/multi_resolution_head_split_results.md -- fast/medium/slow heads with surprise gates; rare-class recall improves
+- tests/thinking_loop_prototype_results.md -- recurrent hidden-state refinement pilot on modular arithmetic
+- tests/aesthetic_logger_prototype.md -- phase 6a logging module, implemented not yet wired (current status)
 
 ## simulations (28 scripts across 17 directories)
 - simulations/single_neuron/ (3 scripts: lif_fi_curve leak-validation, adex_patterns, izhikevich_gallery)
@@ -292,11 +313,9 @@ frozen evidence records, one per paid run:
 
 ## statistics
 - total mechanism articles: 61
-- total bridge notes: 18
-- total mechanism articles: 61
 - total bridge notes: 19
 - total synthesis articles: 10 (9 current + 1 superseded)
-- total test records: 17 (5 paid-run cards, 5 pilots, 7 simulation results)
+- total test records: 20 (5 paid-run cards + 5 pilots + 10 simulation results including aesthetic_logger_prototype + god_run_findings; excluding tests/index.md)
 - total simulations: 28
 - total entity notes: 33
 - total comparison articles: 13
@@ -304,5 +323,5 @@ frozen evidence records, one per paid run:
 - total knowledge articles: 40
 - total mistake docs: 2
 - total navigation / meta: 4 (INDEX.md, OPERATING_DIRECTIVE.md, PROJECT_PLAN.md, _audit_2026-04-16.md)
-- total including top-level (Home, log): 206 articles + 2 obsidian pages = 208 wiki files tracked
+- last updated: 2026-04-16
 - last updated: 2026-04-16
