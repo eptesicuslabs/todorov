@@ -4,7 +4,7 @@ status: current (as of 2026-04-16).
 
 ## neuroloc -- biological neural computation
 
-the neuroloc wiki maps brain computation mechanisms to todorov's CRBR framework. 61 mechanism articles, 19 bridge documents, 10 synthesis articles, 13 comparisons, 33 entity notes, 17 test records, 2 mistake docs, 40 knowledge articles, 7 concept articles.
+the neuroloc wiki maps brain computation mechanisms to todorov's CRBR framework. 61 mechanism articles, 19 bridge documents, 10 synthesis articles, 13 comparisons, 33 entity notes, 20 test records, 2 mistake docs, 40 knowledge articles, 7 concept articles.
 
 start here: [[start_here]]
 

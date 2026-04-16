@@ -12,6 +12,8 @@ at [[start_here]]. for the rules that govern every article below, see
 
 - [[OPERATING_DIRECTIVE]] — binding rules for the wiki
 - [[PROJECT_PLAN]] — canonical project state (current run, decision rules, prior runs)
+- [[Home]] — top-level eptesicus laboratories landing page
+- [[log]] — operation log: append-only running narrative of project activity
 - [[_audit_2026-04-16]] — audit of the wiki state before the 2026-04-16 refactor
 - [[concepts/start_here]] — overview for new readers
 - [[concepts/the_brain_in_one_page]] — 80/20 bio overview
@@ -329,6 +331,6 @@ frozen evidence records, one per paid run:
 - total concept articles: 7
 - total knowledge articles: 40
 - total mistake docs: 2
-- total navigation / meta: 4 (INDEX.md, OPERATING_DIRECTIVE.md, PROJECT_PLAN.md, _audit_2026-04-16.md)
-- total simulations: 35+ scripts across 18 named directories plus 3 root-level utilities (shared.py, suite_registry.py, suite_runner.py)
+- total navigation / meta: 6 (INDEX.md, OPERATING_DIRECTIVE.md, PROJECT_PLAN.md, _audit_2026-04-16.md, Home.md, log.md)
+- total simulations: 35+ scripts across 17 script-containing directories plus 3 root-level utilities (shared.py, suite_registry.py, suite_runner.py)
 - last updated: 2026-04-16
