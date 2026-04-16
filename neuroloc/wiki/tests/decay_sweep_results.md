@@ -92,3 +92,10 @@ that distinction matters because the current dense baseline code initializes `al
 ## update history
 
 - **2026-04-12** — deyan todorov — file created. records the nine-point decay sweep at `d_head=64`, shows the exact-query reopening points at `decay=0.90` for 32 patterns and `decay=0.95` for 64 patterns, and reframes retention as the first post-baseline ablation rather than a variable to bundle into the no-erasure baseline.
+
+## see also
+
+- `wiki/tests/index.md` — tests/ catalog
+- `wiki/PROJECT_PLAN.md` — canonical project state
+- `wiki/INDEX.md` — full wiki navigation map
+- `wiki/OPERATING_DIRECTIVE.md` — rules governing this article

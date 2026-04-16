@@ -59,3 +59,10 @@ the hard-noise support-f1 gap is small, so this run does not justify claiming th
 - the Brian2 anchor remains qualitative and does not itself produce the statistical verdict
 - alpha is recalibrated per support fraction and per scaling condition, which is appropriate for a fair matched-sparsity comparison but not identical to a single fixed learned alpha in a model checkpoint
 - this test says nothing yet about training stability or downstream bpb
+
+## see also
+
+- `wiki/tests/index.md` — tests/ catalog
+- `wiki/PROJECT_PLAN.md` — canonical project state
+- `wiki/INDEX.md` — full wiki navigation map
+- `wiki/OPERATING_DIRECTIVE.md` — rules governing this article

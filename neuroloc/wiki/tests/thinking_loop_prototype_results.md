@@ -250,3 +250,10 @@ cleaner-pilot-then-run-2-thinking reopens.
   out-of-distribution task depth. the pilot does not support promoting thinking
   to a run-1 requirement; a cleaner pilot at larger model size and with a
   non-adversarial second task is recommended before reconsidering.
+
+## see also
+
+- `wiki/tests/index.md` — tests/ catalog
+- `wiki/PROJECT_PLAN.md` — canonical project state
+- `wiki/INDEX.md` — full wiki navigation map
+- `wiki/OPERATING_DIRECTIVE.md` — rules governing this article

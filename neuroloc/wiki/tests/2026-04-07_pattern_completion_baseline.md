@@ -56,3 +56,10 @@ this is evidence for nonlinear recurrent cleanup in the simulation, not evidence
 - the 0.138n reference is theoretical context, not a theorem proved by this run
 - the run was executed in a dirty git worktree, so the artifact records local state rather than a pristine revision
 - the simulation is cpu-friendly and intentionally small, so the result is useful for mechanistic contrast, not scale claims
+
+## see also
+
+- `wiki/tests/index.md` — tests/ catalog
+- `wiki/PROJECT_PLAN.md` — canonical project state
+- `wiki/INDEX.md` — full wiki navigation map
+- `wiki/OPERATING_DIRECTIVE.md` — rules governing this article

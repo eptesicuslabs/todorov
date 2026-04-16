@@ -61,3 +61,10 @@ for the bridge note, the right update is not "explicit leak validated." it is "e
 - the atmn carry condition here is a minimal recurrence abstraction, not the full trained neuron model with learned per-neuron thresholds
 - the paired-pulse regime is intentionally subthreshold; different conclusions could emerge in a suprathreshold or task-trained regime
 - the recorded metrics json marks the run as `git_dirty: true`, so exact reproduction refers to the working-tree state captured in the artifact metadata rather than a clean commit alone
+
+## see also
+
+- `wiki/tests/index.md` — tests/ catalog
+- `wiki/PROJECT_PLAN.md` — canonical project state
+- `wiki/INDEX.md` — full wiki navigation map
+- `wiki/OPERATING_DIRECTIVE.md` — rules governing this article

@@ -107,3 +107,10 @@ write `neuroloc/simulations/memory/asymmetric_outer_product_recall.py`. run it. 
 
 - **2026-04-12** — file created. captures the round-A simulation results and identifies the symmetric-vs-asymmetric memory gap that round B closes.
 - **2026-04-12** — fixed two prosecutor findings: corrected the k_fraction=0.41 row in the A3 table (mutual information 1.250 → 1.311, CKA 0.891 → 0.894 — the values were read from the wrong JSON key in the first draft; the source JSON stores the 41% case under `standard_d256_*` rather than `k0.41_d256_*`); changed the A2 section heading from "Hopfield-style retrieval" to "symmetric outer-product matrix retrieval" to remove a published-technique-name use of vocabulary as project terminology.
+
+## see also
+
+- `wiki/tests/index.md` — tests/ catalog
+- `wiki/PROJECT_PLAN.md` — canonical project state
+- `wiki/INDEX.md` — full wiki navigation map
+- `wiki/OPERATING_DIRECTIVE.md` — rules governing this article

@@ -118,3 +118,10 @@ the local planning implication of this sweep is narrower: do not spend a paid ru
 ## update history
 
 - **2026-04-12** — deyan todorov — file created. records the five-point head-dimension sweep for the asymmetric matrix-memory simulation, shows the sub-linear $p^*(d)$ curve `{16, 16, 16, 24, 32}`, isolates the retention interaction as the real bottleneck, and recommends against a head-dimension-only paid run at the faster-forgetting operating point.
+
+## see also
+
+- `wiki/tests/index.md` — tests/ catalog
+- `wiki/PROJECT_PLAN.md` — canonical project state
+- `wiki/INDEX.md` — full wiki navigation map
+- `wiki/OPERATING_DIRECTIVE.md` — rules governing this article

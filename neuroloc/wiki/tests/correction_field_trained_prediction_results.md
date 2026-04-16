@@ -97,3 +97,10 @@ the honest reframing is that the correction-field is an additive prediction head
 ## update history
 
 - **2026-04-14** -- deyan todorov -- file created. records the trained-predictor follow-up to `correction_field_capacity`. confirms that a real predictor does not change the memory-side `memory_substrate_capacity_delta = 0` verdict, observed prediction quality 0.17 at rho=0.99 with a rank-16 linear head on `d_head=64`, and residuals are only 8 percent shorter than raw values. the correction field survives as a reconstruction-side bias, not as a memory-side compression.
+
+## see also
+
+- `wiki/tests/index.md` — tests/ catalog
+- `wiki/PROJECT_PLAN.md` — canonical project state
+- `wiki/INDEX.md` — full wiki navigation map
+- `wiki/OPERATING_DIRECTIVE.md` — rules governing this article

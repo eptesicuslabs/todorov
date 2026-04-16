@@ -95,3 +95,10 @@ if erasure returns later, it should return only as an explicit post-baseline abl
 ## update history
 
 - **2026-04-12** — deyan todorov — file created. records the focused overwrite sweep at `decay=0.90` and 128 trials per cell, shows that erasure hurts all seven encodings at the first useful 32-pattern retention knee, and moves overwrite from the scheduled baseline into a later explicit ablation.
+
+## see also
+
+- `wiki/tests/index.md` — tests/ catalog
+- `wiki/PROJECT_PLAN.md` — canonical project state
+- `wiki/INDEX.md` — full wiki navigation map
+- `wiki/OPERATING_DIRECTIVE.md` — rules governing this article

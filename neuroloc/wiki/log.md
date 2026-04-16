@@ -1,5 +1,7 @@
 # neuroloc operation log
 
+status: current (as of 2026-04-16).
+
 ## 2026-04-09 three implementation research libraries + prosecutor fixes | 3 knowledge articles, 4 fixes
 
 new knowledge articles:

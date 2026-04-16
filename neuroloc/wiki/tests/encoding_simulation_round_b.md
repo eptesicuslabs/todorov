@@ -119,3 +119,10 @@ deciding among (a)-(d) requires the linux re-run of round B with the rank-ceilin
 ## update history
 
 - **2026-04-12** — file created. captures the round B results from the 24-trial sweep at pattern counts 8 through 48, identifies the asymmetric capacity collapse, lists the limitations including the pattern-count sweep stopping below the head-dimension rank ceiling due to a local MINGW-W64 numpy segfault, and reframes the question from encoding choice to capacity structure.
+
+## see also
+
+- `wiki/tests/index.md` — tests/ catalog
+- `wiki/PROJECT_PLAN.md` — canonical project state
+- `wiki/INDEX.md` — full wiki navigation map
+- `wiki/OPERATING_DIRECTIVE.md` — rules governing this article

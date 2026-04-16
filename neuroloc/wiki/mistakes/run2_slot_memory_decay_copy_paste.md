@@ -187,3 +187,15 @@ future attempt to invoke it, which is the correct behavior.
   outstanding structural improvement: `god_machine.py` startup should
   warn or fail when any layer's `use_fla=False` after a preset asks for
   FLA; this guard is not yet committed.
+
+## see also
+
+- `wiki/tests/run2_slot_memory_first_launch_results.md` — the run card for the paid run this mistake happened on
+- `wiki/tests/run2_slot_memory_retention_fixed_results.md` — the relaunch with the fix applied
+- `wiki/tests/god_run_results.md` — the audit found this bug was also present in this earlier paid run
+- `wiki/tests/god_run_v2_results.md` — same
+- `wiki/tests/run1_baseline_noerasure_results.md` — same
+- `wiki/mistakes/run2_slot_memory_fla_silent_fall_through.md` — the other mistake doc on the same run
+- `wiki/synthesis/linear_attention_retrieval_wall.md` — where the bug was documented four days before it happened
+- `wiki/synthesis/training_objective_vs_architectural_goal.md` — the post-five-runs realisation that the retention fix alone does not recover retrieval
+- `wiki/synthesis/slot_memory_design.md` — the substrate the buggy preset was supposed to exercise

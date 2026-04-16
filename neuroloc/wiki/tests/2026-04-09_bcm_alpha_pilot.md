@@ -56,3 +56,10 @@ recommended: test gamma=0.3 as default in the next trained model run (phase 5 or
 - retrieval cosine similarity is near zero for all conditions (baseline 0.007), meaning the absolute retrieval performance is weak -- but the relative comparison is valid
 - 8 heads x 64 dim is smaller than the 267M architecture (16 heads x 64 dim)
 - does not test interaction with fla chunk_kda kernel
+
+## see also
+
+- `wiki/tests/index.md` — tests/ catalog
+- `wiki/PROJECT_PLAN.md` — canonical project state
+- `wiki/INDEX.md` — full wiki navigation map
+- `wiki/OPERATING_DIRECTIVE.md` — rules governing this article

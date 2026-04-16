@@ -293,11 +293,16 @@ frozen evidence records, one per paid run:
 ## statistics
 - total mechanism articles: 61
 - total bridge notes: 18
-- total synthesis articles: 5
-- total test records: 5
+- total mechanism articles: 61
+- total bridge notes: 19
+- total synthesis articles: 10 (9 current + 1 superseded)
+- total test records: 17 (5 paid-run cards, 5 pilots, 7 simulation results)
 - total simulations: 28
 - total entity notes: 33
 - total comparison articles: 13
 - total concept articles: 7
-- total knowledge articles: 39
-- last updated: 2026-04-09
+- total knowledge articles: 40
+- total mistake docs: 2
+- total navigation / meta: 4 (INDEX.md, OPERATING_DIRECTIVE.md, PROJECT_PLAN.md, _audit_2026-04-16.md)
+- total including top-level (Home, log): 206 articles + 2 obsidian pages = 208 wiki files tracked
+- last updated: 2026-04-16

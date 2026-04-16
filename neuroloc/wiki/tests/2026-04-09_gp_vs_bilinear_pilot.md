@@ -63,3 +63,10 @@ the bridge document's recommendation ("do nothing, run the control experiment fi
 - needs replication at d_model=256+ on stable compute (kaggle T4)
 - does not test the additive residual connection (x + GP(W_left(x), W_right(x)) @ W_out) that todorov uses
 - does not measure the spatial reasoning tasks (n-body, shape classification) where GP showed 29% improvement
+
+## see also
+
+- `wiki/tests/index.md` — tests/ catalog
+- `wiki/PROJECT_PLAN.md` — canonical project state
+- `wiki/INDEX.md` — full wiki navigation map
+- `wiki/OPERATING_DIRECTIVE.md` — rules governing this article

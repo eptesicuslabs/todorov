@@ -57,3 +57,10 @@ validation tick triggers a render into
 `output/<run_name>/aesthetic/step_<N>/`. that commit also updates the
 run card template and adds the png artifacts to the prosecutor check
 list.
+
+## see also
+
+- `wiki/tests/index.md` — tests/ catalog
+- `wiki/PROJECT_PLAN.md` — canonical project state
+- `wiki/INDEX.md` — full wiki navigation map
+- `wiki/OPERATING_DIRECTIVE.md` — rules governing this article
