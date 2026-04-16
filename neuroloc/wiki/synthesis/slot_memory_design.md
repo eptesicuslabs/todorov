@@ -1,5 +1,7 @@
 # slot memory design
 
+status: current (as of 2026-04-16).
+
 ## empirical status (2026-04-15, first launch of run2_slot_memory)
 
 the first paid test of this design (run2_slot_memory, 2026-04-15) returned val_bpb

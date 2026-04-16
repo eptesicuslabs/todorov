@@ -1,5 +1,7 @@
 # training objective vs architectural goal: why a memory substrate trained on next-byte loss never learns to memorise
 
+status: current (as of 2026-04-16).
+
 ## the realisation
 
 2026-04-15. the second paid run2_slot_memory training, with retention fixed

@@ -1,5 +1,7 @@
 # linear attention retrieval wall
 
+status: superseded by wiki/synthesis/training_objective_vs_architectural_goal.md. retained for evidence continuity.
+
 ## the three-failure diagnosis (2026-04-14)
 
 three consecutive paid h200 runs produced zero passkey at 256 tokens despite very different feature configurations: `god_run` 0/20, `god_run_v2` 0/100, `run1_baseline_noerasure` 0/100 (the g6 prosecutor finding bumped trial count from 20 to 100 between v1 and v2; v1 was evaluated at the looser 20-trial bar). the first two ran the full five-feature bundle (rate-coded value compression, delta erasure, activity-adaptive decay, multi-compartment feedforward, compressed attention, imagination probe, predictive-coding diagnostic). the third ran with every feature off: dense k/v, no erasure, no adaptive decay, no compartments, no imagination, no pc head. all three achieved similar val_bpb (1.3950, 1.4453, 1.4499). retrieval failed at the same rate each time.

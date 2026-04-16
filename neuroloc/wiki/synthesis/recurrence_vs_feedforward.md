@@ -1,5 +1,7 @@
 # recurrence vs feedforward
 
+status: current (as of 2026-04-16).
+
 ## the biological principle
 
 cortical computation is not feedforward. the canonical microcircuit (douglas and martin 1989) established that only 5-15% of excitatory synapses on layer 4 neurons come from thalamic afferents -- the remaining 85-95% are recurrent, from other cortical neurons. the cortex does not extract features in a single pass. it amplifies a weak input through recurrent re-processing, with inhibitory feedback controlling gain. the amplification factor 1/(1-g) can reach 5-20x, producing sharp selectivity from blunt inputs.

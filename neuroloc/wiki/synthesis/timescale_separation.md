@@ -1,5 +1,7 @@
 # timescale separation
 
+status: current (as of 2026-04-16).
+
 the brain is not a single clock. it is a hierarchy of clocks -- delta (0.5-4 Hz), theta (4-8 Hz), alpha (8-13 Hz), beta (13-30 Hz), gamma (30-100 Hz) -- running simultaneously, coupled through phase-amplitude interactions, and dynamically modulated by neuromodulatory broadcast signals. this multi-timescale architecture separates information by temporal resolution: gamma carries fine-grained local computation in ~25 ms frames ([[gamma_oscillations]]), theta organizes sequential items into ~125 ms working memory buffers ([[theta_oscillations]]), alpha gates information flow through top-down suppression ([[neural_synchrony]]), and the neuromodulatory systems tune all of these on a timescale of seconds to minutes ([[neuromodulatory_framework]]). every synapse adds its own temporal filtering through short-term depression and facilitation ([[short_term_plasticity]]), and the sleep cycle imposes a consolidation timescale of hours ([[memory_consolidation]]).
 
 todorov has at most two timescales, both fixed after training. this synthesis examines what that gap costs, what it saves, and whether any intervention is worth the complexity.

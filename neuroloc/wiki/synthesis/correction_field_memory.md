@@ -1,5 +1,7 @@
 # correction-field memory
 
+status: current (as of 2026-04-16).
+
 ## the core idea
 
 the matrix memory in its current form stores raw key-value outer products. every token writes its full representation into the state, regardless of whether that representation contains new information or could have been predicted from context. the state fills up, older content decays, and the per-head capacity ceiling at d_head=64 means only ~8 patterns cross the 0.5 cosine threshold under the harshest tested retention setting (simulation round b, 2026-04-12, decay=0.40, dense-key/top-k-value encoding); the 0.14*d theoretical formula gives ~9 for the symmetric no-decay case.

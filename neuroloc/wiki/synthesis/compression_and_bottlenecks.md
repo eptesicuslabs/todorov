@@ -1,5 +1,7 @@
 # compression and bottlenecks
 
+status: current (as of 2026-04-16).
+
 ## the biological principle
 
 biological memory systems treat capacity limits as computational features, not engineering defects. this is the central insight of the compression story: bottlenecks are not obstacles to be overcome but architectural choices that enable specific computational properties.

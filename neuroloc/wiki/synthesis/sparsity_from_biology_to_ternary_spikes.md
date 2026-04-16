@@ -1,5 +1,7 @@
 # sparsity from biology to ternary spikes
 
+status: current (as of 2026-04-16).
+
 ## the biological principle
 
 sparsity in the brain is not a design preference. it is a metabolic mandate.

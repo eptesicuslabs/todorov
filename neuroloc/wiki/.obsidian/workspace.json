@@ -183,6 +183,7 @@
   },
   "active": "94ff5ce434ff2166",
   "lastOpenFiles": [
+    "_audit_2026-04-16.md",
     "OPERATING_DIRECTIVE.md",
     "concepts/glossary.md",
     "concepts/mathematical_foundations.md",
@@ -207,7 +208,6 @@
     "tests/index.md",
     "tests/2026-04-07_pattern_completion_baseline.md",
     "tests/2026-04-07_kwta_vs_threshold_pilot.md",
-    "concepts/neuroscience_for_ml_engineers.md",
-    "concepts/notation.md"
+    "concepts/neuroscience_for_ml_engineers.md"
   ]
 }

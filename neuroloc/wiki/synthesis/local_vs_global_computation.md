@@ -1,5 +1,7 @@
 # local vs global computation
 
+status: current (as of 2026-04-16).
+
 ## the biological principle
 
 cortex is dominated by local recurrence. the [[canonical_microcircuit]] establishes that only 5-15% of excitatory synapses on layer 4 neurons come from the thalamus; the remaining 85-95% come from other cortical neurons, mostly within the same column (douglas and martin 1991). the computational consequence is that cortical "processing" is overwhelmingly recurrent re-processing of a weak external signal, not feedforward transformation of a strong one. the amplification factor 1/(1-g) can reach 5-20x when the recurrent gain g approaches unity, constrained from below by [[inhibitory_interneurons]] that prevent runaway excitation.
