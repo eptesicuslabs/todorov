@@ -1,10 +1,10 @@
 # operating directive
 
+status: current (as of 2026-04-16).
+
 this file defines how the project maintains its wiki and state documentation.
 it is binding for every agent and human who touches the project. it
 supersedes any previous convention that contradicts it.
-
-status: current (as of 2026-04-16).
 
 this directive is itself a living document; its own update_history section
 appends every revision.
@@ -289,6 +289,7 @@ author, and a one-line description of what changed and why.
 
 - **2026-04-16** — deyan todorov — file created. first draft after the five-paid-runs diagnosis cycle concluded. scope, source-of-truth hierarchy, four-state article lifecycle, banner format, append-only sections, bidirectional cross-reference rule, prosecutor protocol for wiki changes, run-card location rule, file naming, disagreement resolution. supersedes the ad-hoc practice documented in `CLAUDE.md` under "keeping this file current" and the scattered rules across prior mistake docs.
 - **2026-04-16** — deyan todorov — first-round prosecutor fixes. C1: directive's own banner was two sentences; trimmed to the single line the format mandates with explanatory prose moved below. C2: added the "migration policy for pre-existing articles" section defining pre-migration state, migration triggers, scheduled completion order, and post-migration enforcement. C3: narrowed the scope exemption from `neuroloc/model/` and `neuroloc/simulations/` to their `*.py` files only, so run cards or other markdown that happen to live under those directories are in scope. I1: authority-order table was unconditional (CLAUDE.md > directive always) while the conflict-resolution section split by domain; reconciled by rewriting the table to carry the domain split itself. I2: added a concrete format for appended corrections on `historical context only` articles (`## correction (YYYY-MM-DD)` heading, append-only, preserving original text). M1: removed the see-also entry pointing at the planned `INDEX.md` (the directive's own rule forbids see-also entries to non-existent articles).
+- **2026-04-16** — deyan todorov — second-round prosecutor fix. the first-round C1 fix trimmed the banner to one line but left three lines of introductory prose ABOVE the banner at lines 3-5. the directive's own banner-format rule says the banner must be the first non-heading content after the title, with no other opening content permitted. the directive itself was in violation. fix: moved the three lines of intro prose to below the banner, so the file now reads title, blank, banner, blank, intro prose, blank, living-document note. no content removed; only relocated.
 
 ## see also
 
