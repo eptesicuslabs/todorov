@@ -1,5 +1,7 @@
 # input encoding simulation round A
 
+status: historical context only. frozen as of 2026-04-16. do not edit.
+
 last updated: 2026-04-12
 
 ## what this is

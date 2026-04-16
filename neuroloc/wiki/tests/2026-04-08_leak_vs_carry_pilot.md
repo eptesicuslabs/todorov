@@ -1,8 +1,6 @@
 # 2026-04-08 leak vs carry pilot
 
-date run: 2026-04-08
-
-status: completed
+status: historical context only. frozen as of 2026-04-08. do not edit.
 
 test type: bridge-validation pilot
 

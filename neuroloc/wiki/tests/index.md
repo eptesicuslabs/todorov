@@ -1,5 +1,7 @@
 # tests
 
+status: current (as of 2026-04-16).
+
 this folder records concrete simulations and experiments that were actually run.
 
 each test page should include:

@@ -1,5 +1,7 @@
 # mistake: paid run launched with FLA silently disabled, projected 56h instead of 75min
 
+status: historical context only. frozen as of 2026-04-15. do not edit.
+
 ## what happened
 
 2026-04-15. the second paid run2_slot_memory launch (after the retention-bug

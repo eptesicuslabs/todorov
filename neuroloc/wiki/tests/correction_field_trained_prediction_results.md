@@ -1,5 +1,7 @@
 # correction field trained prediction results
 
+status: historical context only. frozen as of 2026-04-16. do not edit.
+
 last updated: 2026-04-14
 
 ## what this is

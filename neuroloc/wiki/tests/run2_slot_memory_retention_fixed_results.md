@@ -1,5 +1,7 @@
 # run card: run2_slot_memory (retention fixed, paid)
 
+status: historical context only. frozen as of 2026-04-16. do not edit.
+
 ## one-line result
 
 slot substrate trained cleanly on fineweb-edu to val_bpb 1.4777 in 72 min on

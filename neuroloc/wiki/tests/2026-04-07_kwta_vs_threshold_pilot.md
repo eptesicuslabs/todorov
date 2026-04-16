@@ -1,8 +1,6 @@
 # 2026-04-07 k-wta vs threshold pilot
 
-date run: 2026-04-07
-
-status: completed
+status: historical context only. frozen as of 2026-04-07. do not edit.
 
 test type: bridge-validation pilot
 

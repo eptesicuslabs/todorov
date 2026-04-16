@@ -1,5 +1,7 @@
 # mistake: run2_slot_memory inherited the broken decay init i had already documented
 
+status: historical context only. frozen as of 2026-04-15. do not edit.
+
 ## what happened
 
 2026-04-15. fourth paid h200 run (run2_slot_memory) produced 0% passkey at every

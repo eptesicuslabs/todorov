@@ -1,5 +1,7 @@
 # god_run findings
 
+status: historical context only. frozen as of 2026-04-16. do not edit.
+
 ## what it tested
 
 god_run is the first end-to-end run of `neuroloc/model/god_machine.py`, a 283M-parameter

@@ -1,8 +1,6 @@
 # 2026-04-09 bcm-like adaptive alpha pilot
 
-date run: 2026-04-09
-
-status: completed
+status: historical context only. frozen as of 2026-04-09. do not edit.
 
 test type: bridge-validation pilot
 
