@@ -1,6 +1,58 @@
 # neuroloc index
 
-this is the flat reference catalog. for guided navigation, start at [[start_here]].
+status: current (as of 2026-04-16).
+
+this is the flat reference catalog of every article in the wiki, grouped
+by topic within each top-level directory. for guided navigation, start
+at [[start_here]]. for the rules that govern every article below, see
+[[OPERATING_DIRECTIVE]]. for the canonical project state, see
+[[PROJECT_PLAN]].
+
+## entry points for new readers
+
+- [[OPERATING_DIRECTIVE]] — binding rules for the wiki
+- [[PROJECT_PLAN]] — canonical project state (current run, decision rules, prior runs)
+- [[_audit_2026-04-16]] — audit of the wiki state before the 2026-04-16 refactor
+- [[concepts/start_here]] — overview for new readers
+- [[concepts/the_brain_in_one_page]] — 80/20 bio overview
+- [[concepts/neuroscience_for_ml_engineers]] — neuroscience mapped to ML
+
+## current project-state analyses (synthesis/)
+
+all 10 articles in `synthesis/` are the load-bearing project-level
+reasoning documents. one is superseded, nine are current.
+
+- [[synthesis/training_objective_vs_architectural_goal]] — the
+  root-cause analysis after five paid runs. the canonical reference
+  for why the next paid run needs a different corpus. supersedes
+  `linear_attention_retrieval_wall`.
+- [[synthesis/slot_memory_design]] — slot memory substrate design
+  and its paid-run empirical status
+- [[synthesis/correction_field_memory]] — prediction-residual value storage
+- [[synthesis/compression_beyond_quantization]] — six-mechanism compound compression
+- [[synthesis/compression_and_bottlenecks]] — bio vs todorov compression
+- [[synthesis/local_vs_global_computation]] — cortical local recurrence
+- [[synthesis/recurrence_vs_feedforward]] — when recurrence helps
+- [[synthesis/sparsity_from_biology_to_ternary_spikes]] — firing-rate analyses
+- [[synthesis/timescale_separation]] — KDA / Mamba / MLA timescale split
+- [[synthesis/linear_attention_retrieval_wall]] — SUPERSEDED. retained for evidence continuity.
+
+## paid-run cards (tests/, historical context only)
+
+frozen evidence records, one per paid run:
+
+- [[tests/god_run_results]] (2026-04-11, 283M, bundle of all features)
+- [[tests/god_run_v2_results]] (2026-04-12, 283M, 31 prosecutor fixes)
+- [[tests/run1_baseline_noerasure_results]] (2026-04-14, 353M, all bundle features off)
+- [[tests/run2_slot_memory_first_launch_results]] (2026-04-15, 355M, broken retention)
+- [[tests/run2_slot_memory_retention_fixed_results]] (2026-04-15, 355M, retention fixed, FLA active, the fifth paid run)
+
+## mistakes (mistakes/, historical context only, append-only)
+
+- [[mistakes/run2_slot_memory_decay_copy_paste]] — inherited retention bug
+- [[mistakes/run2_slot_memory_fla_silent_fall_through]] — FLA not installed silent slowdown
+
+## flat catalog — all 206 articles by topic
 
 ## mechanisms (61 articles)
 
