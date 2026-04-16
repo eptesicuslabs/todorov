@@ -1,5 +1,7 @@
 # cerebellum research
 
+status: current (as of 2026-04-16).
+
 curated peer-reviewed research on the cerebellum as a computational organ. the cerebellum contains ~69 billion neurons (80% of all brain neurons) packed into a uniform crystalline microcircuit that is replicated thousands of times across the cerebellar cortex. it is the only brain structure with a clearly identified supervised error signal (climbing fiber input from the inferior olive). once considered purely motor, it is now known to serve cognition, emotion, and language through massive reciprocal connections with association cortex.
 
 ## the cerebellar microcircuit

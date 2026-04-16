@@ -1,5 +1,7 @@
 # Context Extension Techniques
 
+status: current (as of 2026-04-16).
+
 This document covers five major approaches to extending transformer context
 windows beyond their original training length.
 

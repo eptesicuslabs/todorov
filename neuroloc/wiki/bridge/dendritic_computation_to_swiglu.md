@@ -1,5 +1,7 @@
 # bridge: dendritic computation to SwiGLU gating
 
+status: current (as of 2026-04-16).
+
 ## the biological mechanism
 
 dendrites are active computational elements that perform local, nonlinear transformations of their inputs before the soma integrates them (see [[dendritic_computation]]). the key computational principles are:

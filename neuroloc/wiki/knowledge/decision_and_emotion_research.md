@@ -1,5 +1,7 @@
 # decision making, emotion, reward, and social cognition research
 
+status: current (as of 2026-04-16).
+
 curated research library on decision making, emotion, reward, intuition, social cognition, and rationality. these systems shape how neural circuits evaluate, select, and commit to actions -- processes that any neural computer architecture must eventually address.
 
 ## evidence accumulation and decision

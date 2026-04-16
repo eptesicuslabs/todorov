@@ -1,5 +1,7 @@
 # divisive normalization
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: divisive normalization is arguably the most universal computation in neuroscience, and it is already ubiquitous in ML under different names -- RMSNorm, layer normalization, softmax, and batch normalization are all forms of dividing a signal by aggregate pool activity. understanding the biological version clarifies why normalization works and reveals design choices (pool structure, exponent) that ML implementations could exploit.
 
 ## the canonical computation

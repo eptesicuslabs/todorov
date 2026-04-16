@@ -1,5 +1,7 @@
 # Stanislas Dehaene
 
+status: definitional. last fact-checked 2026-04-16.
+
 Stanislas Dehaene. born January 12, 1965 in Roubaix, France. French cognitive neuroscientist. professor at the College de France, chair of Experimental Cognitive Psychology (since 2005). director of the NeuroSpin neuroimaging center (CEA, Saclay). member of the French Academy of Sciences (2005), the Pontifical Academy of Sciences (2014), and the US National Academy of Sciences (Foreign Associate, 2019).
 
 ## education and career

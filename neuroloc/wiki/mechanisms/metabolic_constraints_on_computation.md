@@ -1,5 +1,7 @@
 # metabolic constraints on computation
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the hard physical limit of fewer than 1% simultaneously active neurons is the deepest justification for sparse activations in ML, and the brain-vs-silicon energy comparison sets the benchmark that neuromorphic hardware and efficient inference engines aim to beat.
 
 ## the lennie constraint

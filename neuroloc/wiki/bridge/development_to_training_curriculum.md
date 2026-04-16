@@ -1,5 +1,7 @@
 # bridge: development to todorov training curriculum
 
+status: current (as of 2026-04-16).
+
 ## the biological mechanism
 
 biological neural development is a multi-stage process that shapes circuit structure through temporally ordered, regionally specific mechanisms:

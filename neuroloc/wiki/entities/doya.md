@@ -1,5 +1,7 @@
 # Kenji Doya
 
+status: definitional. last fact-checked 2026-04-16.
+
 ## biographical summary
 
 Kenji Doya is a Japanese computational neuroscientist and Professor at the Okinawa Institute of Science and Technology (OIST), where he leads the Neural Computation Unit. he received his PhD in Engineering from the University of Tokyo and conducted postdoctoral research at the University of California San Diego and the Salk Institute. before OIST, he worked at the Advanced Telecommunications Research Institute (ATR) in Kyoto on autonomous learning robots and neural mechanisms of learning.

@@ -1,5 +1,7 @@
 # Ternary Spikes: Findings from the Gerhard Project
 
+status: current (as of 2026-04-16).
+
 Source: Gerhard project (eptesicuslabs/gerhard)
 No external web research. This documents empirical findings from the project.
 

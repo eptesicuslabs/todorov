@@ -1,5 +1,7 @@
 # bridge: population coding to spike health metrics
 
+status: current (as of 2026-04-16).
+
 ## the biological mechanism
 
 [[population_coding]] theory establishes that information in neural systems is encoded in the joint activity of populations of neurons, not in individual cells. the quality of a population code is characterized by:

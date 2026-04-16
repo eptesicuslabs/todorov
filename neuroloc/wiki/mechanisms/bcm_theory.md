@@ -1,5 +1,7 @@
 # BCM theory
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: BCM's sliding threshold solves the fundamental instability of Hebbian/correlation-based learning by making the learning rule itself adaptive. this directly addresses the problem of maintaining stable recurrent state in architectures like KDA, where exponential decay (alpha) serves a similar but less principled stabilization role.
 
 ## summary

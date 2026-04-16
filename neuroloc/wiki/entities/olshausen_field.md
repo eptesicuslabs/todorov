@@ -1,5 +1,7 @@
 # Bruno Olshausen and David Field
 
+status: definitional. last fact-checked 2026-04-16.
+
 ## identity
 
 **Bruno Olshausen**: american computational neuroscientist. professor at UC Berkeley, Helen Wills Neuroscience Institute and School of Optometry. director of the Redwood Center for Theoretical Neuroscience.

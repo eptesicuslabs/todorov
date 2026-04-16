@@ -1,5 +1,7 @@
 # sparse coding
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: sparse coding demonstrates that an L1 sparsity penalty on activations is sufficient to learn biologically realistic features from data. this is the theoretical basis for sparse activations in ML architectures -- from sparse autoencoders to the ternary spike quantization ({-1, 0, +1}) in todorov, where the threshold enforces population sparsity of ~41%.
 
 ## the olshausen-field result

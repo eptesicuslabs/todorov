@@ -1,5 +1,7 @@
 # John Reynolds and David Heeger
 
+status: definitional. last fact-checked 2026-04-16.
+
 ## identity
 
 John H. Reynolds: american neuroscientist, professor and director of the Systems Neurobiology Laboratory at the Salk Institute for Biological Studies, La Jolla, California. works on neural mechanisms of attention in visual cortex, with emphasis on how attention interacts with contrast gain control and normalization circuits. adjunct professor at UC San Diego.

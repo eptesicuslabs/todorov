@@ -1,5 +1,7 @@
 # leaky integrate-and-fire model
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the LIF is the default neuron model in spiking neural networks and the direct biological ancestor of every spike-based activation function used in neuromorphic ML, including the ATMN neuron in todorov. understanding its leak-threshold-reset loop clarifies which biological features are essential for sparse recurrent computation and which are safely omitted.
 
 ## status

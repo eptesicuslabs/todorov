@@ -1,5 +1,7 @@
 # developmental self-organization
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the brain builds ordered internal representations (topographic maps, orientation columns) from simple local learning rules without any global loss function, demonstrating that useful structure can emerge from competitive Hebbian learning -- a principle relevant to unsupervised pretraining and self-supervised representation learning.
 
 ## summary

@@ -1,5 +1,7 @@
 # dopamine system
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the dopamine reward prediction error signal is the most direct biological implementation of the TD error from reinforcement learning -- it demonstrates that brains use a scalar broadcast signal for credit assignment, fundamentally different from backpropagation's per-parameter gradients.
 
 ## summary

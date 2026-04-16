@@ -1,5 +1,7 @@
 # John Hopfield
 
+status: definitional. last fact-checked 2026-04-16.
+
 John Joseph Hopfield (b. 1933, Chicago) is the Howard A. Prior Professor of Life Sciences, Emeritus, and Professor of Molecular Biology, Emeritus, at Princeton University. he received the 2024 Nobel Prize in Physics (jointly with Geoffrey Hinton) "for foundational discoveries and inventions that enable machine learning with artificial neural networks."
 
 ## career

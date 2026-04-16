@@ -1,5 +1,7 @@
 # hodgkin-huxley model
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the HH model is the ground-truth biophysical description of how neurons generate spikes. every simplified neuron model used in ML (LIF, AdEx, Izhikevich, ATMN) is an approximation of HH dynamics, and understanding which HH features are preserved or discarded in each simplification reveals the biological constraints that matter for neural architecture design.
 
 ## status

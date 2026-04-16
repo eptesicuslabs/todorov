@@ -1,5 +1,7 @@
 # complementary learning systems
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: CLS theory explains why catastrophic forgetting occurs in neural networks and predicts that the solution requires two memory systems with different learning rates -- a principle that directly inspired experience replay in DQN and continual learning methods like EWC.
 
 ## summary

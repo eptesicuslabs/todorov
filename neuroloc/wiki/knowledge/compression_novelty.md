@@ -1,5 +1,7 @@
 # compression novelty analysis
 
+status: current (as of 2026-04-16).
+
 ## the method
 
 hierarchical ternary compression: a two-stage activation compression pipeline.

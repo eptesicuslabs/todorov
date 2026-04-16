@@ -1,5 +1,7 @@
 # bridge: neuron models to ATMN
 
+status: current (as of 2026-04-16).
+
 ## the biological mechanism
 
 four neuron models -- [[hodgkin_huxley]], [[leaky_integrate_and_fire]], [[adaptive_exponential]], [[izhikevich_model]] -- describe how biological neurons integrate input current, fire discrete spikes, and reset. the core computational primitives shared by all models are:

@@ -1,5 +1,7 @@
 # James McClelland
 
+status: definitional. last fact-checked 2026-04-16.
+
 James Lloyd "Jay" McClelland (b. 1948) is the Lucie Stern Professor in the Social Sciences at Stanford University, where he directs the Center for Mind, Brain, Computation, and Technology. he is one of the founders of the connectionist approach to cognitive science and co-originator of complementary learning systems theory.
 
 ## career

@@ -1,5 +1,7 @@
 # Michael London and Michael Hausser
 
+status: definitional. last fact-checked 2026-04-16.
+
 ## biographical summary
 
 Michael London (Hebrew University of Jerusalem) and Michael Hausser (University College London) are neuroscientists whose 2005 review "Dendritic Computation" in the Annual Review of Neuroscience established the modern framework for understanding dendrites as active computational elements.

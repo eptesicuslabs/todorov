@@ -1,5 +1,7 @@
 # bridge: sparse coding to ternary spikes
 
+status: current (as of 2026-04-16).
+
 ## the biological mechanism
 
 the [[efficient_coding]] hypothesis (barlow, 1961) and [[sparse_coding]] framework (olshausen and field, 1996) establish that cortical neurons encode information sparsely: only a small fraction of neurons are active at any time, and the identity of the active subset carries most of the information.

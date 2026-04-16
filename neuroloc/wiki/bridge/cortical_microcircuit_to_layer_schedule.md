@@ -1,5 +1,7 @@
 # bridge: cortical microcircuit to todorov layer schedule
 
+status: current (as of 2026-04-16).
+
 ## the biological mechanism
 
 the neocortex processes information through a [[canonical_microcircuit]] replicated across cortical areas. within each [[cortical_column]], six functionally distinct layers (see [[laminar_processing]]) are connected by specific, asymmetric pathways:

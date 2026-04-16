@@ -1,5 +1,7 @@
 # the brain in one page
 
+status: definitional. last fact-checked 2026-04-16.
+
 this is the 80/20 overview. it covers the 20% of neuroscience that gives you 80% of the understanding you need to read this wiki and design brain-inspired architectures.
 
 ## the hardware

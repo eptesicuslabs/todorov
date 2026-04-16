@@ -1,5 +1,7 @@
 # glial computation research
 
+status: current (as of 2026-04-16).
+
 curated peer-reviewed research on glial cells as active participants in neural computation. glia were long dismissed as passive support cells ("glue"), but the last two decades have revealed that astrocytes modulate synaptic transmission, oligodendrocytes implement activity-dependent myelination (a form of learning), and microglia prune synapses and mediate forgetting. the glia:neuron ratio is 1:1 (not the mythical 10:1), and every synapse is physically enwrapped by astrocytic processes, making the tripartite synapse -- presynaptic neuron, postsynaptic neuron, astrocyte -- the fundamental unit of synaptic computation.
 
 ## glia:neuron ratio

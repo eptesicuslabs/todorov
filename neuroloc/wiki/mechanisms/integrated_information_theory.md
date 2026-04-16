@@ -1,5 +1,7 @@
 # integrated information theory
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: IIT's core claim that feedforward networks have zero integrated information (Phi = 0) provides a formal argument for why recurrence matters in neural architectures -- and its computational intractability for large systems illustrates the limits of information-theoretic measures when applied to real-scale models.
 
 ## overview

@@ -1,5 +1,7 @@
 # unified learning hypothesis
 
+status: current (as of 2026-04-16).
+
 ## the core insight
 
 the neural machine's forward pass contains operations that are structurally analogous to biological local learning rules. this suggests the POSSIBILITY of forward-only training -- a hypothesis that has not been tested.

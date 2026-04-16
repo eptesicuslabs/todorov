@@ -1,5 +1,7 @@
 # efficient coding hypothesis
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: efficient coding theory provides the information-theoretic justification for sparse representations in neural networks. the metabolic argument for sparsity -- maximizing information per unit energy -- is the biological foundation for ternary spike quantization in todorov and for sparsity penalties in autoencoders and compressed sensing.
 
 ## origin

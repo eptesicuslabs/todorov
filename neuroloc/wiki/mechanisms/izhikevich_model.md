@@ -1,5 +1,7 @@
 # izhikevich model
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the Izhikevich model demonstrates that 4 learnable parameters per neuron suffice to produce 20+ qualitatively distinct temporal dynamics -- a powerful design lesson for ML architectures seeking to add biologically inspired recurrent behavior without per-neuron parameter explosion.
 
 ## status

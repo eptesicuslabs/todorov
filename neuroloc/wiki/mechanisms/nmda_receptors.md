@@ -1,5 +1,7 @@
 # nmda receptors
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the nmda receptor is the brain's native multiplicative gate -- it requires simultaneous presynaptic glutamate AND postsynaptic depolarization to open, implementing a biological AND operation. this coincidence detection is the biophysical basis of hebbian learning ("fire together, wire together") and maps directly to the multiplicative gating used in swiglu and kda channel-wise gates in todorov.
 
 ## status

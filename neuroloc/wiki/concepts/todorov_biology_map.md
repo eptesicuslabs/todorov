@@ -1,5 +1,7 @@
 # todorov biology map
 
+status: definitional. last fact-checked 2026-04-16.
+
 master reference mapping every todorov component to its biological analog. for each component: what it does in todorov, what it maps to in biology, what the mapping gets wrong, and where to find the full analysis.
 
 ## KDA (src/layers/kda.py)

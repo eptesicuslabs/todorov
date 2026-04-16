@@ -1,5 +1,7 @@
 # path integration
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: path integration is the brain's recurrent state update -- accumulating velocity signals to track position over time -- and its mathematical form (x_{t+1} = x_t + v_t * dt) is structurally identical to the state update in linear recurrent layers like Mamba and KDA.
 
 ## summary

@@ -1,5 +1,7 @@
 # feature-based vs spatial attention
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the distinction between attending to "where" (spatial) vs "what" (feature-based) maps directly onto the difference between positional encoding and content-based attention in transformers, and reveals why the binding problem does not arise in architectures that never separate features into independent maps.
 
 ## overview

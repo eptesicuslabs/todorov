@@ -1,5 +1,7 @@
 # imagination computation research
 
+status: current (as of 2026-04-16).
+
 curated peer-reviewed research on computational mechanisms of imagination, novelty, and generative recombination. the central question for the neural machine: can the kda outer-product state and recurrent dynamics support novel generation -- producing outputs that are structured interpolations or recombinations of stored patterns rather than direct retrievals? the evidence suggests that outer-product memory has intrinsic generative properties above a critical load, and that compositional generalization requires specific inductive biases.
 
 ## novelty and feature superposition

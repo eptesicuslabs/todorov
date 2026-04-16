@@ -1,5 +1,7 @@
 # sleep and dreaming research
 
+status: current (as of 2026-04-16).
+
 curated peer-reviewed research on sleep stages as computational operations. sleep is not downtime -- it is an active suite of offline processing: synaptic renormalization, memory replay and consolidation, emotional processing, generative model optimization, and metabolic clearance. understanding these operations informs what a neural computer gains and loses by running continuously without sleep-like phases.
 
 ## synaptic homeostasis hypothesis (shy)

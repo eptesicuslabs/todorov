@@ -1,5 +1,7 @@
 # sparse vs dense representations
 
+status: current (as of 2026-04-16).
+
 ## the question
 
 biological neural networks use sparse representations: only 1-10% of neurons in a cortical area fire at any given time. transformer-based language models use dense representations: every dimension of a 768- or 4096-dimensional embedding vector is a continuous floating-point value, all participating simultaneously.

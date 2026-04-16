@@ -1,5 +1,7 @@
 # thalamocortical loops
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the thalamus acts as a central switchboard that gates information flow between cortical areas, which is the biological analog of routing mechanisms in mixture-of-experts architectures and the skip connections that control information flow between layers in deep networks.
 
 ## overview

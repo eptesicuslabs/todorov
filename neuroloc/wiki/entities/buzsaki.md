@@ -1,5 +1,7 @@
 # Gyorgy Buzsaki
 
+status: definitional. last fact-checked 2026-04-16.
+
 (b. 1949, Kaposvar, Hungary)
 
 neuroscience research institute, NYU Langone Health. previously Rutgers University.

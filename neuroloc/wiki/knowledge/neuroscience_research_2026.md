@@ -1,5 +1,7 @@
 # neuroscience research library (2020-2026)
 
+status: current (as of 2026-04-16).
+
 curated peer-reviewed neuroscience findings relevant to building a neural computer that implements biological computation mathematics on standard hardware (gpu/cpu/npu). this is not about spiking neural network ml models or neuromorphic hardware. it is about what biology teaches us about computation.
 
 ## dendritic computation

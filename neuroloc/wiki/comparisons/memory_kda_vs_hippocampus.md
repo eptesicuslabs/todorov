@@ -1,5 +1,7 @@
 # memory: KDA vs hippocampus
 
+status: current (as of 2026-04-16).
+
 ## the question
 
 todorov's architecture has two memory systems: KDA (kernel delta attention, 18/24 layers) and MLA (multi-head latent attention, 3/24 layers). the hippocampus is the brain's fast episodic memory system. is KDA analogous to hippocampal memory? is the KDA+MLA split analogous to the complementary learning systems (hippocampus + neocortex)?

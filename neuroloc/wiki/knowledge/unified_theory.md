@@ -1,5 +1,7 @@
 # Todorov: Unified Mathematical Formulation
 
+status: current (as of 2026-04-16).
+
 Eptesicus Laboratories — Deyan Todorov
 2026-03-27
 

@@ -1,5 +1,7 @@
 # glossary
 
+status: definitional. last fact-checked 2026-04-16.
+
 every technical term used in the neuroloc wiki, defined in plain language. ML analogs noted where applicable. terms link to the full article where the concept is explained in depth.
 
 ---

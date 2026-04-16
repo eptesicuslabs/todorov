@@ -1,5 +1,7 @@
 # cognitive maps
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the cognitive map hypothesis has expanded from spatial navigation to general relational reasoning, suggesting that the brain uses a single graph-structured architecture for both physical navigation and abstract inference -- a principle that informs the design of graph neural networks and relational transformers.
 
 ## summary

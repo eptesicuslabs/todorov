@@ -1,5 +1,7 @@
 # mathematical foundations
 
+status: definitional. last fact-checked 2026-04-16.
+
 a math primer for ML engineers entering computational neuroscience. every equation here connects to something you already know from machine learning. the goal is not exhaustive coverage but the 20% of neuroscience math that explains 80% of todorov's mechanisms.
 
 ## differential equations for neurons

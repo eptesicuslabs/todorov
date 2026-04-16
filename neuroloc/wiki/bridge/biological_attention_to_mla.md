@@ -1,5 +1,7 @@
 # bridge: biological attention to MLA
 
+status: current (as of 2026-04-16).
+
 ## the biological mechanism
 
 selective attention is the brain's solution to a resource allocation problem: sensory input vastly exceeds processing capacity, and the organism must direct its limited resources toward the most behaviorally relevant stimuli.

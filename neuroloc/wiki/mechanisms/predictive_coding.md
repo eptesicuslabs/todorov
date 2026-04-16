@@ -1,5 +1,7 @@
 # predictive coding
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: predictive coding provides a biologically plausible alternative to backpropagation -- Millidge et al. (2022) proved that predictive coding converges to exact backprop gradients on arbitrary computation graphs. this means every backprop-trained network (including todorov) is implicitly computing the same weight updates that a predictive coding network would produce, linking next-token prediction loss to hierarchical error minimization.
 
 ## summary

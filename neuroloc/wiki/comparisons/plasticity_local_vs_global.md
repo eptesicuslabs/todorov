@@ -1,5 +1,7 @@
 # local vs. global plasticity rules
 
+status: current (as of 2026-04-16).
+
 ## summary
 
 synaptic plasticity rules can be classified by their information requirements. a **local** rule uses only information available at the synapse itself: presynaptic activity, postsynaptic activity, and the current synaptic weight. a **global** rule requires information that is not locally available: an error signal computed elsewhere in the network, a reward signal from the environment, or a neuromodulatory broadcast from a distant brain region. this distinction is the central constraint on biologically plausible learning: the brain has no backpropagation bus, so any learning rule it implements must either be local or use a biologically realistic mechanism for delivering global signals.

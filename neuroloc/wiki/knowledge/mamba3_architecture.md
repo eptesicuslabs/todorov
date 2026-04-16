@@ -1,5 +1,7 @@
 # Mamba-3 Architecture
 
+status: current (as of 2026-04-16).
+
 Source paper: "Mamba-3: Improved Sequence Modeling using State Space Principles"
 ArXiv ID: 2603.15569
 Authors: Albert Gu (CMU), Tri Dao (Princeton), et al.

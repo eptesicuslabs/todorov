@@ -1,5 +1,7 @@
 # Rodney Douglas and Kevan Martin
 
+status: definitional. last fact-checked 2026-04-16.
+
 ## identity
 
 Rodney J. Douglas: south african-born computational neuroscientist. BSc(Med), MBChB, PhD, DSc(hc). professor emeritus at ETH Zurich. co-founded the Institute of Neuroinformatics (INI) at the University of Zurich and ETH Zurich with Kevan Martin in 1995.

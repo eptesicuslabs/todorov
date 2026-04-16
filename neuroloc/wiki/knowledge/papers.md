@@ -1,5 +1,7 @@
 # Papers Index
 
+status: current (as of 2026-04-16).
+
 Compiled index of all papers referenced across the Todorov knowledge files.
 
 

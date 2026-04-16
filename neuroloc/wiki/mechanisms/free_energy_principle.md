@@ -1,5 +1,7 @@
 # free energy principle
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the FEP reframes all neural computation as variational inference -- minimizing an upper bound on surprise. this is the same mathematical framework as the variational autoencoders (VAEs) and ELBO optimization used throughout modern ML, making the FEP a bridge between neuroscience theory and practical generative modeling.
 
 ## summary

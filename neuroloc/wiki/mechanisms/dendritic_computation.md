@@ -1,5 +1,7 @@
 # dendritic computation
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: dendrites turn each biological neuron into a multi-branch nonlinear processor -- not a point neuron. this means a cortical layer has 30-50x more nonlinear subunits than point neuron models assume, with direct implications for how much computational capacity each layer of an artificial network should have.
 
 ## status

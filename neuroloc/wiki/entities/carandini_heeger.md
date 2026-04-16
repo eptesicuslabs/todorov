@@ -1,5 +1,7 @@
 # Matteo Carandini and David Heeger
 
+status: definitional. last fact-checked 2026-04-16.
+
 ## identity
 
 Matteo Carandini: italian-born neuroscientist, professor at University College London (UCL), GlaxoSmithKline/Fight for Sight chair of visual neuroscience. works on visual processing, cortical computation, and normalization.

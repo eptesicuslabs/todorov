@@ -1,5 +1,7 @@
 # Wolfram Schultz
 
+status: definitional. last fact-checked 2026-04-16.
+
 ## biographical summary
 
 Wolfram Schultz (b. 1944) is a German-British neuroscientist and Professor of Neuroscience at the University of Cambridge. he is best known for discovering that dopamine neurons encode the reward prediction error (RPE), the foundational experimental finding linking biological neural activity to the temporal-difference learning algorithm from reinforcement learning.

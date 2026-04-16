@@ -1,5 +1,7 @@
 # notation
 
+status: definitional. last fact-checked 2026-04-16.
+
 mathematical notation conventions used across the neuroloc wiki.
 
 ## general conventions

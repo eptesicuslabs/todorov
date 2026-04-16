@@ -1,5 +1,7 @@
 # lateral inhibition
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: lateral inhibition is the biological mechanism that enforces competition between neurons, producing the sparse activations that underlie efficient coding. in ML, it corresponds to the competitive dynamics in softmax attention, top-k selection, and winner-take-all layers -- any mechanism where activating one unit suppresses others.
 
 ## the Hartline-Ratliff discovery

@@ -1,5 +1,7 @@
 # Pascal Fries
 
+status: definitional. last fact-checked 2026-04-16.
+
 (b. 1969, Germany)
 
 director, Ernst Strungmann Institute (ESI) for Neuroscience, Frankfurt. professor, Radboud University Nijmegen (previously).

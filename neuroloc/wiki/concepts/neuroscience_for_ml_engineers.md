@@ -1,5 +1,7 @@
 # neuroscience for ML engineers
 
+status: definitional. last fact-checked 2026-04-16.
+
 the 20% of neuroscience that explains 80% of todorov's design. each section maps a biological concept to something you already know (transformers, attention, gradient descent), then shows where biology does something transformers cannot.
 
 ---

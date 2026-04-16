@@ -1,5 +1,7 @@
 # pattern completion
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: transformer attention IS the update rule of a modern Hopfield network -- understanding pattern completion reveals that every attention head performs one step of associative memory retrieval, connecting classical neuroscience directly to the mechanics of transformers.
 
 ## summary

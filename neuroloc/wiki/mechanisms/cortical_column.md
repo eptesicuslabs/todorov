@@ -1,5 +1,7 @@
 # cortical column
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the cortical column is the closest biological analog to a "block" or "module" in neural network architecture -- understanding its repeating structure reveals why recurrent, multi-layer local processing may outperform purely feedforward designs.
 
 ## status

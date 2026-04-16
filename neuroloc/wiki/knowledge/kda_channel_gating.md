@@ -1,5 +1,7 @@
 # Kimi Delta Attention (KDA): Channel-Wise Gated DeltaNet
 
+status: current (as of 2026-04-16).
+
 Source paper: "Kimi Linear: An Expressive, Efficient Attention Architecture"
 ArXiv ID: 2510.26692
 Authors: Moonshot AI (Kimi team)

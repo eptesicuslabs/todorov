@@ -1,5 +1,7 @@
 # predictive coding vs next-token prediction
 
+status: current (as of 2026-04-16).
+
 ## the question
 
 [[predictive_coding]] and next-token prediction are both prediction-error-driven learning frameworks. predictive coding says the brain maintains a hierarchical generative model and only propagates prediction errors. next-token prediction says a language model learns to predict the next token in a sequence by minimizing cross-entropy. superficially, both "predict and compute errors." are they doing the same thing?

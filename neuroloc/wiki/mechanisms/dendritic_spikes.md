@@ -1,5 +1,7 @@
 # dendritic spikes
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: dendritic spikes enable single neurons to compute XOR and other linearly non-separable functions -- breaking the perceptron limit. this means biological neurons are strictly more powerful than the point neurons used in standard neural networks.
 
 ## status

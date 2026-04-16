@@ -1,5 +1,7 @@
 # gamma oscillations
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: gamma oscillations impose a temporal discretization on neural computation -- the cortex processes information in ~25 ms "frames" defined by inhibitory cycles. this suggests that discrete-time processing (as in transformers) may be more biologically accurate than continuous-time models.
 
 ## definition

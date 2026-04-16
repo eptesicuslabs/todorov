@@ -1,5 +1,7 @@
 # Geometric Algebra for Neural Networks
 
+status: current (as of 2026-04-16).
+
 Source: Echoloc project (eptesicuslabs/echoloc)
 GATr paper: "Geometric Algebra Transformer"
 ArXiv ID: 2305.18415

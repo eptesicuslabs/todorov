@@ -1,5 +1,7 @@
 # bridge: memory compression to tiered architecture
 
+status: current (as of 2026-04-16).
+
 ## the biological mechanism
 
 the mammalian brain retains approximately 10^5 to 10^7 bytes of effective usable content memory across a lifetime (cognitive-science estimate, not a direct measurement; figures above 10^7 require assumptions about near-zero marginal cost for schema-consistent storage that are not directly measured), reconstructed from a raw sensory stream of approximately 10^17 bytes (back-of-envelope estimate over an 80-year lifetime). the implied effective compression ratio for content is roughly 10^10 to 10^12. bartol et al. 2015 measured approximately 4.7 bits per synapse via serial em reconstruction of hippocampal ca1 synapses specifically; extrapolating across the human brain's ~10^14 synapses gives a total substrate capacity of approximately 10^14 bits (~10^13 bytes), most of which serves non-content functions (timing, attention control, motor programs). this gap is not achieved by any single mechanism; it is the product of at least six compounding operations:

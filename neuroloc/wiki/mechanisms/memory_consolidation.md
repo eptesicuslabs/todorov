@@ -1,5 +1,7 @@
 # memory consolidation
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: memory consolidation is the biological mechanism for transferring fast-learned episodic memories to slow-learned semantic representations -- the process that experience replay in reinforcement learning was designed to approximate.
 
 ## summary

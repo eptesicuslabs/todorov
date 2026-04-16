@@ -1,5 +1,7 @@
 # Bernard Baars
 
+status: definitional. last fact-checked 2026-04-16.
+
 Bernard J. Baars. born 1946 in Amsterdam, Netherlands. cognitive scientist and neuroscientist. senior fellow at the Neurosciences Institute, San Diego (1998-2015). former affiliate fellow at the Center for Research on Consciousness and Cognition.
 
 ## education and career

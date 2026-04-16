@@ -1,5 +1,7 @@
 # acetylcholine system
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: acetylcholine implements a biological learning rate -- switching between encoding new information and retrieving stored patterns. this directly addresses the stability-plasticity dilemma that causes catastrophic forgetting in neural networks.
 
 ## summary

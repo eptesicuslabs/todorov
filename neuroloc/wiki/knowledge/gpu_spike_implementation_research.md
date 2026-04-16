@@ -1,5 +1,7 @@
 # gpu spike implementation research
 
+status: current (as of 2026-04-16).
+
 curated research on implementing spiking neural networks efficiently on gpu hardware. the central challenge: spiking operations are inherently sequential (each spike depends on membrane potential history) and sparse (most neurons are silent at any given time), both properties that conflict with gpu architecture designed for dense, parallel computation. the findings here inform how todorov's ternary spike implementation should evolve.
 
 ## kernel fusion

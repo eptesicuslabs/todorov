@@ -1,5 +1,7 @@
 # biological vs silicon energy
 
+status: current (as of 2026-04-16).
+
 ## the comparison
 
 every claim about "brain-like efficiency" or "biologically inspired energy savings" ultimately rests on a comparison between biological neural computation and silicon digital computation. this article presents the numbers as honestly as possible, including the caveats that make direct comparison problematic.

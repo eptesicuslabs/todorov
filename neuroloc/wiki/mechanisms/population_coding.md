@@ -1,5 +1,7 @@
 # population coding
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: population coding theory explains how distributed representations achieve noise robustness and high capacity -- the same properties that make embedding vectors effective in transformers. the Fisher information framework quantifies the precision limits of any neural readout, directly applicable to understanding how much information recurrent state matrices can carry.
 
 ## the fundamental question

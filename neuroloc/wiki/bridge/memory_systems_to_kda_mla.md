@@ -1,5 +1,7 @@
 # bridge: memory systems to KDA and MLA
 
+status: current (as of 2026-04-16).
+
 ## the biological mechanism
 
 mammalian memory depends on two complementary systems operating across different timescales:

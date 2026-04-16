@@ -1,5 +1,7 @@
 # serotonin system
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: serotonin implements a biological mechanism for controlling temporal discounting, risk sensitivity, and behavioral inhibition under uncertainty -- three computations that current ML architectures handle with fixed hyperparameters (learning rate schedules, temperature, loss weights) rather than dynamic, context-dependent signals. understanding the serotonin system exposes a class of computational problems that transformers solve poorly: adaptive patience, loss-sensitive learning, and entropy regulation.
 
 ## summary

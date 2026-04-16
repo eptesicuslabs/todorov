@@ -1,5 +1,7 @@
 # normalization model of attention
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: divisive normalization with attention-modulated gain is the biological precursor to softmax attention in transformers -- both divide a signal by the sum of competing signals, and understanding the biological version reveals when contrast gain vs response gain emerges.
 
 ## overview

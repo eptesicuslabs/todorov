@@ -1,5 +1,7 @@
 # gaba signaling
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: gaba (gamma-aminobutyric acid) is the principal inhibitory neurotransmitter in the adult brain, responsible for roughly 40% of all synaptic transmission. its two receptor families implement fundamentally different computational operations -- fast subtractive/divisive gating (GABA_A) and slow modulatory gain control (GABA_B) -- that map to distinct ML primitives. the developmental switch from excitatory to inhibitory gaba is a biological precedent for progressive regularization during training. in the todorov architecture, there is no direct gaba analog, but the adaptive threshold on ternary spikes (alpha * mean(|x|)) is the closest functional equivalent: it sets the boundary between signal and silence, much as tonic gaba sets baseline excitability in cortex.
 
 ## gaba as primary inhibitory transmitter

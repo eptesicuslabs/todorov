@@ -1,5 +1,7 @@
 # Karl Friston
 
+status: definitional. last fact-checked 2026-04-16.
+
 Karl John Friston FRS FMedSci FRSB. born July 12, 1959. British neuroscientist and theoretician at University College London. scientific director of the Wellcome Trust Centre for Neuroimaging (2001-present). ranked #1 on Semantic Scholar's list of most influential neuroscientists (2016). Google Scholar h-index: 291.
 
 ## education and early career

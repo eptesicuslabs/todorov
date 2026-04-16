@@ -1,5 +1,7 @@
 # two-layer neuron
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: a single biological neuron with active dendrites is computationally equivalent to a two-layer neural network with ~30-50 hidden units. this means cortical layers have far more computational capacity than point neuron models assume, and suggests that multi-branch gating (like multi-head attention) captures a real biological principle.
 
 ## status

@@ -1,5 +1,7 @@
 # language in the brain research
 
+status: current (as of 2026-04-16).
+
 curated peer-reviewed research on how the brain processes language. language is the domain where todorov is evaluated (next-token prediction), making this the most directly relevant knowledge domain. the brain's language system is distributed, left-lateralized, dissociable from executive function, and organized as dual processing streams. it exploits statistical regularities, generates predictions, and is modality-independent (spoken, signed, written).
 
 ## dual-stream architecture

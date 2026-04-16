@@ -1,5 +1,7 @@
 # grid cells
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: grid cells are the brain's coordinate system, encoding position through periodic hexagonal patterns that are mathematically optimal for path integration -- a finding that connects directly to positional encodings in transformers and recurrent state updates in SSMs.
 
 ## summary

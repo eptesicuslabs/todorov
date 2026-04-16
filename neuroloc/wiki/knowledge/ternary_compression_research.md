@@ -1,5 +1,7 @@
 # ternary compression research
 
+status: current (as of 2026-04-16).
+
 curated peer-reviewed research on ternary and extreme quantization for neural networks. the central question for the neural machine: how much information can be transmitted per parameter or activation when restricted to {-1, 0, +1}, and what are the scaling laws, hardware advantages, and training techniques that make ternary viable at scale?
 
 ## ternary weight networks

@@ -1,5 +1,7 @@
 # connectomics and wiring research
 
+status: current (as of 2026-04-16).
+
 curated peer-reviewed research on the wiring architecture of the brain: connectomics (mapping all connections), network topology, wiring optimization, communication costs, and the statistical structure of biological connectivity. the brain is not randomly wired -- it exhibits small-world topology, rich-club hubs, non-random bidirectional connectivity, lognormal synapse strength distributions, and wiring patterns that minimize cable length while maintaining computational function. these structural constraints define the design space for any architecture claiming biological relevance.
 
 ## complete connectomes

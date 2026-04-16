@@ -1,5 +1,7 @@
 # Vernon Mountcastle (1918-2015)
 
+status: definitional. last fact-checked 2026-04-16.
+
 ## identity
 
 american neuroscientist. born in Shelbyville, Kentucky. MD from Johns Hopkins University (1942). professor of physiology at Johns Hopkins for his entire career. widely regarded as the father of systems neuroscience. member of the National Academy of Sciences. recipient of the National Medal of Science (1986) and the Lasker Award (1983).

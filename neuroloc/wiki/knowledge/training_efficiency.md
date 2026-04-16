@@ -1,5 +1,7 @@
 # Training Efficiency: flash-linear-attention and Triton Kernels
 
+status: current (as of 2026-04-16).
+
 This document covers the flash-linear-attention (fla) library, Triton kernel
 implementations for linear attention, and related benchmarking results.
 

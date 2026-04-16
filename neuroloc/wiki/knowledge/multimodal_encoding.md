@@ -1,5 +1,7 @@
 # Multimodal Encoding for Unified Architectures
 
+status: current (as of 2026-04-16).
+
 This document covers techniques for encoding different modalities (images,
 audio, 3D data) into shared token sequences for processing by a unified
 transformer backbone.

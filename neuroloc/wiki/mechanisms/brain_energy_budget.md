@@ -1,5 +1,7 @@
 # brain energy budget
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the brain's energy budget is the ultimate constraint on neural network density and firing rates, and directly motivates why sparse activations outperform dense ones in biologically-inspired ML architectures.
 
 ## overview

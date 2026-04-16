@@ -1,5 +1,7 @@
 # energy efficient coding
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the tradeoff between information throughput and energy cost explains why biological networks use sparse codes, and provides the theoretical foundation for sparse activation functions in ML architectures that achieve higher performance per FLOP.
 
 ## origin

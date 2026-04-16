@@ -1,5 +1,7 @@
 # global workspace theory
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: global workspace theory describes how the brain broadcasts information from local processors to a shared hub, which is the biological analog of the residual stream in transformers -- a shared communication medium that all layers read from and write to.
 
 ## overview

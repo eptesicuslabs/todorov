@@ -1,5 +1,7 @@
 # adaptive exponential integrate-and-fire model
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the AdEx is the most biologically accurate neuron model that remains computationally tractable for network-scale simulation. its exponential spike initiation provides a differentiable alternative to hard thresholds, and its adaptation variable offers a biologically principled mechanism for temporal context that could improve spike-based activation functions in ML architectures.
 
 ## status

@@ -1,5 +1,7 @@
 # memory capacity research
 
+status: current (as of 2026-04-16).
+
 curated peer-reviewed research on the storage capacity of associative memories, recurrent states, and compressed representations. the central question for the neural machine: how many associations can the kda delta-rule state store, and how do ternary spikes, decay, and outer-product updates interact to determine this capacity? no existing paper answers this joint question, but the individual components are well-characterized.
 
 ## modern hopfield networks

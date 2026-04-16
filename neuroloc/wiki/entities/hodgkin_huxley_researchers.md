@@ -1,5 +1,7 @@
 # Alan Hodgkin and Andrew Huxley
 
+status: definitional. last fact-checked 2026-04-16.
+
 Alan Lloyd Hodgkin (1914-1998) and Andrew Fielding Huxley (1917-2012) were British physiologists who developed the first quantitative mathematical model of the action potential in 1952, based on voltage-clamp experiments on the squid giant axon (Loligo).
 
 their model -- four coupled ODEs describing Na+, K+, and leak currents through the nerve membrane -- remains the gold standard for biophysical neuron modeling 70+ years later. they received the Nobel Prize in Physiology or Medicine in 1963 (shared with John Eccles).

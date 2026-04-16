@@ -1,5 +1,7 @@
 # sparse distributed representations
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: SDRs formalize the tradeoff between dense continuous embeddings (used in transformers) and sparse binary activations (used in spiking networks). the mathematical properties of SDRs -- combinatorial capacity, noise robustness, O(N) set operations, one-shot learning -- define the design space for hybrid architectures like todorov that use ternary spikes within a continuous-valued pipeline.
 
 ## what SDRs are

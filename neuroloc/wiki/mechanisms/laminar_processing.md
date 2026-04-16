@@ -1,5 +1,7 @@
 # laminar processing
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the six-layer cortical architecture defines distinct feedforward and feedback pathways -- understanding laminar processing reveals why architectures with separate ascending (data-driven) and descending (prediction-driven) streams may be more powerful than single-stream residual networks.
 
 ## status

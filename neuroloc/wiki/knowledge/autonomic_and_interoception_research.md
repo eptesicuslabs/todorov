@@ -1,5 +1,7 @@
 # autonomic and interoception research
 
+status: current (as of 2026-04-16).
+
 curated peer-reviewed research on the body-brain interface: interoception (sensing the body's internal state), autonomic regulation, allostasis, and how visceral signals shape perception, decision-making, and cognition. the brain is not a disembodied computer -- it continuously monitors and predicts the body's physiological state, and this body-state information modulates virtually every cognitive process. these findings constrain claims about what a disembodied neural computer can and cannot capture.
 
 ## interoception and the insula

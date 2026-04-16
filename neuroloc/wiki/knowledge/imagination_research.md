@@ -1,5 +1,7 @@
 # imagination and mental simulation
 
+status: current (as of 2026-04-16).
+
 ## hippocampal scene construction
 
 hassabis, d., kumaran, d., vann, s. d. & maguire, e. a. (2007). patients with hippocampal amnesia cannot imagine new experiences. *pnas*, 104(5), 1726-1731.

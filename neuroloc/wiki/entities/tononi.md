@@ -1,5 +1,7 @@
 # Giulio Tononi
 
+status: definitional. last fact-checked 2026-04-16.
+
 Giulio Tononi. born 1960 in Trento, Italy. psychiatrist and neuroscientist. David P. White Chair in Sleep Medicine and professor of psychiatry at the University of Wisconsin-Madison (since 2001). founder and director of the Wisconsin Institute for Sleep and Consciousness.
 
 ## education and career

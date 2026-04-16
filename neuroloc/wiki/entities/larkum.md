@@ -1,5 +1,7 @@
 # Matthew Larkum
 
+status: definitional. last fact-checked 2026-04-16.
+
 ## biographical summary
 
 Matthew E. Larkum (b. ~1968, Humboldt University of Berlin, formerly University of Bern) is a neuroscientist whose work on apical amplification and BAC firing in layer 5 pyramidal neurons has provided a cellular mechanism for cortical associations. his research connects single-neuron dendritic physiology to large-scale theories of cortical computation, consciousness, and predictive coding.

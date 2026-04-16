@@ -1,5 +1,7 @@
 # neuromodulatory framework
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: Doya's framework reveals that the brain has a complete online hyperparameter tuning system -- four neuromodulators controlling learning rate, reward signal, discount factor, and exploration. current ML architectures fix all these before training, missing an entire level of adaptive control.
 
 ## summary

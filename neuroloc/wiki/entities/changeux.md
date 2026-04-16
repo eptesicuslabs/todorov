@@ -1,5 +1,7 @@
 # Jean-Pierre Changeux
 
+status: definitional. last fact-checked 2026-04-16.
+
 ## biographical summary
 
 Jean-Pierre Changeux (born 1936) is a French neuroscientist at the Institut Pasteur and College de France. he is one of the founders of molecular neuroscience and a pioneer of the theory that neural circuit development is governed by Darwinian selection among synapses rather than genetic instruction. his selective stabilization theory (Changeux, Courrege, and Danchin 1973; Changeux and Danchin 1976) proposed that the genome specifies the DISTRIBUTION of possible synaptic connections, and neural activity selects which connections survive -- a radical departure from the prevailing instructionist view of brain development.

@@ -1,5 +1,7 @@
 # precision weighting
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: precision weighting reframes attention as inference about reliability -- attending to a stimulus means believing its prediction errors are precise (low noise). in ML, this maps directly to the scaling factors in attention mechanisms, the beta gate in KDA, and more broadly to any architecture that modulates signal gain based on estimated confidence.
 
 ## summary

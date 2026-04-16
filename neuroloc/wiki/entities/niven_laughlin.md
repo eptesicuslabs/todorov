@@ -1,5 +1,7 @@
 # Jeremy Niven and Simon Laughlin
 
+status: definitional. last fact-checked 2026-04-16.
+
 ## Jeremy Niven
 
 british neuroscientist. professor at the University of Sussex, school of life sciences. research focuses on the evolution and energetics of nervous systems, particularly in insects.

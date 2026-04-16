@@ -1,5 +1,7 @@
 # gpu architecture building research
 
+status: current (as of 2026-04-16).
+
 curated practical guidance on building custom neural architecture components on gpu hardware. this article covers the engineering stack -- kernel development, gradient verification, memory management, profiling -- that translates architecture ideas into trainable code. the focus is on what todorov specifically needs: custom recurrent layers, spike quantization, outer-product accumulation, and hybrid attention/recurrence.
 
 ## kernel development

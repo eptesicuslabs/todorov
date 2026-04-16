@@ -1,5 +1,7 @@
 # Gina Turrigiano
 
+status: definitional. last fact-checked 2026-04-16.
+
 ## biographical summary
 
 Gina G. Turrigiano is a neuroscientist at Brandeis University who discovered synaptic scaling, the primary form of [[homeostatic_plasticity]]. her work established that neurons possess an intrinsic mechanism to regulate their own firing rates by multiplicatively adjusting the strength of all their excitatory synapses, a process she described as "the self-tuning neuron."

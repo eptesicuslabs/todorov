@@ -1,5 +1,7 @@
 # excitatory-inhibitory balance
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: E/I balance is the biological solution to activation control -- the same problem that LayerNorm and RMSNorm solve in transformers. understanding how biology maintains dynamic stability through fast inhibitory feedback reveals why static normalization may leave performance on the table.
 
 ## status

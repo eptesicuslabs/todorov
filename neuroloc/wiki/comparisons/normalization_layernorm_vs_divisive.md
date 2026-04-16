@@ -1,5 +1,7 @@
 # LayerNorm vs divisive normalization
 
+status: current (as of 2026-04-16).
+
 ## the two normalizations
 
 ### LayerNorm (Ba, Kiros, Hinton 2016)

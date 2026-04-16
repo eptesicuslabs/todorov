@@ -1,5 +1,7 @@
 # Delta Rule Theory: Online Learning in Linear Attention
 
+status: current (as of 2026-04-16).
+
 Source papers:
 - "Parallelizing Linear Transformers with the Delta Rule over Sequence Length"
   ArXiv ID: 2406.06484

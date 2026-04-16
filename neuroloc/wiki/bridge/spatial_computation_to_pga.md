@@ -1,5 +1,7 @@
 # bridge: spatial computation to G(3,0,1) PGA
 
+status: current (as of 2026-04-16).
+
 ## the biological mechanism
 
 the brain's spatial computation system comprises four interlocking cell types in the hippocampal-entorhinal circuit:

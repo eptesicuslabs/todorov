@@ -1,5 +1,7 @@
 # Wulfram Gerstner
 
+status: definitional. last fact-checked 2026-04-16.
+
 Wulfram Gerstner is a computational neuroscientist at EPFL (Ecole Polytechnique Federale de Lausanne), best known for co-developing the [[adaptive_exponential]] (AdEx) model with Romain Brette in 2005 and for the open-access textbook "Neuronal Dynamics" (neuronaldynamics.epfl.ch).
 
 key contributions:

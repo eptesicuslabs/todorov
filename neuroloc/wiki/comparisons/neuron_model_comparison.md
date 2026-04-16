@@ -1,5 +1,7 @@
 # neuron model comparison
 
+status: current (as of 2026-04-16).
+
 ## status
 [DRAFT]
 last updated: 2026-04-06

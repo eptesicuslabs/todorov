@@ -1,5 +1,7 @@
 # Guo-qiang Bi and Mu-ming Poo
 
+status: definitional. last fact-checked 2026-04-16.
+
 ## biographical summary
 
 Guo-qiang Bi and Mu-ming Poo are neuroscientists who, in their landmark 1998 paper, systematically mapped the spike-timing-dependent plasticity ([[stdp]]) window in cultured hippocampal neurons. their work established the precise temporal relationship between pre- and postsynaptic spike timing and the direction and magnitude of synaptic modification.

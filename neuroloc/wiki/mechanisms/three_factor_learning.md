@@ -1,5 +1,7 @@
 # three-factor learning rules
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: three-factor learning rules solve the credit assignment problem that pure [[hebbian_learning]] cannot: how does a synapse know whether its recent activity was useful for the organism? by adding a global modulatory signal (dopamine, norepinephrine, acetylcholine) as a third factor that gates local synaptic changes, these rules bridge unsupervised correlation detection and reward-based learning. in ML terms, the third factor is the biological implementation of the error/reward signal in reinforcement learning. for todorov, three-factor rules represent the most biologically plausible path toward replacing the straight-through estimator (STE) for spike gradient computation, because they provide a mechanism for credit assignment that respects the locality constraints of spiking networks.
 
 ## summary

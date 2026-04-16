@@ -1,5 +1,7 @@
 # bridge: biological normalization to RMSNorm
 
+status: current (as of 2026-04-16).
+
 ## the biological mechanism
 
 four biological normalization mechanisms operate across different timescales and spatial extents in cortex:

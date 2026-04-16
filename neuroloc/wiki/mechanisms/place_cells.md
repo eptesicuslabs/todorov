@@ -1,5 +1,7 @@
 # place cells
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: place cells demonstrate that individual neurons can encode discrete, abstract states (locations) within a distributed map, which is the biological prototype for sparse, localized representations in memory-augmented neural networks and state-space models.
 
 ## summary

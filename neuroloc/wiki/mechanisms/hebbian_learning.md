@@ -1,5 +1,7 @@
 # hebbian learning
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the Hebbian outer product rule Delta_W = eta * y * x^T is the biological ancestor of the key-value association k * v^T in linear attention and delta-rule recurrence. understanding its strengths (one-shot learning, locality) and weaknesses (instability, no error signal) directly informs the design of recurrent state updates in architectures like todorov's KDA.
 
 ## summary

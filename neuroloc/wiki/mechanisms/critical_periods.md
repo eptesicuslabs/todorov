@@ -1,5 +1,7 @@
 # critical periods
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: critical periods demonstrate that the timing of learning matters as much as the learning rule itself -- a principle that ML has only recently begun to exploit through learning rate schedules, curriculum learning, and progressive training.
 
 ## summary

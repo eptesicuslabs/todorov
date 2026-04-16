@@ -1,5 +1,7 @@
 # compression architecture for the neural machine
 
+status: current (as of 2026-04-16).
+
 ## the problem
 
 a neural machine that computes through recurrent state, competitive selection, and associative memory needs to be extremely memory efficient. biology achieves this through multiple compression stages. the current todorov architecture has:

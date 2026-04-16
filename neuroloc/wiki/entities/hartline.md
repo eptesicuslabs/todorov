@@ -1,5 +1,7 @@
 # Haldan Keffer Hartline (1903-1983)
 
+status: definitional. last fact-checked 2026-04-16.
+
 ## identity
 
 american physiologist. professor at the Rockefeller University (then the Rockefeller Institute for Medical Research). Nobel Prize in Physiology or Medicine, 1967, shared with Ragnar Granit and George Wald, "for their discoveries concerning the primary physiological and chemical visual processes in the eye."

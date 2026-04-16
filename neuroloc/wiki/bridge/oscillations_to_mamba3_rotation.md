@@ -1,5 +1,7 @@
 # bridge: oscillatory dynamics to Mamba3 complex rotation
 
+status: current (as of 2026-04-16).
+
 ## the biological mechanism
 
 neural oscillations ([[gamma_oscillations]], [[theta_oscillations]], [[neural_synchrony]]) provide temporal coordination across cortical networks. the computationally critical properties are:

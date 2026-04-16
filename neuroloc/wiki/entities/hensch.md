@@ -1,5 +1,7 @@
 # Takao Hensch
 
+status: definitional. last fact-checked 2026-04-16.
+
 ## biographical summary
 
 Takao K. Hensch is a neuroscientist at Harvard University (Department of Molecular and Cellular Biology, and Center for Brain Science) and RIKEN Center for Brain Science (visiting). he is the leading authority on the molecular and circuit mechanisms of critical period plasticity in the cerebral cortex. his work established that the timing of critical periods is not passively programmed by a genetic clock but actively controlled by the maturation of inhibitory circuits, specifically parvalbumin-positive (PV+) fast-spiking interneurons.

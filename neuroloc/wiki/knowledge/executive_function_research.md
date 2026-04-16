@@ -1,5 +1,7 @@
 # executive function and cognitive control
 
+status: current (as of 2026-04-16).
+
 ## prefrontal working memory maintenance
 
 miller, e. k. & cohen, j. d. (2001). an integrative theory of prefrontal cortex function. *annual review of neuroscience*, 24, 167-202. doi: 10.1146/annurev.neuro.24.1.167.

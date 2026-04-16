@@ -1,5 +1,7 @@
 # phase coding research
 
+status: current (as of 2026-04-16).
+
 curated research on phase-based neural coding and its relationship to position encoding in sequence models. the central question: does the brain encode sequence order through the phase of neural oscillations, and does this mechanism have a computational analog in rope and complex-valued recurrence? the answer is more nuanced than initially expected -- the strongest version of the phase coding hypothesis (phase order = sequence order) was falsified in 2025, but phase dynamics remain important for memory maintenance and could inform future architecture design.
 
 ## theta-gamma phase coding

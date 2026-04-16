@@ -1,5 +1,7 @@
 # Donald Hebb
 
+status: definitional. last fact-checked 2026-04-16.
+
 ## biographical summary
 
 Donald Olding Hebb (1904-1985) was a Canadian neuropsychologist whose 1949 book *The Organization of Behavior: A Neuropsychological Theory* is one of the most influential works in neuroscience. Hebb proposed that synaptic connections between neurons are strengthened when the neurons are co-activated, formulating what is now known as Hebb's postulate or the Hebbian learning rule.

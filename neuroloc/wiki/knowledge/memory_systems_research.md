@@ -1,5 +1,7 @@
 # memory systems research library
 
+status: current (as of 2026-04-16).
+
 curated research on how biological memory works at the cognitive and systems level. organized by domain. this library complements [[neuroscience_research_2026]], which covers cellular and circuit-level mechanisms. the present article covers the higher-level architecture of memory: how memories are formed, stored, retrieved, transformed, and lost.
 
 ## spatial memory and the method of loci

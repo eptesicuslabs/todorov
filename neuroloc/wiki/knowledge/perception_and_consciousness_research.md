@@ -1,5 +1,7 @@
 # perception and consciousness research
 
+status: current (as of 2026-04-16).
+
 curated research library on perception, consciousness, attention, embodiment, and time -- the cognitive level. this covers the computational principles that emerge when populations of neurons organize into systems: how brains construct experience, select information, represent time, and ground cognition in bodily interaction. these are the constraints any sufficiently capable neural computer must eventually address.
 
 ## perception as construction

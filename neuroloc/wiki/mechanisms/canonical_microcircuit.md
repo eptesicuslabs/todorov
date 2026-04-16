@@ -1,5 +1,7 @@
 # canonical microcircuit
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the canonical microcircuit is the biological argument for recurrent amplification over feedforward processing -- most cortical "computation" is recurrent re-processing of a weak input, not one-shot feedforward transformation, which directly motivates recurrent architectures like delta-rule layers.
 
 ## status

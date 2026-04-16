@@ -1,5 +1,7 @@
 # bridge: global workspace to todorov residual stream
 
+status: current (as of 2026-04-16).
+
 ## the biological mechanism
 
 the global neuronal workspace (Baars 1988, Dehaene & Naccache 2001) is a cognitive architecture for consciousness. the brain contains many specialized processors (visual cortex, auditory cortex, motor areas, memory systems) that operate in parallel and largely unconsciously. conscious access occurs through ignition: a nonlinear, all-or-none broadcast from a local processor to a global workspace that makes information available to ALL other processors. see [[global_workspace_theory]], [[ignition_dynamics]], [[thalamocortical_loops]].

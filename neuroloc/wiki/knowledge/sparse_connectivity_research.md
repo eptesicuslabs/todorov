@@ -1,5 +1,7 @@
 # sparse connectivity research
 
+status: current (as of 2026-04-16).
+
 curated peer-reviewed research on sparse network connectivity, dynamic pruning, mixture-of-experts routing, and biologically inspired wiring constraints. the central question for the neural machine: can todorov benefit from structured sparsity in its connectivity patterns, and do biological wiring principles (small-world topology, distance-dependent connectivity, adaptive rewiring) offer advantages over the current dense layer design?
 
 ## lottery ticket hypothesis

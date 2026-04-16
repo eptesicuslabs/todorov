@@ -1,5 +1,7 @@
 # neurogenesis and plasticity research
 
+status: current (as of 2026-04-16).
+
 curated peer-reviewed research on adult neurogenesis, structural plasticity, and critical periods. the brain is not a fixed circuit -- it adds new neurons throughout life (at least in the hippocampus), continuously remodels its synaptic connections (5-15% spine turnover per day), and transitions through developmental windows of heightened plasticity that can be reopened pharmacologically. these findings define the boundaries of what is structurally possible in biological neural computation and constrain claims about fixed architectures.
 
 ## adult hippocampal neurogenesis

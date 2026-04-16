@@ -1,5 +1,7 @@
 # ignition dynamics
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: ignition is a nonlinear all-or-none activation threshold that determines whether information gets globally broadcast -- a biological mechanism analogous to gating in mixture-of-experts and the threshold crossing in ternary spike activations that determines whether a signal propagates or is zeroed out.
 
 ## overview

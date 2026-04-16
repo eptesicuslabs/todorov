@@ -1,5 +1,7 @@
 # bridge: lateral inhibition to adaptive threshold
 
+status: current (as of 2026-04-16).
+
 ## the biological mechanism
 
 in cortex, competition between neurons is implemented through three interacting mechanisms:

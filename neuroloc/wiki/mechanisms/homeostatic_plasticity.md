@@ -1,5 +1,7 @@
 # homeostatic plasticity
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: homeostatic plasticity is the biological solution to the stability problem that every deep network faces -- maintaining activations in a useful dynamic range during training. understanding synaptic scaling provides biological grounding for layer normalization, weight decay, and the spike firing rate targets used in todorov's ATMN health monitoring.
 
 ## summary

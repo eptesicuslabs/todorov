@@ -1,5 +1,7 @@
 # Rao & Ballard
 
+status: definitional. last fact-checked 2026-04-16.
+
 ## Rajesh P. N. Rao
 
 born 1970 in Madras, India. professor of computer science and engineering and electrical and computer engineering at the University of Washington, Seattle. director of the Center for Neurotechnology. Cherng Jia and Elizabeth Yun Hwang endowed professor.

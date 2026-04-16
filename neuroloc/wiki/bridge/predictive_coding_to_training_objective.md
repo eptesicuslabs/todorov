@@ -1,5 +1,7 @@
 # bridge: predictive coding to todorov training objective
 
+status: current (as of 2026-04-16).
+
 ## the biological mechanism
 
 [[predictive_coding]] (Rao & Ballard 1999) proposes that each cortical level maintains a generative model predicting the activity at the level below. only prediction errors propagate upward. the mathematical formulation:

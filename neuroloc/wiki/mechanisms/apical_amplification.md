@@ -1,5 +1,7 @@
 # apical amplification
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: apical amplification is a biological implementation of context-dependent gating -- bottom-up input specifies WHAT a neuron responds to while top-down input specifies WHETHER the response is amplified. this is functionally equivalent to multiplicative attention and motivates architectures with separate content and context pathways.
 
 ## status

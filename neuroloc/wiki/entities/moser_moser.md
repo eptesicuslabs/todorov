@@ -1,5 +1,7 @@
 # May-Britt Moser and Edvard Moser
 
+status: definitional. last fact-checked 2026-04-16.
+
 May-Britt Moser (b. 1963, Fosnavag, Norway) and Edvard Ingjald Moser (b. 1962, Alesund, Norway)
 
 Kavli Institute for Systems Neuroscience and Centre for Neural Computation, Norwegian University of Science and Technology (NTNU), Trondheim.

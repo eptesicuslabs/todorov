@@ -1,5 +1,7 @@
 # PGA vs grid cells
 
+status: current (as of 2026-04-16).
+
 ## framing
 
 todorov's architecture includes a G(3,0,1) projective geometric algebra (PGA) module that computes a geometric product self-interaction in the SwiGLU feedforward layers. grid cells in the medial entorhinal cortex compute periodic spatial representations for path integration. this comparison asks: is there a meaningful mathematical connection between these two systems, or are they superficially linked by the word "geometry"?

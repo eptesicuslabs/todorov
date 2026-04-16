@@ -1,5 +1,7 @@
 # Hybrid Architectures: Evidence for 3:1 Linear-to-Attention Ratio
 
+status: current (as of 2026-04-16).
+
 This document collects evidence from multiple independent research groups
 converging on a 3:1 (or 75/25) ratio of linear attention layers to full
 attention layers as the optimal hybrid architecture design point.

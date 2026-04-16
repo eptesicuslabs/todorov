@@ -1,5 +1,7 @@
 # selective attention
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: biological attention is the original gating mechanism -- it determines which information gets amplified and which gets suppressed, directly inspiring the query-key-value attention in transformers and the competitive selection in mixture-of-experts routing.
 
 ## the biased competition model

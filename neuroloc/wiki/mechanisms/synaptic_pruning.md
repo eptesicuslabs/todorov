@@ -1,5 +1,7 @@
 # synaptic pruning
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the brain starts with massive overconnectivity and removes ~50% of synapses based on activity, which is the biological precedent for neural network pruning, the lottery ticket hypothesis, and sparse training methods that achieve full performance with a fraction of the parameters.
 
 ## summary

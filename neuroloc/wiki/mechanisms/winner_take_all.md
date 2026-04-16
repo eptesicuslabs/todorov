@@ -1,5 +1,7 @@
 # winner-take-all
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: WTA is a universal nonlinearity -- Maass proved that networks of linear units plus WTA can approximate any continuous function. in ML, softmax attention is a soft WTA, argmax decoding is a hard WTA, and top-k selection is k-WTA. understanding the biological WTA circuit reveals why these operations are computationally powerful and how sparsity emerges from competition.
 
 ## the computation

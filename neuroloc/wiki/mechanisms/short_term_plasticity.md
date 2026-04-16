@@ -1,5 +1,7 @@
 # short-term plasticity
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: short-term plasticity implements temporal filtering at every synapse, turning static connections into dynamic bandpass filters. the Tsodyks-Markram model's depression-facilitation dynamics map directly to the exponential decay and gated write operations in recurrent state machines like the KDA delta rule.
 
 ## summary

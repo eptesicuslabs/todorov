@@ -1,5 +1,7 @@
 # inhibitory interneurons
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the three cardinal interneuron types (PV+, SST+, VIP+) implement distinct computational operations -- temporal gating, dendritic input selection, and disinhibition -- that map to specific ML primitives: PV+ to softmax competition, SST+ to attention masking, and VIP+ to gating mechanisms that route information based on context.
 
 ## the 80/20 ratio

@@ -1,5 +1,7 @@
 # Robert Desimone and John Duncan
 
+status: definitional. last fact-checked 2026-04-16.
+
 ## identity
 
 Robert Desimone: american neuroscientist, director of the McGovern Institute for Brain Research at MIT, former scientific director of the Intramural Research Program at NIMH. works on neural mechanisms of visual attention, object recognition, and prefrontal control of attention.

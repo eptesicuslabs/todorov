@@ -1,5 +1,7 @@
 # bridge: positional/phase coding to RoPE
 
+status: current (as of 2026-04-16).
+
 ## the biological mechanism
 
 the brain encodes position -- in physical space, within a sequence, within an oscillatory cycle -- through the phase relationships of neural activity relative to ongoing rhythms and relative to other neurons. four mechanisms are relevant:

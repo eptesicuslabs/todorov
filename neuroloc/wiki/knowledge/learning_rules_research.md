@@ -1,5 +1,7 @@
 # learning rules research
 
+status: current (as of 2026-04-16).
+
 curated peer-reviewed research on non-backpropagation learning rules and their viability at scale. the central question for the neural machine: can a biologically plausible learning rule replace backpropagation without sacrificing performance? the current answer is no -- not at scale -- but the gap is narrowing, and several methods show promise in restricted domains.
 
 ## target propagation

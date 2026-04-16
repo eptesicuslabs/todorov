@@ -1,5 +1,7 @@
 # Horace Barlow (1921-2020)
 
+status: definitional. last fact-checked 2026-04-16.
+
 ## identity
 
 british neuroscientist. grandson of Charles Darwin (through his mother Nora Barlow). fellow of the Royal Society. professor at the University of Cambridge. one of the founders of computational neuroscience.

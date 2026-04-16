@@ -1,5 +1,7 @@
 # oscillations vs recurrence
 
+status: current (as of 2026-04-16).
+
 ## the question
 
 biological brains coordinate neural activity through oscillatory dynamics: periodic rhythms at multiple frequencies (theta 4-8 Hz, gamma 30-100 Hz) that gate communication, multiplex information, and impose temporal structure. todorov uses recurrent state dynamics (KDA delta-rule recurrence, Mamba3 complex-valued state with data-dependent rotation) to maintain and transform sequential information. do these recurrent dynamics provide equivalent temporal coordination to biological oscillations? or is something computationally significant missing?

@@ -1,5 +1,7 @@
 # Multi-Head Latent Attention (MLA): Low-Rank KV Compression
 
+status: current (as of 2026-04-16).
+
 Source papers:
 - "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model"
   ArXiv ID: 2405.04434

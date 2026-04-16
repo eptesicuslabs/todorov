@@ -1,5 +1,7 @@
 # John O'Keefe
 
+status: definitional. last fact-checked 2026-04-16.
+
 (b. 1939, New York City, USA)
 
 Sainsbury Wellcome Centre for Neural Circuits and Behaviour, University College London. previously Department of Anatomy, UCL.

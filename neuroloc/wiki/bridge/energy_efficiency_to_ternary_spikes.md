@@ -1,5 +1,7 @@
 # bridge: energy efficiency to ternary spike energy savings
 
+status: current (as of 2026-04-16).
+
 ## the biological mechanism
 
 the brain is severely energy-limited. the [[brain_energy_budget]] (attwell and laughlin 2001, updated by howarth et al. 2012 and harris et al. 2012) establishes that neural signaling consumes the majority of the brain's ~20 W power budget, with synaptic transmission accounting for ~43% and action potentials ~17% of signaling energy.

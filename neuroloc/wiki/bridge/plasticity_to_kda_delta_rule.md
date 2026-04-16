@@ -1,5 +1,7 @@
 # bridge: synaptic plasticity to KDA delta rule
 
+status: current (as of 2026-04-16).
+
 ## the biological mechanism
 
 synaptic plasticity encompasses multiple mechanisms operating across different timescales:

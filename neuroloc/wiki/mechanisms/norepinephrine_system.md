@@ -1,5 +1,7 @@
 # norepinephrine system
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: norepinephrine implements a biological gain modulation mechanism equivalent to temperature scaling in softmax -- controlling the explore/exploit tradeoff that no current ML architecture solves dynamically during inference.
 
 ## summary

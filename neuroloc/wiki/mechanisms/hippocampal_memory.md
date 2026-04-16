@@ -1,5 +1,7 @@
 # hippocampal memory
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the hippocampus is a biological content-addressable memory that encodes in one shot and retrieves via pattern completion -- the exact capabilities that recurrent state and key-value associative memories attempt to replicate in ML architectures.
 
 ## summary

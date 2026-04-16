@@ -1,5 +1,7 @@
 # bridge: neuromodulation to todorov learning and gating
 
+status: current (as of 2026-04-16).
+
 ## the biological mechanism
 
 four neuromodulatory systems control the meta-parameters of learning in the brain ([[neuromodulatory_framework]], Doya 2002):

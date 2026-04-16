@@ -1,5 +1,7 @@
 # biological attention vs transformer attention
 
+status: current (as of 2026-04-16).
+
 ## the question
 
 biological attention and transformer self-attention share the word "attention" but evolved under fundamentally different pressures and compute fundamentally different things. biological attention selects WHAT to process under severe resource constraints. transformer attention computes WHERE to look in memory to construct contextualized representations. this comparison examines whether the shared terminology reflects shared computation or mere linguistic coincidence.

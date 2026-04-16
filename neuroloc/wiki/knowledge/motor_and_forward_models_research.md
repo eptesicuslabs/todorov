@@ -1,5 +1,7 @@
 # motor control and forward models
 
+status: current (as of 2026-04-16).
+
 ## the cerebellum as forward model
 
 wolpert, d. m., miall, r. c. & kawato, m. (1998). internal models in the cerebellum. *trends in cognitive sciences*, 2(9), 338-347.

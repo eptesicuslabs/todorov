@@ -1,5 +1,7 @@
 # theta oscillations
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: theta-gamma coupling provides a biological mechanism for working memory capacity limits (Miller's magical number 7) and separates encoding from retrieval within each 125 ms cycle -- suggesting that temporal phase structure may be as important as spatial representation in neural architectures.
 
 ## definition

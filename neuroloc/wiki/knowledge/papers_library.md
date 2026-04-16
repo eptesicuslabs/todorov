@@ -1,5 +1,7 @@
 # Todorov Paper Library — Eptesicus Laboratories
 
+status: current (as of 2026-04-16).
+
 **Architecture reference:** ~350M parameter hybrid — [KDA, KDA, KDA, Mamba3, KDA, KDA, KDA, MLA] × 3 — targeting 4GB edge devices, INT8 quantization, 128K+ context. Combines channel-wise delta-rule linear attention (KDA), Mamba-3 SISO SSM, Multi-Latent Attention (MLA), ternary spiking neurons (ATMN), and an optional geometric product (GP) self-interaction module.
 
 **Notation:** ⚡ = Direct action item for Todorov. Papers are ordered by relevance within each category.

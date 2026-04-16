@@ -1,5 +1,7 @@
 # spike-timing-dependent plasticity (STDP)
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: STDP provides a biologically grounded mechanism for learning temporal sequences and causal structure from spike timing. its asymmetric learning window directly informs the design of temporal credit assignment in recurrent architectures, and the trace-based implementation maps naturally to the exponentially decaying state in delta-rule recurrence.
 
 ## summary

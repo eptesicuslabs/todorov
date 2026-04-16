@@ -1,5 +1,7 @@
 # cortical layers vs todorov layers
 
+status: current (as of 2026-04-16).
+
 ## the question
 
 the neocortex processes information through 6 functionally distinct layers with specific, non-uniform connectivity. todorov processes information through 24 layers in a repeating pattern of (KDA, KDA, KDA, Mamba3, KDA, KDA, KDA, MLA) x 3. does todorov's layer schedule map to cortical laminar organization? does the 3:1 ratio (75% KDA, 12.5% Mamba3, 12.5% MLA) correspond to any biological ratio?

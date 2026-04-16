@@ -1,5 +1,7 @@
 # biological vision
 
+status: current (as of 2026-04-16).
+
 ## retinal processing
 
 kuffler, s. w. (1953). discharge patterns and functional organization of mammalian retina. *journal of neurophysiology*, 16(1), 37-68.

@@ -1,5 +1,7 @@
 # GWT vs transformer architecture
 
+status: current (as of 2026-04-16).
+
 ## what is being compared
 
 [[global_workspace_theory]] (GWT) proposes that consciousness arises from a functional architecture: specialized unconscious processors + a shared global workspace + ignition-mediated broadcast. the transformer architecture (Vaswani et al. 2017, and its derivatives including todorov) has a superficially similar structure: layers (specialized processors) + residual stream (shared workspace) + attention (selective access). Goyal & Bengio (2022, ICLR) explicitly built a neural network architecture inspired by GWT, implementing specialist modules that compete for access to a bandwidth-limited shared workspace.

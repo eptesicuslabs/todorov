@@ -1,5 +1,7 @@
 # David Attwell and Simon Laughlin
 
+status: definitional. last fact-checked 2026-04-16.
+
 ## David Attwell (b. 1955)
 
 british neuroscientist. Jodrell Professor of Physiology at University College London (UCL). fellow of the Royal Society (1999). fellow of the Academy of Medical Sciences.

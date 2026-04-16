@@ -1,5 +1,7 @@
 # development vs training
 
+status: current (as of 2026-04-16).
+
 ## the question
 
 biological neural development (critical periods, synaptic pruning, self-organization, curriculum of increasing complexity) shapes circuits through a multi-stage process spanning years. ML training (warmup, learning rate decay, progressive training, pruning/distillation) shapes parameters through gradient descent spanning hours to days. both produce functional networks from unstructured initial conditions. how deep does the analogy go, and where does it break?

@@ -1,5 +1,7 @@
 # neural synchrony
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: neural synchrony implements information routing without physical rewiring -- the same connection can transmit or block depending on phase alignment. this is the biological solution to the routing problem that attention mechanisms solve in transformers.
 
 ## definition

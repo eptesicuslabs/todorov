@@ -1,5 +1,7 @@
 # basal ganglia
 
+status: definitional. last fact-checked 2026-04-16.
+
 **why this matters**: the basal ganglia implement a biologically grounded action selection system -- a control architecture that resolves competition among candidate actions through disinhibition rather than direct excitation. this is the brain's gating mechanism: deciding what gets through and what gets suppressed. in ML, autoregressive token selection, RLHF reward signals, and memory write gates all face the same core problem (select one, suppress the rest), but no standard architecture explicitly separates the control system from the computation it controls. todorov has no control system. the basal ganglia show what one looks like.
 
 ## summary
