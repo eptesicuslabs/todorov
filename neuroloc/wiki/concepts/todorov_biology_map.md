@@ -4,7 +4,31 @@ status: definitional. last fact-checked 2026-04-16.
 
 master reference mapping every todorov component to its biological analog. for each component: what it does in todorov, what it maps to in biology, what the mapping gets wrong, and where to find the full analysis.
 
-## KDA (src/layers/kda.py)
+## note on architecture versions
+
+this map documents the biological mapping of each *concept*. the concepts
+(KDA delta rule, Mamba-3 complex rotation, MLA low-rank attention, SwiGLU,
+ternary spikes) remain valid analytical units even as the paid-run
+architecture has pivoted through several substrate variants. as of
+2026-04-16:
+
+- the originally-validated architecture in `src/layers/` corresponds to
+  the todorov phase 5 reference (267M-280M parameters at h200, bpb 0.663x-
+  0.722x vs transformer baseline).
+- the current paid-run architecture is `neuroloc/model/god_machine.py`.
+  the fifth paid run (2026-04-15) replaced KDA / matrix-memory with
+  slot memory — softmax addressing over prototype keys. see
+  `wiki/synthesis/slot_memory_design.md`.
+- the substrate pivot does not invalidate the biological mapping below;
+  it adds a new substrate (slot memory with explicit output gate) whose
+  biological analog is closer to hippocampal content-addressable memory
+  rather than short-term cortical plasticity.
+- the file below continues to describe KDA / Mamba-3 / MLA / SwiGLU /
+  spikes as the canonical biological-mapping units because they are
+  still the definitional objects of analysis. each todorov preset picks
+  a subset. the mapping commentary below applies to each whenever present.
+
+## KDA (src/layers/kda.py; god_machine.py: DeltaRuleMemory)
 
 KDA is a delta-rule recurrent layer that maintains a matrix-valued associative memory. 18 of 24 layers (75%) are KDA.
 

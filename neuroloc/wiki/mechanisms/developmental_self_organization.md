@@ -10,7 +10,7 @@ neural circuits develop ordered spatial structure -- **topographic maps** (order
 
 ML analog: self-organized feature maps are the biological precursor to self-supervised representation learning (contrastive learning, MAE). both build structured internal representations from unlabeled data using local similarity-based objectives rather than global supervised loss.
 
-the developmental sequence is: (1) molecular gradients establish coarse spatial organization (protomap), (2) spontaneous activity patterns (retinal waves, thalamic bursts) refine connectivity before sensory experience, (3) sensory-driven activity completes the refinement during [[critical_periods]]. at each stage, the principle is the same: correlated activity stabilizes connections ([[synaptic_pruning|selective stabilization]]), and competition ensures that different neurons come to represent different features. the result is ordered structure from simple local rules, without any global blueprint specifying which neuron should respond to which stimulus.
+the developmental sequence is: (1) molecular gradients establish coarse spatial organization (protomap), (2) spontaneous activity patterns (retinal waves, thalamic bursts) refine connectivity before sensory experience, (3) sensory-driven activity completes the refinement during [[critical_periods]]. at each stage, the principle is the same: correlated activity stabilizes connections (selective stabilization; see [[synaptic_pruning]]), and competition ensures that different neurons come to represent different features. the result is ordered structure from simple local rules, without any global blueprint specifying which neuron should respond to which stimulus.
 
 ## mechanisms
 

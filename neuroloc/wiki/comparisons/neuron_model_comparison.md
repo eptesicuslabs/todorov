@@ -2,10 +2,15 @@
 
 status: current (as of 2026-04-16).
 
-## status
-[DRAFT]
-last updated: 2026-04-06
-sources: 8 papers, 2 textbooks
+## document status
+
+draft promoted to current on 2026-04-16 as part of the wiki refactor.
+last content update: 2026-04-06. sources: 8 papers, 2 textbooks. the
+core analysis (which neuron model features inform ATMN design) remains
+directly applicable — the architecture pivoted to slot memory but the
+spike-neuron question below is orthogonal to the memory substrate
+choice. future content updates should use the `## correction
+(YYYY-MM-DD)` format per `OPERATING_DIRECTIVE.md`.
 
 ## overview
 

@@ -183,6 +183,10 @@
   },
   "active": "94ff5ce434ff2166",
   "lastOpenFiles": [
+    "tests/run2_slot_memory_first_launch_results.md",
+    "tests/run1_baseline_noerasure_results.md",
+    "tests/god_run_v2_results.md",
+    "tests/god_run_results.md",
     "_audit_2026-04-16.md",
     "OPERATING_DIRECTIVE.md",
     "concepts/glossary.md",
@@ -204,10 +208,6 @@
     "Home.md",
     "synthesis/recurrence_vs_feedforward.md",
     "synthesis/sparsity_from_biology_to_ternary_spikes.md",
-    "synthesis/timescale_separation.md",
-    "tests/index.md",
-    "tests/2026-04-07_pattern_completion_baseline.md",
-    "tests/2026-04-07_kwta_vs_threshold_pilot.md",
-    "concepts/neuroscience_for_ml_engineers.md"
+    "synthesis/timescale_separation.md"
   ]
 }

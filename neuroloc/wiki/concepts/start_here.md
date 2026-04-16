@@ -4,7 +4,7 @@ status: definitional. last fact-checked 2026-04-16.
 
 ## what is neuroloc
 
-neuroloc is a computational neuroscience wiki built to support the design of brain-inspired neural architectures. it contains 56 mechanism articles, 16 bridge documents connecting biology to code, 13 comparison analyses, and 33 entity notes. every article is written to be useful to engineers, not just neuroscientists.
+neuroloc is a computational neuroscience wiki built to support the design of brain-inspired neural architectures. it contains 61 mechanism articles, 19 bridge documents connecting biology to code, 13 comparison analyses, and 33 entity notes. every article is written to be useful to engineers, not just neuroscientists.
 
 ## who this is for
 
