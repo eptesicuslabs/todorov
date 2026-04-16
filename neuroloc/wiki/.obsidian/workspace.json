@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "knowledge/sleep_and_dreaming_research.md",
+                "file": "knowledge/papers.md",
                 "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "sleep_and_dreaming_research"
+              "title": "papers"
             }
           }
         ]
@@ -183,6 +183,11 @@
   },
   "active": "94ff5ce434ff2166",
   "lastOpenFiles": [
+    "OPERATING_DIRECTIVE.md",
+    "concepts/glossary.md",
+    "concepts/mathematical_foundations.md",
+    "entities/douglas_martin.md",
+    "knowledge/sleep_and_dreaming_research.md",
     "tests/aesthetic_logger_prototype.md",
     "tests/thinking_loop_prototype_results.md",
     "tests/multi_resolution_head_split_results.md",
@@ -203,8 +208,6 @@
     "tests/2026-04-07_pattern_completion_baseline.md",
     "tests/2026-04-07_kwta_vs_threshold_pilot.md",
     "concepts/neuroscience_for_ml_engineers.md",
-    "concepts/notation.md",
-    "concepts/mathematical_foundations.md",
-    "concepts/glossary.md"
+    "concepts/notation.md"
   ]
 }
