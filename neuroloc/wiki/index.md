@@ -1,6 +1,6 @@
 # neuroloc index
 
-status: current (as of 2026-04-16).
+status: current (as of 2026-04-17).
 
 this is the flat reference catalog of every article in the wiki, grouped
 by topic within each top-level directory. for guided navigation, start
@@ -21,15 +21,22 @@ at [[start_here]]. for the rules that govern every article below, see
 
 ## current project-state analyses (synthesis/)
 
-all 10 articles in `synthesis/` are the load-bearing project-level
-reasoning documents. one is superseded, nine are current.
+all 11 articles in `synthesis/` are the load-bearing project-level
+reasoning documents. one is superseded, ten are current.
 
+- [[synthesis/substrate_requires_architectural_change]] — the
+  post-run-3 analysis after the cognition corpus returned 0% passkey.
+  the canonical reference for why the next paid run needs an
+  architectural intervention, not another training-corpus change.
+  ranks five candidate interventions (A-E). supersedes the "next paid
+  run needs a different corpus" stance in `training_objective_vs_architectural_goal`.
 - [[synthesis/training_objective_vs_architectural_goal]] — the
-  root-cause analysis after five paid runs. the canonical reference
-  for why the next paid run needs a different corpus. supersedes
-  `linear_attention_retrieval_wall`.
+  root-cause analysis after five paid runs on fineweb-edu. reasoning
+  structure intact; its proposed discriminant (cognition corpus) was
+  executed as run3 and returned 0%, which triggered the next article
+  above. supersedes `linear_attention_retrieval_wall`.
 - [[synthesis/slot_memory_design]] — slot memory substrate design
-  and its paid-run empirical status
+  and its paid-run empirical status (now three paid runs deep)
 - [[synthesis/correction_field_memory]] — prediction-residual value storage
 - [[synthesis/compression_beyond_quantization]] — six-mechanism compound compression
 - [[synthesis/compression_and_bottlenecks]] — bio vs todorov compression
@@ -48,13 +55,14 @@ frozen evidence records, one per paid run:
 - [[tests/run1_baseline_noerasure_results]] (2026-04-14, 353M, all bundle features off)
 - [[tests/run2_slot_memory_first_launch_results]] (2026-04-15, 355M, broken retention)
 - [[tests/run2_slot_memory_retention_fixed_results]] (2026-04-15, 355M, retention fixed, FLA active, the fifth paid run)
+- [[tests/run3_cognition_phase1_results]] (2026-04-17, 355M, synthetic cognition corpus, val_bpb plateaued at alphabet prior, passkey 0/100, the sixth paid run)
 
 ## mistakes (mistakes/, historical context only, append-only)
 
 - [[mistakes/run2_slot_memory_decay_copy_paste]] — inherited retention bug
 - [[mistakes/run2_slot_memory_fla_silent_fall_through]] — FLA not installed silent slowdown
 
-## flat catalog — articles by topic (sums to 205 content articles; add 6 navigation/meta files plus tests/index.md for 212 total wiki markdown files on disk)
+## flat catalog — articles by topic (sums to 207 content articles; add 6 navigation/meta files plus tests/index.md for 214 total wiki markdown files on disk)
 
 ## mechanisms (61 articles)
 
@@ -194,9 +202,10 @@ frozen evidence records, one per paid run:
 - comparisons/pga_vs_grid_cells.md -- G(3,0,1) PGA vs grid cell computations
 - comparisons/gwt_vs_transformer.md -- global workspace vs residual stream
 
-## synthesis (10 articles)
-- synthesis/training_objective_vs_architectural_goal.md -- root-cause analysis after five paid runs: LM loss on fineweb-edu does not exercise the memory substrate
-- synthesis/slot_memory_design.md -- softmax addressing over prototype keys, surprise-gated lru writes, output gate; substrate for run2_slot_memory
+## synthesis (11 articles)
+- synthesis/substrate_requires_architectural_change.md -- post-run-3 analysis: six paid runs at 0% passkey across two substrates and two corpora trigger the architecture-cannot-be-trained branch; ranks five candidate interventions (output gate init, auxiliary retrieval loss, orthogonal key init, warm-start, substrate replacement)
+- synthesis/training_objective_vs_architectural_goal.md -- root-cause analysis after five paid runs: LM loss on fineweb-edu does not exercise the memory substrate. the proposed discriminant (cognition corpus) ran as run3 and returned 0%, which triggered the article above
+- synthesis/slot_memory_design.md -- softmax addressing over prototype keys, surprise-gated lru writes, output gate; substrate for run2_slot_memory and run3_cognition_phase1
 - synthesis/correction_field_memory.md -- prediction-residual value storage; memory_capacity_delta=0 falsified by trained-prediction sim
 - synthesis/compression_beyond_quantization.md -- six-mechanism compound compression thesis
 - synthesis/linear_attention_retrieval_wall.md -- SUPERSEDED: the five-failure-mode diagnosis. retained for evidence continuity
@@ -227,14 +236,15 @@ frozen evidence records, one per paid run:
 - bridge/normalization_to_rmsnorm.md -- divisive normalization, synaptic scaling, gain control to RMSNorm
 - bridge/memory_compression_to_tiered_architecture.md -- 5-tier memory architecture proposal for phase 6+
 
-## tests (20 records)
+## tests (21 records)
 
-### paid-run cards (5)
+### paid-run cards (6)
 - tests/god_run_results.md -- first paid neural-machine run, 2026-04-11, 283M params, val_bpb 1.3950, passkey 0/20
 - tests/god_run_v2_results.md -- paid re-run with 17+14 prosecutor fixes, 2026-04-12, val_bpb 1.4453, passkey 0/100
 - tests/run1_baseline_noerasure_results.md -- paid run with all bundle features off, 2026-04-14, 353M, val_bpb 1.4499, passkey 0/100
 - tests/run2_slot_memory_first_launch_results.md -- first slot-memory paid run, 2026-04-15, inherited retention bug, val_bpb 1.5107, passkey 0/100
 - tests/run2_slot_memory_retention_fixed_results.md -- fifth paid run, 2026-04-15, retention fixed, FLA active, val_bpb 1.4777, passkey 0/100
+- tests/run3_cognition_phase1_results.md -- sixth paid run, 2026-04-17, synthetic cognition corpus (50% passkey / 30% kv recall / 20% copy), 355M, val_bpb 6.3519 (plateaued at alphabet prior from step 150), passkey 0/100 at 256 and 1024. executed the training_objective_vs_architectural_goal.md discriminant and triggered substrate_requires_architectural_change.md
 
 ### pilot experiments (5)
 - tests/2026-04-07_pattern_completion_baseline.md -- first dated experiment record; repaired ca3-like attractor baseline with shuffled control, sweeps, and metrics json
@@ -324,8 +334,8 @@ frozen evidence records, one per paid run:
 ## statistics
 - total mechanism articles: 61
 - total bridge notes: 19
-- total synthesis articles: 10 (9 current + 1 superseded)
-- total test records: 20 (5 paid-run cards + 5 pilots + 10 simulation results including aesthetic_logger_prototype + god_run_findings; excluding tests/index.md)
+- total synthesis articles: 11 (10 current + 1 superseded)
+- total test records: 21 (6 paid-run cards + 5 pilots + 10 simulation results including aesthetic_logger_prototype + god_run_findings; excluding tests/index.md)
 - total entity notes: 33
 - total comparison articles: 13
 - total concept articles: 7
@@ -333,4 +343,4 @@ frozen evidence records, one per paid run:
 - total mistake docs: 2
 - total navigation / meta: 6 (INDEX.md, OPERATING_DIRECTIVE.md, PROJECT_PLAN.md, _audit_2026-04-16.md, Home.md, log.md)
 - total simulations: 35+ scripts across 17 script-containing directories plus 3 root-level utilities (shared.py, suite_registry.py, suite_runner.py)
-- last updated: 2026-04-16
+- last updated: 2026-04-17

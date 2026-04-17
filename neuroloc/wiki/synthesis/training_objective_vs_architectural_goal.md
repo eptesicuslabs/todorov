@@ -1,6 +1,6 @@
 # training objective vs architectural goal: why a memory substrate trained on next-byte loss never learns to memorise
 
-status: current (as of 2026-04-16).
+status: current (as of 2026-04-17).
 
 ## the realisation
 
@@ -161,6 +161,17 @@ that is not the bar.
 
 ## what changes in the project plan as a result
 
+> **note (2026-04-17)**: the guidance in this section reflects the
+> project plan as of 2026-04-16, before the cognition-corpus paid run
+> was executed. that run (run3_cognition_phase1) has now completed and
+> returned 0% passkey; see the "empirical result" section at the end of
+> this article and `wiki/synthesis/substrate_requires_architectural_change.md`.
+> the concrete "next paid run on a memory-shaped corpus" recommendation
+> below was acted on and produced the predicted discriminant's negative
+> branch. the article's reasoning is preserved here for evidence
+> continuity but the forward-looking guidance is superseded by the
+> architectural-intervention article.
+
 the next paid run is no longer "another attempt to verify slot memory works
 on fineweb-edu". the next paid run is "the first run on a corpus designed to
 exercise the architecture's memory substrate". val_bpb becomes a sanity
@@ -191,3 +202,41 @@ corpus to behave differently.
 - `spec/blueprint.md` — the architecture's stated computational goal
 - `spec/next_gen.md` — the longer-horizon roadmap; cognition-shaped
   pretraining belongs here
+- `wiki/synthesis/substrate_requires_architectural_change.md` — the post-run-3 analysis after this article's proposed discriminant (cognition training) was executed and returned 0% passkey, confirming the architecture-cannot-be-trained branch the article predicted
+- `wiki/tests/run3_cognition_phase1_results.md` — the run card of the paid test this article proposed
+
+## empirical result (2026-04-17)
+
+phase 1 of the "two-phase pretraining" option proposed in this article
+was executed as the paid run `run3_cognition_phase1` on 2026-04-17.
+355M parameters, slot substrate, retention fixed at alpha_log_mean=5.0,
+FLA active on H200, trained for 4000 steps (131M tokens) on a synthetic
+cognition corpus with 50% passkey / 30% kv recall / 20% copy blocks.
+phase 2 (fineweb-edu to add general competence) was not attempted
+because phase 1 did not produce non-zero passkey, which was the
+threshold for entering phase 2 per the proposal above.
+
+result: val_bpb plateaued at 6.3519 from step 150 and never improved.
+partial eval before pod stop reported passkey @ 256 = 0/100 and passkey
+@ 1024 = 0/100. training did not learn the retrieval operation the
+corpus explicitly encoded.
+
+this executes the article's predicted discriminant. the text above
+(section "what would test this properly") explicitly states:
+
+> if phase one cannot produce any non-zero passkey accuracy on
+> synthetic data, the substrate genuinely cannot be trained by sgd at
+> this scale and the architecture needs deeper changes.
+
+phase one produced 0% passkey. the architecture-cannot-be-trained-by-sgd
+branch therefore fires. the next analysis is at
+`wiki/synthesis/substrate_requires_architectural_change.md`, which
+catalogs candidate architectural changes (output gate init, auxiliary
+retrieval loss, orthogonal prototype keys, hand-placed-address warm
+start, substrate replacement) and ranks them by cost and risk.
+
+this article's reasoning structure remains correct. its prediction
+that a cognition-shaped corpus would discriminate between "LM loss
+is the problem" and "the architecture cannot be trained" is confirmed.
+the answer came back "the architecture cannot be trained" under the
+configuration the project has been using.

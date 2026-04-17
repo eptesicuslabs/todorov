@@ -1,6 +1,6 @@
 # slot memory design
 
-status: current (as of 2026-04-16).
+status: current (as of 2026-04-17).
 
 ## empirical status (2026-04-15, first launch of run2_slot_memory)
 
@@ -44,10 +44,13 @@ partial eval: passkey@256 = 0/100, passkey@1024 = 0/100. the user halted the
 pod before passkey@4096 / selective_copy / structure_probe completed, so the
 retrieval_gate was not persisted.
 
-**this result is consistent with all five paid runs to date** (matrix
-substrates and slot substrates, broken retention and fixed retention all
-produced 0/100 at 256). the consistent 0% under all combinations rules out
-both substrate change and retention change as sufficient by themselves.
+**this result is consistent with all five paid runs to date** (five at the
+time of writing this section on 2026-04-15; a sixth paid run added in the
+third empirical status section below extends this pattern to two corpora
+as well). matrix substrates and slot substrates, broken retention and
+fixed retention all produced 0/100 at 256. the consistent 0% under all
+combinations rules out both substrate change and retention change as
+sufficient by themselves.
 
 cpu gates A and B prove the slot mechanism CAN retrieve when addresses are
 placed by hand. the substrate is functional. the absence of any retrieval
@@ -63,6 +66,31 @@ falsified at paid scale; it has not been tested under a training objective
 that rewards what the substrate provides. that is the next paid run.
 
 run card at `neuroloc/wiki/tests/run2_slot_memory_retention_fixed_results.md`.
+
+## empirical status (2026-04-17, third paid test — cognition corpus)
+
+the "training objective that rewards what the substrate provides" test
+ran on 2026-04-17 as paid run `run3_cognition_phase1`. synthetic
+cognition corpus with 50% passkey / 30% kv recall / 20% copy blocks
+trained the same slot substrate (same preset structure as run 2, same
+retention fix, FLA active) for 4000 steps on 131M tokens. **result:
+val_bpb plateaued at 6.3519 from step 150 and did not improve; passkey
+@ 256 = 0/100 and @ 1024 = 0/100.**
+
+the slot-memory hypothesis is now falsified under the configuration
+the project has been running. even when the loss directly requires
+retrieval, gradient descent does not discover the addressing pattern
+within 4000 steps at 355M params. the substrate is not inherently
+broken (cpu gates A and B prove it retrieves when addresses are placed
+by hand) but the current end-to-end training setup does not reach the
+retrieval regime.
+
+see `wiki/synthesis/substrate_requires_architectural_change.md` for the
+follow-up analysis and the ranked list of candidate architectural
+changes (output gate init, auxiliary retrieval loss, orthogonal
+prototype keys, warm start from hand-placed addresses, substrate
+replacement). run card at
+`neuroloc/wiki/tests/run3_cognition_phase1_results.md`.
 
 
 
@@ -251,7 +279,9 @@ no paid compute until steps 2-5 all pass. sunk cost (three failed runs) teaches 
 
 ## see also
 
-- `wiki/synthesis/training_objective_vs_architectural_goal.md` (the post-paid-run analysis: why the slot substrate trained cleanly to val_bpb 1.4777 and still produced 0/100 passkey under SGD on natural text — the training loss does not exercise the substrate)
+- `wiki/synthesis/substrate_requires_architectural_change.md` (the post-run-3 analysis after three paid tests of this substrate returned 0% passkey across two corpora; ranks five candidate architectural interventions that supersede further substrate-hyperparameter tuning)
+- `wiki/synthesis/training_objective_vs_architectural_goal.md` (the post-paid-run analysis: why the slot substrate trained cleanly to val_bpb 1.4777 and still produced 0/100 passkey under SGD on natural text — the training loss does not exercise the substrate; the proposed discriminant ran as run3_cognition_phase1 and returned 0%, triggering the article above)
+- `wiki/tests/run3_cognition_phase1_results.md` (the third paid test of this substrate, on a corpus where retrieval is explicit 50% of training; val_bpb plateaued at the alphabet prior and passkey stayed at 0/100)
 - `wiki/tests/run2_slot_memory_retention_fixed_results.md` (the paid run card: headline numbers, comparison to the four prior paid runs, what was validated and what was not)
 - `wiki/mistakes/run2_slot_memory_decay_copy_paste.md` (the first-launch retention bug that obscured the substrate question for one paid run)
 - `wiki/mistakes/run2_slot_memory_fla_silent_fall_through.md` (the FLA-not-installed silent slowdown on the second launch attempt of the retention-fixed run)

@@ -1,6 +1,6 @@
 # tests
 
-status: current (as of 2026-04-16).
+status: current (as of 2026-04-17).
 
 this folder records concrete simulations and experiments that were actually run.
 
@@ -23,6 +23,7 @@ each test page should include:
 - [[tests/run1_baseline_noerasure_results]] -- paid run with all bundle features off (2026-04-14, 353M; val_bpb 1.4499, passkey 0/100)
 - [[tests/run2_slot_memory_first_launch_results]] -- first slot-memory paid run (2026-04-15, 355M; inherited retention bug; val_bpb 1.5107, passkey 0/100)
 - [[tests/run2_slot_memory_retention_fixed_results]] -- fifth paid run (2026-04-15, 355M; retention fixed, FLA active; val_bpb 1.4777, passkey 0/100)
+- [[tests/run3_cognition_phase1_results]] -- sixth paid run (2026-04-17, 355M; synthetic cognition corpus 50% passkey / 30% kv recall / 20% copy; val_bpb plateaued at alphabet prior 6.3519 from step 150; passkey 0/100 at 256 and 1024; triggered substrate_requires_architectural_change.md)
 
 ### pilot experiments
 
