@@ -1106,3 +1106,36 @@ def test_resolve_preset_wires_retention_guard_into_resolution_path(
 
     with pytest.raises(RuntimeError, match="alpha_log_mean"):
         god_machine._resolve_preset(sentinel_preset)
+
+
+def test_assert_fla_available_if_requested_permits_when_preset_does_not_want_fla() -> None:
+    cfg = god_machine.Config(use_fla_if_available=False)
+    god_machine._assert_fla_available_if_requested(cfg)
+
+
+def test_assert_fla_available_if_requested_raises_when_preset_wants_fla_but_package_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(god_machine, "FLA_AVAILABLE", False)
+    monkeypatch.setattr(god_machine, "fused_recurrent_simple_gla", None)
+    cfg = god_machine.Config(use_fla_if_available=True)
+    with pytest.raises(RuntimeError, match="flash-linear-attention is not"):
+        god_machine._assert_fla_available_if_requested(cfg)
+
+
+def test_assert_fla_available_if_requested_permits_when_package_present(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sentinel_fn = object()
+    monkeypatch.setattr(god_machine, "FLA_AVAILABLE", True)
+    monkeypatch.setattr(god_machine, "fused_recurrent_simple_gla", sentinel_fn)
+    cfg = god_machine.Config(use_fla_if_available=True)
+    god_machine._assert_fla_available_if_requested(cfg)
+
+
+def test_nm_force_no_fla_flips_config_flag(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("NM_FORCE_NO_FLA", "1")
+    cfg = god_machine.Config(use_fla_if_available=True)
+    overrides = god_machine._apply_runtime_env_overrides(cfg)
+    assert cfg.use_fla_if_available is False
+    assert any("NM_FORCE_NO_FLA" in s for s in overrides)

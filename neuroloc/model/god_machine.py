@@ -1590,6 +1590,9 @@ def _apply_runtime_env_overrides(cfg: Config) -> list[str]:
     if cfg.max_seq_len < cfg.seq_len:
         cfg.max_seq_len = cfg.seq_len
         applied.append(f"max_seq_len={cfg.max_seq_len}")
+    if _env_flag("NM_FORCE_NO_FLA") and cfg.use_fla_if_available:
+        cfg.use_fla_if_available = False
+        applied.append("use_fla_if_available=False (NM_FORCE_NO_FLA)")
     return applied
 
 
@@ -3279,6 +3282,28 @@ def _assert_preset_retention_safe(preset_name: str, overrides: dict[str, Any]) -
             )
 
 
+def _assert_fla_available_if_requested(cfg: Config) -> None:
+    if not cfg.use_fla_if_available:
+        return
+    if FLA_AVAILABLE and fused_recurrent_simple_gla is not None:
+        return
+    raise RuntimeError(
+        "config sets use_fla_if_available=True but flash-linear-attention is not "
+        f"importable on this runtime (FLA_AVAILABLE={FLA_AVAILABLE}, "
+        f"fused_recurrent_simple_gla_is_none={fused_recurrent_simple_gla is None}). "
+        "without the fused triton kernel, SlotMemory and DeltaRuleMemory silently "
+        "fall through to a pure-python recurrent loop that is ~50x slower "
+        "(~655 vs ~33000 tok/s at d_model=1024 batch=16 seq=2048). this would turn "
+        "a 70-minute paid run into a 56-hour paid run with no visible warning. "
+        "install the package with `pip install -r requirements.txt` or "
+        "`pip install flash-linear-attention>=0.4.0 --break-system-packages` on a "
+        "runpod-style container. if you genuinely want the non-FLA path, set "
+        "use_fla_if_available=False in the preset overrides or NM_FORCE_NO_FLA=1 "
+        "in the environment and the run will start under explicit acknowledgement. "
+        "see wiki/mistakes/run2_slot_memory_fla_silent_fall_through.md."
+    )
+
+
 def _resolve_preset(preset: str) -> tuple[dict[str, Any], str, str]:
     result = _resolve_preset_raw(preset)
     _assert_preset_retention_safe(preset, result[0])
@@ -3765,6 +3790,7 @@ def main() -> None:
     log(preset_log)
     if runtime_overrides:
         log(f"runtime overrides: {', '.join(runtime_overrides)}")
+    _assert_fla_available_if_requested(cfg)
     official_run1 = preset == "run1_baseline_noerasure"
     gated_baseline_presets = {
         "run1_baseline_noerasure",
