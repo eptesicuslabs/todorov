@@ -1069,6 +1069,7 @@ def test_resolve_preset_raises_for_god_preset() -> None:
         "run1_baseline_noerasure",
         "run1a_retention_ablation",
         "run2_slot_memory",
+        "run3_cognition_phase1",
     ],
 )
 def test_named_presets_all_set_alpha_log_mean_explicitly(preset: str) -> None:

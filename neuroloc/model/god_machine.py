@@ -3377,6 +3377,27 @@ def _resolve_preset_raw(preset: str) -> tuple[dict[str, Any], str, str]:
             "preset: run2_slot_memory (slot memory with softmax addressing replacing delta layers, compressed attention preserved, alpha_log_mean=5.0 so decay~0.9933 survives 256-token intervening, FLA fused_recurrent_simple_gla enabled)",
             "run2_slot_memory",
         )
+    if preset == "run3_cognition_phase1":
+        slot_pattern = tuple(
+            "SLOT" if lt == "DELTA" else lt
+            for lt in ("DELTA", "DELTA", "DELTA", "DELTA", "DELTA", "DELTA", "ATTN")
+        )
+        return (
+            {
+                "kwta_enabled": False,
+                "delta_erasure_enabled": False,
+                "use_fla_if_available": True,
+                "bcm_alpha_enabled": False,
+                "multi_compartment_enabled": False,
+                "imagination_enabled": False,
+                "pc_diagnostic_enabled": False,
+                "layer_pattern": slot_pattern,
+                "alpha_log_mean": 5.0,
+                "slot_log_temperature_init": -1.0,
+            },
+            "preset: run3_cognition_phase1 (slot memory trained on synthetic cognition corpus — passkey + kv recall + copy — to test whether SGD can learn to route information through the substrate when the loss actually requires it. phase 1 of the two-phase pretraining per wiki/synthesis/training_objective_vs_architectural_goal.md)",
+            "run3_cognition_phase1",
+        )
     if preset == "god":
         return ({}, "preset: god (default god_machine config)", "god_run")
     raise ValueError(f"unknown NM_PRESET: {preset}")
@@ -3797,6 +3818,7 @@ def main() -> None:
         "run1a_retention_ablation",
         "run4_erasure_ablation",
         "run2_slot_memory",
+        "run3_cognition_phase1",
     }
     launch_contract: dict[str, Any] | None = None
     benchmark_mode = (
@@ -3903,6 +3925,28 @@ def main() -> None:
         train_data, val_data, dataset_source = download_fineweb_edu(
             max_bytes=5_000_000_000,
             allow_wikitext_fallback=_env_flag("ALLOW_WIKITEXT_FALLBACK"),
+        )
+    elif dataset_mode == "cognition":
+        from neuroloc.data.cognition_corpus import (
+            generate_cognition_corpus,
+            split_train_val,
+        )
+        cognition_size = int(os.environ.get("NM_COGNITION_SIZE", str(200_000_000)))
+        cognition_seed = int(os.environ.get("NM_COGNITION_SEED", "42"))
+        block_seq_len = int(os.environ.get("NM_COGNITION_BLOCK_LEN", str(min(cfg.seq_len, 512))))
+        log(
+            f"generating cognition corpus: size={cognition_size:,} bytes, "
+            f"block_seq_len={block_seq_len}, seed={cognition_seed}"
+        )
+        corpus = generate_cognition_corpus(
+            size=cognition_size,
+            seed=cognition_seed,
+            block_seq_len=block_seq_len,
+        )
+        train_data, val_data = split_train_val(corpus, val_fraction=0.05)
+        dataset_source = (
+            f"cognition-synthetic (block_seq_len={block_seq_len}, "
+            f"passkey+kv+copy mix 0.5/0.3/0.2, seed={cognition_seed})"
         )
     else:
         raise ValueError(f"unknown NM_DATASET: {dataset_mode}")
