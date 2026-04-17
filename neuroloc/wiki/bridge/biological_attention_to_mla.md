@@ -1,6 +1,8 @@
 # bridge: biological attention to MLA
 
-status: current (as of 2026-04-16).
+status: current (as of 2026-04-17).
+
+**naming note (2026-04-17)**: "MLA" is an external paper name (DeepSeek, 2024). the project's own component with the same mathematical form is `compressed attention`. the bridge from biological attention to the machine-side architecture remains valid as a comparison; the paper-name "MLA" is replaced by the project-internal name in curriculum and future wiki text. curriculum chapters cover biological attention (ch. 18 predictive coding section on precision weighting) and compressed attention (ch. 26 attention as an operation).
 
 ## the biological mechanism
 

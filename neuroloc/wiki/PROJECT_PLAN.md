@@ -4,7 +4,15 @@ status: current (as of 2026-04-17).
 
 this file is the canonical, persistent project state. any agent picking up the project starts here. updating this file is a hard rule with prosecutor enforcement (see `CLAUDE.md` and the rule section at the bottom of this file).
 
-last updated: 2026-04-17 (SIXTH paid run completed and closed the project's clearest test of the slot substrate. `run3_cognition_phase1` trained the slot memory at 355M params with retention fixed and FLA active on a synthetic cognition corpus where retrieval is an explicit 50% fraction of the training blocks. 4000 steps, 131M tokens, 72 min on h200. val_bpb plateaued at 6.3519 from step 150 and never descended; passkey @ 256 = 0/100, @ 1024 = 0/100 before the user stopped the pod. this run was the predicted discriminant from `wiki/synthesis/training_objective_vs_architectural_goal.md`: the architecture-cannot-be-trained-by-sgd branch fires. diagnosis is now that the substrate needs architectural intervention — candidates ranked in `wiki/synthesis/substrate_requires_architectural_change.md` (output gate init, auxiliary retrieval loss, orthogonal key init, warm-start from hand-placed addresses, substrate replacement). another paid run on the current substrate with no changes is strictly predicted to produce 0% passkey and is not authorised. run card at `wiki/tests/run3_cognition_phase1_results.md`.)
+last updated: 2026-04-17 (CURRICULUM PIVOT recorded same day as the sixth paid run closed. see `## pivot to teaching curriculum` immediately below for the current active workstream; see `## status` section for the pre-pivot diagnosis this file previously centered on. earlier in the day: SIXTH paid run completed and closed the project's clearest test of the slot substrate. `run3_cognition_phase1` trained the slot memory at 355M params with retention fixed and FLA active on a synthetic cognition corpus where retrieval is an explicit 50% fraction of the training blocks. 4000 steps, 131M tokens, 72 min on h200. val_bpb plateaued at 6.3519 from step 150 and never descended; passkey @ 256 = 0/100, @ 1024 = 0/100 before the user stopped the pod. this run was the predicted discriminant from `wiki/synthesis/training_objective_vs_architectural_goal.md`: the architecture-cannot-be-trained-by-sgd branch fires. diagnosis is now that the substrate needs architectural intervention — candidates ranked in `wiki/synthesis/substrate_requires_architectural_change.md` (output gate init, auxiliary retrieval loss, orthogonal key init, warm-start from hand-placed addresses, substrate replacement). another paid run on the current substrate with no changes is strictly predicted to produce 0% passkey and is not authorised. run card at `wiki/tests/run3_cognition_phase1_results.md`.)
+
+## pivot to teaching curriculum (2026-04-17)
+
+**the project's active workstream is the teaching PDF curriculum** specified in the plan file at `~/.claude/plans/compressed-dancing-haven.md`. paid compute is paused indefinitely. the architectural-intervention track (A-E candidates in `wiki/synthesis/substrate_requires_architectural_change.md`) remains in the research backlog but is NOT the active workstream — it becomes active again only when the curriculum has produced enough fluency in the user to choose and execute an intervention independently. any agent picking up this project reads the curriculum track as the current work, not the architectural-intervention track.
+
+the curriculum specifies 36 chapters across 6 phases that teach a reader from near-zero math and biology prerequisites up through machine-learning math, advanced neuroscience, and paper-implementation competence. each chapter is a 20-25 page PDF compiled from LaTeX, produced in strict sequence with per-chapter outline approval, parallel research agents, prosecutor validation on both research and draft, and user review-revision cycle before finalization. chapter details at `## curriculum track` below.
+
+**while the curriculum is the active workstream, no paid compute run is authorised.** this is stricter than the prior `## status` rule (which only prohibited paid runs without an A-E architectural intervention); the curriculum pivot additionally requires curriculum completion sufficient to support a principled architectural-intervention choice before any paid run returns.
 
 ## status
 
@@ -39,6 +47,78 @@ last updated: 2026-04-17 (SIXTH paid run completed and closed the project's clea
 **status (A-C)**: pending implementation and prosecutor pass. none of the three interventions is currently coded as a preset in `god_machine.py`.
 
 **status (D, E)**: not yet scoped. selection depends on outcome of any A-C paid run.
+
+## curriculum track
+
+the teaching PDF curriculum is the project's active workstream as of 2026-04-17. the master specification lives in the plan file at `~/.claude/plans/compressed-dancing-haven.md`. this section gives the one-line-per-chapter outline and the production protocol summary for any agent picking up the project from the wiki.
+
+### 36-chapter outline
+
+#### phase 1 — foundations of math (ch. 1-8)
+
+- ch. 1 — what a number means (arithmetic, variables, functions, injective/surjective/bijective)
+- ch. 2 — how things change (derivatives from first principles, chain rule, partials)
+- ch. 3 — how things accumulate (integrals, fundamental theorem of calculus, summation)
+- ch. 4 — the language of direction (vectors, dot products, norms, projections, orthogonality)
+- ch. 5 — the language of transformations (matrices as linear operators, outer vs inner product, rank, nullspace)
+- ch. 6 — the language of multi-dimensional change (Jacobian, gradient, Hessian, Taylor expansion)
+- ch. 7 — the language of uncertainty (probability, distributions, expectation, variance, Bayes)
+- ch. 8 — the language of information (entropy, KL, mutual information, channel capacity, rate-distortion)
+
+#### phase 2 — foundations of biology (ch. 9-14)
+
+- ch. 9 — what a cell is (membrane, organelles, DNA, transcription, translation)
+- ch. 10 — electricity in a cell (ions, Nernst equation, resting potential, Goldman equation)
+- ch. 11 — the action potential (Hodgkin-Huxley, sodium and potassium currents, refractory period, propagation)
+- ch. 12 — the synapse (chemical vs electrical, neurotransmitters, receptors, short-term plasticity)
+- ch. 13 — the neuron as a compartmental computer (dendrites, soma, axon, spike initiation, BAC firing)
+- ch. 14 — circuits of neurons (excitation-inhibition balance, cortical microcircuit, PV/SST/VIP interneurons)
+
+#### phase 3 — computation in the brain (ch. 15-20)
+
+- ch. 15 — what a neuron computes (linear integration, nonlinear activation, firing rate vs spike timing, tuning curves)
+- ch. 16 — what a population represents (rate, temporal, sparse, population coding; Fisher information)
+- ch. 17 — how the brain learns (Hebbian, STDP, BCM, three-factor learning, neuromodulation as third factor)
+- ch. 18 — what the cortex does (hierarchical feature extraction, predictive coding, free-energy principle)
+- ch. 19 — what the hippocampus does (pattern separation in DG, pattern completion in CA3, indexing theory)
+- ch. 20 — what consolidation does (sleep stages, sharp-wave ripples, hippocampus-to-cortex transfer, reconsolidation)
+
+#### phase 4 — math for machine learning (ch. 21-26)
+
+- ch. 21 — the loss function (MSE, MAE, cross-entropy, geometric interpretation of minimization)
+- ch. 22 — gradient descent (algorithm, learning rate, convergence, stochastic vs batch, momentum, Adam)
+- ch. 23 — backpropagation (chain rule through computational graphs, reverse-mode autodiff, vanishing/exploding gradients)
+- ch. 24 — neural networks (MLP, activations, universal approximation, residual connections)
+- ch. 25 — recurrence and state-space dynamics (RNN, LSTM, GRU, state-space model formulation, gated layers as ODE discretizations)
+- ch. 26 — attention as an operation (scaled dot-product, softmax, transformer, linear attention, rotary positional encoding)
+
+#### phase 5 — advanced architectures and compression (ch. 27-32)
+
+- ch. 27 — associative memory (Hopfield networks, Hebbian storage, pattern completion, capacity ~0.14N)
+- ch. 28 — modern Hopfield networks (Ramsauer et al. 2020, exponential capacity via softmax, connection to attention)
+- ch. 29 — fast-weight memory (outer-product state, delta rule, Kohonen, Schlag, Titans test-time memory)
+- ch. 30 — sparse and quantized coding (k-WTA, ternary encoding, Bitnet b1.58, VQ-VAE, residual VQ, rate-distortion geometry)
+- ch. 31 — generative and indexed memory (NeRF, memorizing transformers, Larimar, world models)
+- ch. 32 — compression beyond quantization (project's six-mechanism thesis: predictive filtering, generative replacement, schema-delta, content-addressable indexing, manifold abstraction, reconsolidation)
+
+#### phase 6 — paper implementation (ch. 33-36)
+
+- ch. 33 — how to read a paper (systematic method, five-pass reading, extracting load-bearing equations)
+- ch. 34 — implementing modern Hopfield networks from Ramsauer 2020 (paper-to-code walkthrough, working PyTorch)
+- ch. 35 — implementing Titans from the paper (fast-weight MLP with surprise-gated updates, passkey benchmark)
+- ch. 36 — implementing a slot-addressed memory (the project's substrate as the final worked example)
+
+### production protocol summary
+
+per chapter: (1) outline draft → (2) user approves outline → (3) parallel research agents across wiki + cited papers + classical textbooks + online resources + reference implementations + recent papers → (4) prosecutor agents validate research for factual accuracy, internal consistency, completeness, naming compliance, and pedagogical coverage → (5) 20-25 page LaTeX draft → (6) prosecutor agents validate draft → (7) user reviews draft → (8) revision → (9) PDF finalization → (10) next chapter. full protocol in the plan file.
+
+### naming rule for the curriculum
+
+published-technique names ("MLA", "KDA", "Hopfield", "Hebbian", "STDP", "BCM", "k-WTA", "ternary spike") are permitted in chapters ONLY when (a) quoting an external source or (b) naming an external paper's architecture (e.g., "in Ramsauer 2020, the architecture is called 'modern Hopfield networks'"). the project's own components are always named by what they do mathematically or by the project glossary terms (`matrix memory`, `compressed attention`, `slot memory`, `output gate`, `surprise ratio`, etc.). every chapter's research output and draft passes a naming-compliance prosecutor before finalization.
+
+### decision gate for the curriculum
+
+the curriculum's success criterion is defined in the plan file: at the end of phase 6 (after ch. 36 finalizes), the reader can read a raw research paper, extract the mathematical operation, translate it to working code, and evaluate it. if at that point the reader cannot complete the three paper-implementation chapters independently (ch. 34, 35, 36), the curriculum has failed and must be revised before declaring completion. paid compute remains paused through the entire curriculum; the next paid run returns only after the curriculum has succeeded AND an architectural intervention has been selected and cpu-validated per the pre-pivot experimental method below.
 
 ## experimental method
 
@@ -172,6 +252,7 @@ every entry below is an append-only record of a change to this file. format: `da
 - **2026-04-15** — deyan todorov — count correction to the "major realisation" entry above. that entry was appended after `run2_slot_memory` (the fourth paid run, with broken inherited retention) but BEFORE `run2_slot_memory_retention_fixed` completed later the same day. the analysis is correct but the count is off by one: the realisation is supported by FIVE paid runs, not four. the fifth run (`run2_slot_memory_retention_fixed`) is what made the realisation testable in the first place — it was the only paid run with retention not in the evaporating regime, and it produced the same 0/100 passkey at 256 as the four prior runs. so the prior entry's claim "four paid runs have produced 0% passkey across two substrates and two retention regimes" should be read as "five paid runs ..." for any future agent. this entry is appended per the append-only rule rather than editing the prior one.
 - **2026-04-17** — deyan todorov — phase-1 cognition training infrastructure committed. new module `neuroloc/data/cognition_corpus.py` generates synthetic byte corpora containing the three task primitives the paid architecture is supposed to exercise: passkey retrieval at varied distance (50% of blocks), key-value associative recall (30%), and sequence copy (20%). ASCII hex digit alphabet, distinct marker byte triples per task type, `generate_cognition_corpus` and `split_train_val` entry points, 11 unit tests covering determinism, mix-weight validation, alphabet restriction, and byte-level recall correctness. `neuroloc/model/god_machine.py` gains `NM_DATASET=cognition` option that routes through the new generator. new preset `run3_cognition_phase1` keeps the slot substrate and retention fix (alpha_log_mean=5.0) but replaces fineweb-edu with the cognition corpus. added to `gated_baseline_presets` so it inherits `NM_AUTHORIZE_FULL_RUN` enforcement, `retrieval_gate` persistence, and fail-closed exit on 0% passkey. also committed: structural guard `_assert_fla_available_if_requested` which fails loudly at startup if a preset requests FLA but `flash-linear-attention` is not importable on the runtime — closes the silent fall-through class documented in `wiki/mistakes/run2_slot_memory_fla_silent_fall_through.md`. escape hatch `NM_FORCE_NO_FLA=1` flips `use_fla_if_available` to False at runtime-override time for intentional non-FLA runs. `use_fla_if_available` removed from the canonical config hash since it is a runtime-environment knob, not a launch-contract property. full test suite passes (64 tests, 0 fail). smoke test exercises the new preset. the next paid run is this phase 1 — not yet launched; awaiting pod provisioning and explicit authorisation.
 - **2026-04-17** — deyan todorov — **SIXTH paid run closed**. `run3_cognition_phase1` trained the slot substrate at 355m params on 131m tokens of synthetic cognition data at 33k tok/s for 72 min on h200. val_bpb plateaued at 6.3519 (the alphabet prior for the cognition corpus's byte distribution) from step 150 and never descended. partial eval before user stopped the pod reported passkey @ 256 = 0/100 and passkey @ 1024 = 0/100. this run was the predicted discriminant from `wiki/synthesis/training_objective_vs_architectural_goal.md`: the article proposed option 3 two-phase pretraining as the cleanest way to test "is the training objective the problem or is the architecture the problem?" the test executed; the answer is "the architecture cannot be trained by sgd at this configuration". new analysis article `wiki/synthesis/substrate_requires_architectural_change.md` catalogs the observation and proposes five candidate architectural interventions ranked by cost: (A) open slot output gate at init, (B) auxiliary retrieval loss on marker-following positions, (C) orthogonal prototype key init, (D) hand-placed-address warm start, (E) substrate replacement. run card at `wiki/tests/run3_cognition_phase1_results.md`. total paid cost across the six runs is ~$20 of h200 compute. architecture development remains paused; no further paid launch authorised until at least one of the candidate interventions is implemented and cpu-validated. "next paid run is another LM or cognition training on the current substrate" is specifically ruled out.
+- **2026-04-17** — deyan todorov — **CURRICULUM PIVOT**. the project's active workstream is now the teaching PDF curriculum at `~/.claude/plans/compressed-dancing-haven.md`. paid compute is paused indefinitely; the architectural-intervention track (A-E candidates in `substrate_requires_architectural_change.md`) remains in the research backlog but is not active. the curriculum specifies 36 chapters across 6 phases (math fundamentals → biology fundamentals → computation in the brain → ML math → advanced architectures and compression → paper implementation) at 20-25 pages per chapter in English LaTeX, written in the pedagogical voice of `/Projects/dzipobel` adapted to English. chapter production uses parallel research agents (wiki + cited papers + classical textbooks + online resources + reference implementations + recent papers) with prosecutor validation on both the research output and the draft. the user executes chapter production themselves from the plan file. a new `## pivot to teaching curriculum (2026-04-17)` section was added above `## status` and a new `## curriculum track` section was added above `## experimental method` with the full 36-chapter outline. the `## status`, `## hypothesis under test`, `## experimental method`, and `## decision rules` sections remain as historical record for when the architectural-intervention track resumes.
 
 ## the rule
 

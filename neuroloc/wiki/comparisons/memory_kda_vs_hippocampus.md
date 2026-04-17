@@ -1,6 +1,8 @@
 # memory: KDA vs hippocampus
 
-status: current (as of 2026-04-16).
+status: current (as of 2026-04-17).
+
+**naming note (2026-04-17)**: "KDA" is an external paper name (Moonshot AI, 2025). the project's own component with the same mathematical form is `matrix memory`. this comparison remains valid AS a comparison between an outer-product decayed memory (whatever it is called in a given paper) and hippocampal memory. the comparison IS current; the name "KDA" in the title is legacy and should be read as "the outer-product decayed memory form" in the curriculum era. curriculum chapter ch. 19 (what the hippocampus does) covers the biological side; chapter ch. 29 (fast-weight memory) covers the mathematical side under the project's naming.
 
 ## the question
 

@@ -1,6 +1,6 @@
 # neuroloc index
 
-status: current (as of 2026-04-17).
+status: current (as of 2026-04-17, curriculum pivot recorded).
 
 this is the flat reference catalog of every article in the wiki, grouped
 by topic within each top-level directory. for guided navigation, start
@@ -45,6 +45,19 @@ reasoning documents. one is superseded, ten are current.
 - [[synthesis/sparsity_from_biology_to_ternary_spikes]] — firing-rate analyses
 - [[synthesis/timescale_separation]] — KDA / Mamba / MLA timescale split
 - [[synthesis/linear_attention_retrieval_wall]] — SUPERSEDED. retained for evidence continuity.
+
+## teaching curriculum (2026-04-17, active workstream)
+
+**the project's active workstream is the teaching PDF curriculum** specified in the plan file at `~/.claude/plans/compressed-dancing-haven.md`. paid compute is paused indefinitely; the architectural-intervention track is held in the research backlog until the curriculum completes. the curriculum specifies 36 chapters across 6 phases at 20-25 pages per chapter in English LaTeX:
+
+- phase 1 (ch. 1-8): foundations of math — numbers, change, accumulation, vectors, matrices, multi-dimensional change, probability, information
+- phase 2 (ch. 9-14): foundations of biology — cells, electricity, action potentials, synapses, compartmental neurons, circuits
+- phase 3 (ch. 15-20): computation in the brain — what neurons compute, population coding, plasticity, cortex, hippocampus, consolidation
+- phase 4 (ch. 21-26): math for machine learning — loss, gradient descent, backpropagation, neural networks, recurrence, attention
+- phase 5 (ch. 27-32): advanced architectures and compression — associative memory, modern Hopfield, fast-weight memory, sparse/quantized coding, generative memory, the six-mechanism compression thesis
+- phase 6 (ch. 33-36): paper implementation — how to read a paper, modern Hopfield from Ramsauer 2020, Titans from the paper, the project's slot memory from scratch
+
+per-chapter production protocol: outline → user approval → parallel research agents (wiki + cited papers + classical textbooks + online resources + reference implementations + recent papers) → prosecutor agents validate research → LaTeX draft → prosecutor on draft → user review → revision → finalized PDF → next chapter. naming rule: published-technique names only when quoting external sources or naming external paper's architectures; the project's own components use the glossary terms (`matrix memory`, `compressed attention`, `slot memory`, `output gate`, `surprise ratio`). full detail in the plan file and in `PROJECT_PLAN.md` section "curriculum track".
 
 ## paid-run cards (tests/, historical context only)
 

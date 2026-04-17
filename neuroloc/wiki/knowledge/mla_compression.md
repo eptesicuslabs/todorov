@@ -1,6 +1,8 @@
 # Multi-Head Latent Attention (MLA): Low-Rank KV Compression
 
-status: current (as of 2026-04-16).
+status: current (as of 2026-04-17).
+
+**naming note (2026-04-17)**: "MLA" / "Multi-Head Latent Attention" is an external paper name (DeepSeek, 2024). per the project's naming rule, the project's own component with the same mathematical form (low-rank projected dot-product attention with rotary positional encoding) is called **`compressed attention`** — see glossary in `wiki/PROJECT_PLAN.md`. this article is preserved as an explanation of the external paper the project drew from; it is NOT a description of the project's own current architecture. curriculum chapter ch. 26 covers the mathematical operation under its project-native name.
 
 Source papers:
 - "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model"

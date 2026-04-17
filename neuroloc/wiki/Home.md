@@ -1,6 +1,10 @@
 # eptesicus laboratories research wiki
 
-status: current (as of 2026-04-17).
+status: current (as of 2026-04-17, curriculum pivot recorded).
+
+## active workstream: teaching curriculum
+
+as of 2026-04-17 the project's active workstream is the teaching PDF curriculum specified at `~/.claude/plans/compressed-dancing-haven.md`. paid compute paused indefinitely. 36 chapters across 6 phases (math fundamentals, biology fundamentals, brain computation, ML math, advanced architectures and compression, paper implementation) at 20-25 pages per chapter. see `INDEX.md` section "teaching curriculum" and `PROJECT_PLAN.md` section "curriculum track" for the chapter list and production protocol.
 
 ## neuroloc -- biological neural computation
 

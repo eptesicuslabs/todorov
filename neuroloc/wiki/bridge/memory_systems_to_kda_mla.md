@@ -1,6 +1,8 @@
 # bridge: memory systems to KDA and MLA
 
-status: current (as of 2026-04-16).
+status: current (as of 2026-04-17).
+
+**naming note (2026-04-17)**: "KDA" and "MLA" are external paper names. the project's own components with those mathematical forms are `matrix memory` (for KDA's outer-product decayed state) and `compressed attention` (for MLA's low-rank projected dot-product attention). the BRIDGE that this article describes — mapping biological memory systems onto the project's memory architecture — remains valid in structure, but the project-internal names supersede the paper names for curriculum and future wiki text. curriculum chapters ch. 19-20 (hippocampus and consolidation) and ch. 26, 29, 36 (the machine-side architectures) cover the material under the project's naming.
 
 ## the biological mechanism
 

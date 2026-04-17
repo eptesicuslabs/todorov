@@ -1,6 +1,8 @@
 # bridge: synaptic plasticity to KDA delta rule
 
-status: current (as of 2026-04-16).
+status: current (as of 2026-04-17).
+
+**naming note (2026-04-17)**: "KDA delta rule" refers to the delta-rule form used in the external paper KDA (Moonshot AI, 2025). the project's own component with the same mathematical form is `matrix memory`. the "delta rule" itself is a mathematical operation name (Widrow-Hoff 1960) and is acceptable in curriculum text when describing the operation; the paper-name "KDA" is not. curriculum chapter ch. 17 (how the brain learns) covers biological plasticity; chapter ch. 29 (fast-weight memory) covers the delta-rule and its relation to outer-product memory under the project's naming.
 
 ## the biological mechanism
 
