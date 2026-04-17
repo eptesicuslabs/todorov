@@ -3932,6 +3932,9 @@ def main() -> None:
             allow_wikitext_fallback=_env_flag("ALLOW_WIKITEXT_FALLBACK"),
         )
     elif dataset_mode == "cognition":
+        project_root = Path(__file__).resolve().parents[2]
+        if str(project_root) not in sys.path:
+            sys.path.insert(0, str(project_root))
         from neuroloc.data.cognition_corpus import (
             generate_cognition_corpus,
             split_train_val,
