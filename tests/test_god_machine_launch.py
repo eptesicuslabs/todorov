@@ -1153,3 +1153,89 @@ def test_nm_force_no_fla_flips_config_flag(monkeypatch: pytest.MonkeyPatch) -> N
     overrides = god_machine._apply_runtime_env_overrides(cfg)
     assert cfg.use_fla_if_available is False
     assert any("NM_FORCE_NO_FLA" in s for s in overrides)
+
+
+def test_main_raises_when_run3_cognition_phase1_requests_fla_but_package_missing(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(god_machine, "FLA_AVAILABLE", False)
+    monkeypatch.setattr(god_machine, "fused_recurrent_simple_gla", None)
+    monkeypatch.setenv("NM_PRESET", "run3_cognition_phase1")
+    monkeypatch.setenv("NM_OUTPUT_DIR", str(tmp_path / "cognition_fla_missing"))
+    monkeypatch.setenv("NM_AUTHORIZE_FULL_RUN", "1")
+    monkeypatch.setenv("NM_DATASET", "cognition")
+    monkeypatch.delenv("NM_FORCE_NO_FLA", raising=False)
+    monkeypatch.delenv("SMOKE_TEST", raising=False)
+    monkeypatch.delenv("NM_SKIP_EVAL", raising=False)
+    monkeypatch.delenv("NM_SKIP_VALIDATION", raising=False)
+    with pytest.raises(RuntimeError, match="flash-linear-attention is not"):
+        god_machine.main()
+
+
+def test_main_routes_nm_dataset_cognition_to_cognition_corpus(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("NM_FORCE_NO_FLA", "1")
+    captured: dict[str, Any] = {}
+
+    def fake_train_model(
+        cfg: god_machine.Config,
+        train_data: bytes,
+        val_data: bytes,
+        name: str,
+        output_dir: Path,
+        dataset_source: str = "unknown",
+        stop_after_steps: int | None = None,
+        launch_contract: dict[str, object] | None = None,
+    ) -> dict[str, object]:
+        captured["dataset_source"] = dataset_source
+        captured["train_len"] = len(train_data)
+        captured["val_len"] = len(val_data)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        config_hash = god_machine._config_hash(god_machine._cfg_to_dict(cfg))
+        (output_dir / f"{name}_metadata.json").write_text(
+            json.dumps({"run": name, "config_hash": config_hash, "dataset_source": dataset_source}),
+            encoding="utf-8",
+        )
+        (output_dir / f"{name}_results.json").write_text(
+            json.dumps({"run": name, "current_step": cfg.max_steps, "final": True, "metadata": {"config_hash": config_hash}}),
+            encoding="utf-8",
+        )
+        (output_dir / f"{name}_metrics.jsonl").write_text(
+            '{"event":"run_start"}\n{"event":"run_end"}\n',
+            encoding="utf-8",
+        )
+        return {"best_val_bpb": 1.0, "total_steps": cfg.max_steps, "tokens_seen_total": 0}
+
+    monkeypatch.setattr(god_machine, "train_model", fake_train_model)
+    monkeypatch.setattr(god_machine, "GodMachine", _DummyModel)
+    monkeypatch.setattr(
+        god_machine,
+        "_device_metadata",
+        lambda: {
+            "device": "cuda",
+            "device_capability": [9, 0],
+            "device_total_memory_gb": 141.0,
+            "device_multi_processor_count": 132,
+        },
+    )
+    monkeypatch.setattr(god_machine.torch, "load", lambda *args, **kwargs: {})
+    monkeypatch.setenv("NM_PRESET", "run3_cognition_phase1")
+    monkeypatch.setenv("NM_OUTPUT_DIR", str(tmp_path / "cognition_run"))
+    monkeypatch.setenv("NM_AUTHORIZE_FULL_RUN", "1")
+    monkeypatch.setenv("NM_DATASET", "cognition")
+    monkeypatch.setenv("NM_COGNITION_SIZE", "200000")
+    monkeypatch.setenv("NM_SKIP_EVAL", "0")
+    monkeypatch.delenv("SMOKE_TEST", raising=False)
+    monkeypatch.delenv("NM_SKIP_VALIDATION", raising=False)
+    try:
+        god_machine.main()
+    except RuntimeError:
+        pass
+    assert captured, "train_model was not invoked; cognition dataset did not wire through"
+    assert captured["dataset_source"].startswith("cognition-synthetic"), (
+        f"expected cognition-synthetic dataset, got {captured['dataset_source']!r}"
+    )
+    assert captured["train_len"] + captured["val_len"] == 200_000
