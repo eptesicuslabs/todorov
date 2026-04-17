@@ -5,6 +5,7 @@ docs/superpowers/
 *.kaggle/
 kaggle.json
 data/
+!neuroloc/data/
 __pycache__/
 *.pyc
 .pytest_cache/
