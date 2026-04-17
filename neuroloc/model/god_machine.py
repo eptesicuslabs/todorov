@@ -1501,6 +1501,9 @@ def _capture_git_state_fingerprint(ignore_paths: set[Path] | None = None) -> dic
         return result
 
 
+_CONTRACT_HASH_EXCLUDES = ("use_fla_if_available",)
+
+
 def _cfg_to_dict(cfg: Config) -> dict:
     d = asdict(cfg)
     for k, v in list(d.items()):
@@ -1510,7 +1513,8 @@ def _cfg_to_dict(cfg: Config) -> dict:
 
 
 def _config_hash(cfg_dict: dict) -> str:
-    s = json.dumps(cfg_dict, sort_keys=True, default=str)
+    d = {k: v for k, v in cfg_dict.items() if k not in _CONTRACT_HASH_EXCLUDES}
+    s = json.dumps(d, sort_keys=True, default=str)
     return hashlib.sha256(s.encode()).hexdigest()[:16]
 
 
@@ -3263,6 +3267,7 @@ def smoke_test() -> None:
     _smoke_preset_baseline("run1_baseline_noerasure")
     _smoke_preset_baseline("run1a_retention_ablation")
     _smoke_preset_baseline("run2_slot_memory")
+    _smoke_preset_baseline("run3_cognition_phase1")
 
     log("all smoke checks passed")
 

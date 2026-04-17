@@ -26,6 +26,7 @@ def _god_machine_env(tmp_path: Path, **overrides: str) -> dict[str, str]:
             env.pop(key, None)
     env["PYTHONUNBUFFERED"] = "1"
     env["NM_OUTPUT_DIR"] = str(tmp_path / "run")
+    env["NM_FORCE_NO_FLA"] = "1"
     env.update(overrides)
     return env
 
@@ -353,6 +354,7 @@ def test_main_benchmark_defaults_emit_manifest_compatible_with_reader(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setenv("NM_FORCE_NO_FLA", "1")
     _stub_god_machine_main(monkeypatch, default_output_root=tmp_path)
     monkeypatch.setenv("NM_PRESET", "run1_baseline_noerasure")
     monkeypatch.setenv("NM_DATASET", "fineweb")
@@ -380,6 +382,7 @@ def test_main_benchmark_writer_preserves_symlinked_output_alias_for_reader_rejec
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setenv("NM_FORCE_NO_FLA", "1")
     external_target = tmp_path / "outside_target" / "run1_baseline_noerasure_bench"
     external_target.mkdir(parents=True, exist_ok=True)
     linked_output_dir = tmp_path / "linked_bench"
@@ -716,6 +719,7 @@ def test_main_full_launch_persists_failed_retrieval_gate_and_exits_nonzero(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setenv("NM_FORCE_NO_FLA", "1")
     output_dir = tmp_path / "run"
     _write_valid_benchmark_manifest(tmp_path, manifest_output_dir=output_dir)
     _stub_god_machine_main(
@@ -728,6 +732,7 @@ def test_main_full_launch_persists_failed_retrieval_gate_and_exits_nonzero(
     )
     monkeypatch.setenv("NM_PRESET", "run1_baseline_noerasure")
     monkeypatch.setenv("NM_OUTPUT_DIR", str(output_dir))
+    monkeypatch.setenv("NM_FORCE_NO_FLA", "1")
     monkeypatch.setenv("NM_AUTHORIZE_FULL_RUN", "1")
     monkeypatch.setenv("NM_DATASET", "fineweb")
     monkeypatch.delenv("SMOKE_TEST", raising=False)
@@ -749,11 +754,13 @@ def test_main_full_launch_persists_missing_checkpoint_gate_and_exits_nonzero(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setenv("NM_FORCE_NO_FLA", "1")
     output_dir = tmp_path / "run"
     _write_valid_benchmark_manifest(tmp_path, manifest_output_dir=output_dir)
     _stub_god_machine_main(monkeypatch, create_best_checkpoint=False)
     monkeypatch.setenv("NM_PRESET", "run1_baseline_noerasure")
     monkeypatch.setenv("NM_OUTPUT_DIR", str(output_dir))
+    monkeypatch.setenv("NM_FORCE_NO_FLA", "1")
     monkeypatch.setenv("NM_AUTHORIZE_FULL_RUN", "1")
     monkeypatch.setenv("NM_DATASET", "fineweb")
     monkeypatch.delenv("SMOKE_TEST", raising=False)
@@ -775,6 +782,7 @@ def test_main_full_launch_persists_eval_error_gate_and_exits_nonzero(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setenv("NM_FORCE_NO_FLA", "1")
     output_dir = tmp_path / "run"
     _write_valid_benchmark_manifest(tmp_path, manifest_output_dir=output_dir)
 
@@ -784,6 +792,7 @@ def test_main_full_launch_persists_eval_error_gate_and_exits_nonzero(
     _stub_god_machine_main(monkeypatch, eval_behavior=raise_eval_error)
     monkeypatch.setenv("NM_PRESET", "run1_baseline_noerasure")
     monkeypatch.setenv("NM_OUTPUT_DIR", str(output_dir))
+    monkeypatch.setenv("NM_FORCE_NO_FLA", "1")
     monkeypatch.setenv("NM_AUTHORIZE_FULL_RUN", "1")
     monkeypatch.setenv("NM_DATASET", "fineweb")
     monkeypatch.delenv("SMOKE_TEST", raising=False)
@@ -805,6 +814,7 @@ def test_main_full_launch_persists_checkpoint_mismatch_gate_and_exits_nonzero(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setenv("NM_FORCE_NO_FLA", "1")
     output_dir = tmp_path / "run"
     _write_valid_benchmark_manifest(tmp_path, manifest_output_dir=output_dir)
 
@@ -823,6 +833,7 @@ def test_main_full_launch_persists_checkpoint_mismatch_gate_and_exits_nonzero(
     monkeypatch.setattr(_DummyModel, "load_state_dict", lambda self, state, strict=False: MismatchResult())
     monkeypatch.setenv("NM_PRESET", "run1_baseline_noerasure")
     monkeypatch.setenv("NM_OUTPUT_DIR", str(output_dir))
+    monkeypatch.setenv("NM_FORCE_NO_FLA", "1")
     monkeypatch.setenv("NM_AUTHORIZE_FULL_RUN", "1")
     monkeypatch.setenv("NM_DATASET", "fineweb")
     monkeypatch.delenv("SMOKE_TEST", raising=False)
@@ -844,6 +855,7 @@ def test_main_full_launch_persists_checkpoint_load_error_gate_and_exits_nonzero(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setenv("NM_FORCE_NO_FLA", "1")
     output_dir = tmp_path / "run"
     _write_valid_benchmark_manifest(tmp_path, manifest_output_dir=output_dir)
     _stub_god_machine_main(
@@ -857,6 +869,7 @@ def test_main_full_launch_persists_checkpoint_load_error_gate_and_exits_nonzero(
     monkeypatch.setattr(god_machine.torch, "load", lambda *args, **kwargs: (_ for _ in ()).throw(ValueError("bad checkpoint")))
     monkeypatch.setenv("NM_PRESET", "run1_baseline_noerasure")
     monkeypatch.setenv("NM_OUTPUT_DIR", str(output_dir))
+    monkeypatch.setenv("NM_FORCE_NO_FLA", "1")
     monkeypatch.setenv("NM_AUTHORIZE_FULL_RUN", "1")
     monkeypatch.setenv("NM_DATASET", "fineweb")
     monkeypatch.delenv("SMOKE_TEST", raising=False)
