@@ -23,15 +23,23 @@ when these files disagree, resolve the disagreement into
 the current task actually touches that surface. do not require future sessions
 to read every subordinate file just to recover the project state.
 
-# teaching curriculum pivot (2026-04-17)
+# neural model research/test-material phase (2026-04-23)
 
-**the project's active workstream is the teaching PDF curriculum** specified in the plan file at `~/.claude/plans/compressed-dancing-haven.md`. paid compute is paused indefinitely. the architectural-intervention track (A-E candidates in `neuroloc/wiki/synthesis/substrate_requires_architectural_change.md`) remains in the research backlog but is NOT the active workstream; it resumes only when the curriculum has produced enough fluency to choose and execute an intervention independently.
+**the active scientific object is the neural model.** the old todorov architecture and prior paid runs are historical evidence about failed substrates and trainability, not the live design identity. the approved no-paid-compute preparation lane is `neuroloc/wiki/synthesis/neural_model_research_test_material_plan.md`: every proposed local-neuron, memory, addressing, interference, compression, reconstruction, replay, rollout, and trainability mechanism must have a concise mechanism dossier before any metric code, model code, or intervention preset is accepted.
+
+chapter 1 remains review-ready after the 2026-04-23 math correction pass, and chapter 2 remains outline-only awaiting approval. this does not authorize chapter 2 research, architecture execution, paid compute, h200, kaggle, or pod work.
+
+the next executable target after the research/test-material package is a tiny trainable neural-model mirror on the same latent worlds as the symbolic battery, not the full paid model path.
+
+# teaching curriculum package (2026-04-17; preserved after 2026-04-23)
+
+**the teaching PDF curriculum remains preserved and reviewable** in the plan file at `~/.claude/plans/compressed-dancing-haven.md`, but the current scientific planning lane is the 2026-04-23 neural model research/test-material phase above. paid compute is paused indefinitely. the architectural-intervention track (A-E candidates in `neuroloc/wiki/synthesis/substrate_requires_architectural_change.md`) remains in the research backlog but is NOT the active workstream; it resumes only after dossier-driven test material, cpu controls, and a selected intervention exist.
 
 the curriculum specifies 36 chapters across 6 phases (math fundamentals, biology fundamentals, brain computation, ML math, advanced architectures and compression, paper implementation) at 20-25 pages per chapter in English LaTeX, produced with parallel research agents and prosecutor validation. full detail in the plan file and in `neuroloc/wiki/PROJECT_PLAN.md` section "pivot to teaching curriculum" + section "curriculum track".
 
-**curriculum-era rules** (apply while the curriculum is the active workstream):
+**curriculum rules** (apply when editing curriculum material):
 
-1. **no paid compute run is authorised.** the pod stays stopped through the entire curriculum. the next paid run returns only after curriculum completion AND an architectural intervention has been selected and cpu-validated per the pre-pivot experimental method.
+1. **no paid compute run is authorised.** the pod stays stopped through the curriculum and the neural-model research/test-material phase. paid compute can return only after dossier-driven test material, a tiny trainable mirror, cpu controls, telemetry, prosecutor-clean docs, and one explicit selected hypothesis exist.
 
 2. **published-technique names are restricted.** "MLA", "KDA", "Hopfield", "Hebbian", "STDP", "BCM", "k-WTA", "ternary spike" and other named published techniques are permitted in curriculum chapters (and in wiki/code going forward) ONLY when (a) quoting an external source or (b) naming an external paper's architecture (e.g., "in Ramsauer 2020, the architecture is called 'modern Hopfield networks'"). the project's own components are always named by what they do mathematically or by the project glossary terms: `matrix memory` (the asymmetric outer-product state with decay and optional write-side erasure), `compressed attention` (the low-rank projected dot-product attention with rotary positional encoding), `slot memory`, `output gate`, `surprise ratio`, etc. every chapter's research output and draft passes a naming-compliance prosecutor.
 
@@ -78,12 +86,13 @@ the full unified theory is in knowledge/unified_theory.md. the four families
 (C, B, R, Q) and their composition rules define the entire architecture.
 everything is C, B, R, or Q. everything composes.
 
-todorov architecture development is currently paused. the active project lane
-is the teaching curriculum in `pdf_curriculum/`, while neuroloc and the neural
-machine specification remain the reference and backlog surface behind that
-curriculum. `neuroloc/spec/blueprint.md` is a paused backlog design target, not
-the live workstream. todorov training resumes only after curriculum completion
-and a cpu-validated architectural intervention.
+todorov architecture development is historical evidence, not the live design
+identity. the active scientific lane is neural model research/test-material
+preparation, while the teaching curriculum in `pdf_curriculum/` remains
+review-ready and preserved. `neuroloc/spec/blueprint.md` is a paused backlog
+design target, not the live workstream. paid training resumes only after
+dossier-driven test material, a tiny trainable mirror, cpu controls, telemetry,
+and a selected intervention.
 
 # how to think
 
@@ -539,13 +548,14 @@ executed cleanly, the result just falsified the corpus-pivot hypothesis.
 run card: `wiki/tests/run3_cognition_phase1_results.md`.
 
 17 runs (9 kaggle t4 + 8 h200, ~$19-24 of paid compute spent).
-architecture development is paused for an architectural intervention from
-the A-E list above; another paid run on the current slot substrate with no
-architectural changes is strictly predicted to produce 0% passkey and must
-not be authorised. A-C are single-file changes that could bundle in one
-paid run; the expected outcome is still 0% passkey and anything above 1%
-is the discriminator. D and E require the cpu simulation gate A+B+C
-pattern before paid compute.
+architecture development is paused. the A-E list above is historical backlog
+evidence, not an active launch plan. another paid run on the current slot
+substrate with no architectural changes is strictly predicted to produce 0%
+passkey and must not be authorised. no intervention bundle is authorised. the
+active no-paid-compute path is the neural-model research/test-material plan:
+mechanism dossiers, explicit test material, symbolic verification, a tiny
+trainable mirror, one-mechanism cpu controls, telemetry, prosecutor-clean docs,
+and only then a selected paid hypothesis.
 
 # keeping this file current
 

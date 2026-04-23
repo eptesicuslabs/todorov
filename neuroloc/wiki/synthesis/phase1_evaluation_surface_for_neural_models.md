@@ -314,6 +314,7 @@ surface. the two should not be conflated.
 - [[state_action_memory_architecture_direction]]
 - [[visuals_to_phase1_nm_tests]]
 - [[indexed_reconstruction_compression]]
+- [[neural_model_research_test_material_plan]]
 - [[tests/run3_cognition_phase1_results]]
 
 ## references

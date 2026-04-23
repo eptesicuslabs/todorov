@@ -2,7 +2,7 @@
 
 status: current (as of 2026-04-23).
 
-update note: curriculum pivot retained, phase-1 backlog battery recorded, research-swarm synthesis and visual program added, compression-cluster role cleanup applied, naming/history cleanup applied, and indexed reconstruction compression added.
+update note: curriculum pivot retained, phase-1 backlog battery recorded, research-swarm synthesis and visual program added, compression-cluster role cleanup applied, naming/history cleanup applied, indexed reconstruction compression added, and the approved neural-model research/test-material plan plus mechanism dossiers added.
 
 this is the flat reference catalog of every article in the wiki, grouped
 by topic within each top-level directory. for guided navigation, start
@@ -16,6 +16,7 @@ at [[start_here]]. for the rules that govern every article below, see
 - [[concepts/start_here]] — guided onboarding path for new readers
 - [[PROJECT_PLAN]] — canonical project state (current run, decision rules, prior runs)
 - [[synthesis/research_implications_for_neural_model_direction]] — ranked summary of the 2026-04-23 research cluster
+- [[synthesis/neural_model_research_test_material_plan]] — approved no-paid-compute mechanism-dossier and test-material preparation plan
 - [[synthesis/indexed_reconstruction_compression]] — current compact-handle plus reconstruction compression direction
 - [[OPERATING_DIRECTIVE]] — binding rules for the wiki
 - [[concepts/the_brain_in_one_page]] — 80/20 bio overview
@@ -27,12 +28,12 @@ at [[start_here]]. for the rules that govern every article below, see
 
 ## current project-state analyses (synthesis/)
 
-all 25 articles in `synthesis/` are the load-bearing project-level
-reasoning documents. one is superseded, twenty-four are current.
+all 35 articles in `synthesis/` are the load-bearing project-level
+reasoning documents. one is superseded, thirty-four are current.
 
 - [[synthesis/substrate_requires_architectural_change]] — the
   post-run-3 analysis after the cognition corpus returned 0% passkey.
-  the canonical reference for why the next paid run needs an
+  the canonical reference for why any future paid-resume path needs an
   architectural intervention, not another training-corpus change.
   ranks five candidate interventions (A-E). supersedes the "next paid
   run needs a different corpus" stance in `training_objective_vs_architectural_goal`.
@@ -56,6 +57,27 @@ reasoning documents. one is superseded, twenty-four are current.
   compact-handle plus reconstruction direction after the source pass
   on cellular state, synaptic capacity, compression, and model-native
   evaluation gaps.
+- [[synthesis/neural_model_research_test_material_plan]] — the approved
+  no-paid-compute preparation plan requiring mechanism dossiers before
+  metric code, model code, or intervention presets.
+- [[synthesis/neural_model_dossier_local_neuron_state]] — local neuron
+  state as polarity-separated, membrane/subthreshold, and trace state.
+- [[synthesis/neural_model_dossier_memory_formation]] — write decisions,
+  output-gate fixed points, and learned versus oracle writes.
+- [[synthesis/neural_model_dossier_addressing]] — address margin, slot
+  entropy, key correlation, and shuffled-address controls.
+- [[synthesis/neural_model_dossier_interference]] — target-to-nontarget
+  read ratio, overwrite slope, and continual-write drift.
+- [[synthesis/neural_model_dossier_compression]] — compact handles,
+  schema or residual codes, provenance, and bits per useful memory.
+- [[synthesis/neural_model_dossier_reconstruction]] — shared decoder,
+  residual correction, and semantic versus verbatim success.
+- [[synthesis/neural_model_dossier_replay_rewrite]] — replay as rewrite
+  and recompression rather than passive recall.
+- [[synthesis/neural_model_dossier_iterative_rollout]] — hard-case
+  gains from extra latent compute.
+- [[synthesis/neural_model_dossier_trainability]] — gate init,
+  auxiliary loss, oracle read/write splits, and gradient-flow checks.
 - [[synthesis/beyond_next_token_for_neural_models]] — the external-ai
   synthesis on why latent state, action, bounded memory, and planning
   are the more relevant comparison frame than output-sequence modeling.
@@ -93,9 +115,9 @@ reasoning documents. one is superseded, twenty-four are current.
 - [[synthesis/timescale_separation]] — matrix memory / mamba / compressed-attention timescale split
 - [[synthesis/linear_attention_retrieval_wall]] — superseded. retained for evidence continuity.
 
-## teaching curriculum (2026-04-17, active workstream)
+## teaching curriculum (2026-04-17, preserved package)
 
-**the project's active workstream is the teaching PDF curriculum** specified in the plan file at `~/.claude/plans/compressed-dancing-haven.md`. paid compute is paused indefinitely; the architectural-intervention track is held in the research backlog until the curriculum completes. the curriculum specifies 36 chapters across 6 phases at 20-25 pages per chapter in English LaTeX:
+**the teaching PDF curriculum remains preserved and reviewable** in the plan file at `~/.claude/plans/compressed-dancing-haven.md`. after the 2026-04-23 decision, the current scientific planning lane is the neural model research/test-material phase, not immediate curriculum production and not architecture execution. paid compute is paused indefinitely. the curriculum specifies 36 chapters across 6 phases at 20-25 pages per chapter in English LaTeX:
 
 - phase 1 (ch. 1-8): foundations of math — numbers, change, accumulation, vectors, matrices, multi-dimensional change, probability, information
 - phase 2 (ch. 9-14): foundations of biology — cells, electricity, action potentials, synapses, compartmental neurons, circuits
@@ -104,14 +126,15 @@ reasoning documents. one is superseded, twenty-four are current.
 - phase 5 (ch. 27-32): advanced architectures and compression — associative memory, modern Hopfield, fast-weight memory, sparse/quantized coding, generative memory, the six-mechanism compression thesis
 - phase 6 (ch. 33-36): paper implementation — how to read a paper, modern Hopfield from Ramsauer 2020, Titans from the paper, the project's slot memory from scratch
 
-per-chapter production protocol: outline → user approval → parallel research agents (wiki + cited papers + classical textbooks + online resources + reference implementations + recent papers) → prosecutor agents validate research → LaTeX draft → prosecutor on draft → user review → revision → finalized PDF → next chapter. naming rule: published-technique names only when quoting external sources or naming external paper's architectures; the project's own components use the glossary terms (`matrix memory`, `compressed attention`, `slot memory`, `output gate`, `surprise ratio`). full detail in the plan file and in `PROJECT_PLAN.md` section "curriculum track".
+per-chapter production protocol: outline -> user approval -> parallel research agents (wiki + cited papers + classical textbooks + online resources + reference implementations + recent papers) -> prosecutor agents validate research -> latex draft -> prosecutor on draft -> user review -> revision -> finalized pdf -> next chapter. naming rule: published-technique names only when quoting external sources or naming external paper's architectures; the project's own components use the glossary terms (`matrix memory`, `compressed attention`, `slot memory`, `output gate`, `surprise ratio`). full detail in the plan file and in `PROJECT_PLAN.md` section "curriculum track".
 
 backlog note: when the architecture track resumes, it no longer starts
 from a blank "define the battery" state. the starting point is the
-implemented symbolic `biology_phase1` battery summarized in
-`synthesis/phase1_evaluation_surface_for_neural_models.md`, followed by
-the synthetic shared-world extension in
-`synthesis/synthetic_shared_world_bridge.md`.
+approved neural-model research/test-material plan, the mechanism
+dossiers, the implemented symbolic `biology_phase1` battery summarized
+in `synthesis/phase1_evaluation_surface_for_neural_models.md`, the
+remaining model-side parity harness, and then the synthetic shared-world
+extension in `synthesis/synthetic_shared_world_bridge.md`.
 
 ## paid-run cards (tests/, historical context only)
 
@@ -129,7 +152,7 @@ frozen evidence records, one per paid run:
 - [[mistakes/run2_slot_memory_decay_copy_paste]] — inherited retention bug
 - [[mistakes/run2_slot_memory_fla_silent_fall_through]] — FLA not installed silent slowdown
 
-## flat catalog — articles by topic (sums to 242 content articles; add 6 navigation/meta files plus tests/index.md for 249 total wiki markdown files on disk)
+## flat catalog — articles by topic (sums to 252 content articles; add 6 navigation/meta files plus tests/index.md for 259 total wiki markdown files on disk)
 
 ## mechanisms (61 articles)
 
@@ -273,13 +296,23 @@ frozen evidence records, one per paid run:
 ### legacy-title redirect
 - comparisons/memory_kda_vs_hippocampus.md -- superseded redirect to `comparisons/matrix_memory_vs_hippocampus.md`
 
-## synthesis (25 articles)
+## synthesis (35 articles)
 - synthesis/substrate_requires_architectural_change.md -- post-run-3 analysis: six paid runs at 0% passkey across two substrates and two corpora trigger the architecture-cannot-be-trained branch; ranks five candidate interventions (output gate init, auxiliary retrieval loss, orthogonal key init, warm-start, substrate replacement)
 - synthesis/training_objective_vs_architectural_goal.md -- root-cause analysis after five paid runs: LM loss on fineweb-edu does not exercise the memory substrate. the proposed discriminant (cognition corpus) ran as run3 and returned 0%, which triggered the article above
 - synthesis/phase1_evaluation_surface_for_neural_models.md -- backlog evaluation method for neural models: recognition / belief state, associative recollection, interference resistance, delayed use, episodic reuse, iterative reasoning, with the currently implemented `biology_phase1` symbolic battery and trainability controls
 - synthesis/synthetic_shared_world_bridge.md -- phase-2 bridge method: one latent world, many renderers; extend phase 1 through symbolic + image + toy-audio views of the same exact state rather than a bolt-on modality stack
 - synthesis/research_implications_for_neural_model_direction.md -- ranked implication summary from the 2026-04-23 research pass: actionable now, simulation next, preserve for later, and too weak
 - synthesis/indexed_reconstruction_compression.md -- current compact-handle plus reconstruction compression direction; stores addresses, schema/residual codes, and replay-rewrite proof obligations instead of pursuing more raw bits per neuron
+- synthesis/neural_model_research_test_material_plan.md -- approved no-paid-compute research/test-material plan requiring mechanism dossiers before metric code, model code, or intervention presets
+- synthesis/neural_model_dossier_local_neuron_state.md -- local neuron state as polarity-separated, membrane/subthreshold, and trace state
+- synthesis/neural_model_dossier_memory_formation.md -- write decisions, output-gate fixed points, and learned versus oracle writes
+- synthesis/neural_model_dossier_addressing.md -- address margin, slot entropy, key correlation, and shuffled-address controls
+- synthesis/neural_model_dossier_interference.md -- target-to-nontarget read ratio, overwrite slope, and continual-write drift
+- synthesis/neural_model_dossier_compression.md -- compact handles, schema or residual codes, provenance, and bits per useful memory
+- synthesis/neural_model_dossier_reconstruction.md -- shared decoder, residual correction, and semantic versus verbatim success
+- synthesis/neural_model_dossier_replay_rewrite.md -- replay as rewrite and recompression rather than passive recall
+- synthesis/neural_model_dossier_iterative_rollout.md -- hard-case gains from extra latent compute
+- synthesis/neural_model_dossier_trainability.md -- gate init, auxiliary loss, oracle read/write splits, and gradient-flow checks
 - synthesis/beyond_next_token_for_neural_models.md -- external-ai synthesis arguing for latent state, bounded memory, and planning as the relevant comparison frame
 - synthesis/world_models_imagination_and_planning.md -- how imagination and planning should be understood as latent rollout rather than text-chain length
 - synthesis/working_memory_as_controlled_access.md -- working memory reframed as gated access and routing
