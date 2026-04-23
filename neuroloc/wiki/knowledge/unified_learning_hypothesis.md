@@ -77,4 +77,4 @@ if it fails:
 - [[predictive_coding]]
 - [[hebbian_learning]]
 - [[bcm_theory]]
-- [[plasticity_to_kda_delta_rule]]
+- [[plasticity_to_matrix_memory_delta_rule]]

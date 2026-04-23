@@ -85,7 +85,7 @@ Hebbian learning is unsupervised. it captures correlations in the input but has 
 
 ## relationship to todorov
 
-the KDA delta rule state update S_t = diag(alpha) * S_{t-1} + beta_t * k_t * v_t^T contains a Hebbian outer product k_t * v_t^T. however, this is embedded in a recurrent system with exponential forgetting (alpha) and data-dependent gating (beta_t), which together prevent the unbounded growth problem. see [[plasticity_to_kda_delta_rule]] for a detailed analysis of this correspondence.
+the KDA delta rule state update S_t = diag(alpha) * S_{t-1} + beta_t * k_t * v_t^T contains a Hebbian outer product k_t * v_t^T. however, this is embedded in a recurrent system with exponential forgetting (alpha) and data-dependent gating (beta_t), which together prevent the unbounded growth problem. see [[plasticity_to_matrix_memory_delta_rule]] for a detailed analysis of this correspondence.
 
 ## challenges
 

@@ -211,5 +211,5 @@ the comparison above may overstate the importance of oscillations for the comput
 - [[theta_oscillations]]
 - [[neural_synchrony]]
 - [[oscillations_to_mamba3_rotation]]
-- [[plasticity_to_kda_delta_rule]]
+- [[plasticity_to_matrix_memory_delta_rule]]
 - [[cortical_layers_vs_todorov_layers]]

@@ -1,6 +1,6 @@
 # compression beyond quantization
 
-status: current (as of 2026-04-16).
+status: current (as of 2026-04-23).
 
 ## the mistake worth naming
 
@@ -9,6 +9,11 @@ the neural network compression literature overwhelmingly treats memory compressi
 the brain does not operate at this level. a human is exposed to roughly 10^17 bytes of raw sensory experience across an 80-year lifetime (30 frames per second of megapixel retinal input, compounded with auditory, tactile, and proprioceptive streams; this is a back-of-envelope estimate, not a measurement). bartol et al. 2015 measured ~4.7 bits per synapse in hippocampal ca1 via serial em reconstruction; extrapolating across the ~10^14 synapses in the human brain gives a synaptic substrate capacity of approximately 10^14 to 10^15 bits (roughly 10^13 bytes), most of which is used for non-content functions (timing, attention control, motor programs). the effective content memory actually retained is on the order of 10^5 to 10^7 bytes (this range comes from cognitive-science estimates of lifetime retrieval-eligible knowledge, not direct measurement; figures above 10^7 require assumptions about near-zero marginal cost for schema-consistent storage that are not directly measured). the resulting effective compression ratio for content is roughly 10^10 to 10^12, which is nine to eleven orders of magnitude beyond any published bit-quantization method.
 
 the brain does not achieve this by quantizing better. the brain achieves this by **not storing the content at all**. it stores a learned model of the world and a set of sparse indices into that model. at retrieval time, the model reconstructs the content. the memory is the model parameters, not a separate cache. this article makes the case that todorov's memory design should move in the same direction, and enumerates the specific mechanisms.
+
+role in the compression cluster:
+- this file = the current project thesis and doctrine
+- `knowledge/generative_memory_research.md` = the literature shelf and prior-art evidence
+- `bridge/memory_compression_to_tiered_architecture.md` = the concrete five-tier architecture translation
 
 ## what the brain actually compresses
 
@@ -114,48 +119,15 @@ it satisfies neither of the brain's six mechanisms at the level beyond "minor bi
 
 ### what it must become
 
-the target architecture replaces the direct accumulator with a compound memory system:
+this synthesis does not own the full architecture sketch. the concrete five-tier proposal lives in `bridge/memory_compression_to_tiered_architecture.md`. at the synthesis level, the commitments are narrower and more important:
 
-```
-tier 0 working memory:
-  substrate: delta state as today (verbatim)
-  capacity: 32-64 recent context patterns
-  purpose: fast retrieval for immediately-following tokens
+- recent memory may stay verbatim, but older memory should not remain a cache forever
+- predictive filtering must decide what is worth storing, instead of writing every event equally
+- retrieval should increasingly trade storage for reconstruction as memories age: latent codes, schema deltas, and finally generative priors
+- continual learning must stay fixed-size; memory compression that depends on unbounded growth does not solve the core problem
+- provenance and targeted erasure matter because a compressed continual learner must be auditable, not just efficient
 
-tier 1 predictive residual:
-  substrate: learned prediction head outputs stored only where residual is large
-  capacity: ~0.01 * context_length entries (99% of tokens predicted)
-  compression vs verbatim kv: ~100x
-  purpose: retain the surprising content from recent context without verbatim kv storage
-
-tier 2 latent codebook:
-  substrate: vq-vae or rvq codebook indexing learned semantic manifold
-  capacity: codebook_size distinct patterns + per-memory index
-  compression vs kv: ~10-100x (discrete latent vs continuous hidden state)
-  purpose: compress medium-age memories to manifold coordinates
-
-tier 3 schema delta:
-  substrate: learned schemas per domain, per-memory small delta
-  capacity: schema_count schemas + unlimited deltas (deltas are small)
-  compression vs verbatim: ~100x
-  purpose: compress very old memories to schema + specific variation
-
-tier 4 generative only:
-  substrate: world model (the main transformer / delta-rule network) itself
-  capacity: bounded by world model quality
-  compression: infinite ratio (zero storage per memory)
-  purpose: reconstruct from priors without any per-memory storage
-```
-
-### provenance tracking for safety
-
-for continual learning to be safe, every memory write must be tagged with provenance (source, timestamp, tier). the provenance log is append-only, small (~100 bytes per memory event), and enables the delta-rule erasure operation "scrub all memories with source x." this converts the adversarial-input problem from "permanently poisoned model" to "temporarily poisoned model that can be healed by an audit."
-
-### the no-weight-growth constraint
-
-all five tiers must be fixed-size structures that are updated in place, not grown. the delta state has fixed size by construction. the prediction head has fixed parameters. the codebook has a fixed number of entries. the schemas have a fixed count. the world model has fixed weights. new memories overwrite old ones via delta-rule erasure + reconsolidation. the provenance log grows but is auditable and can be compressed offline.
-
-this is strictly harder than growing memory architectures (memorizing transformers, titans long-term memory) but it is the only design that satisfies both compression and continuous learning without catastrophic weight growth.
+the bridge article translates those commitments into one explicit five-tier candidate architecture. this article's role is only to say that some architecture of that family is required if the six-mechanism thesis is taken seriously.
 
 ## what is genuinely novel if we build this
 
@@ -181,7 +153,7 @@ the correction-field memory design (`correction_field_memory.md`) is the project
 
 the design addresses the first of the three gaps listed below (how to train generative-replacement memory) by sidestepping it: the model's own forward computation IS the generative decoder, and the prediction head is a lightweight linear map trained alongside the main model via standard backpropagation. the second gap (how to compute surprise) is addressed by a simple norm ratio of the prediction residual to the hidden state. the third gap (how to evaluate compression) remains open.
 
-the design is currently in the cpu simulation validation stage (`simulations/prompts/correction_field_capacity.md`). if the simulation confirms that residual storage increases effective capacity at matched parameters, the correction-field enters the run sequence at the value-compression slot. see `correction_field_memory.md` for the full mathematical formulation and testable predictions.
+the design is no longer a live memory-side compression candidate for the current matrix memory. both the synthetic and trained-prediction cpu simulations returned `memory_capacity_gain = 0`, so residual values did not increase the state's retrievable pattern count. what survives is the reconstruction-side interpretation: prediction plus residual correction can still improve final reconstruction even when the memory substrate itself does not compress better. see `correction_field_memory.md` for the detailed evidence trail.
 
 ## what is not addressed
 
@@ -193,11 +165,11 @@ this synthesis does not address how to evaluate memory compression. current benc
 
 ## see also
 
-- `correction_field_memory.md` (concrete implementation of mechanisms 1-3, current)
-- `generative_memory_research.md` (curated research library, companion)
-- `compression_and_bottlenecks.md` (biological compression overview, predecessor)
-- `compression_architecture.md` (specific tier proposals, predecessor)
-- `memory_systems_research.md` (episodic vs semantic memory)
-- `imagination_computation_research.md` (generative recombination)
-- `memory_consolidation.md` (biological consolidation)
-- `bridge/memory_compression_to_tiered_architecture.md` (architectural implementation bridge)
+- [[correction_field_memory]] -- concrete implementation of mechanisms 1-3
+- [[generative_memory_research]] -- curated research library and prior-art evidence
+- [[compression_and_bottlenecks]] -- biological compression overview
+- [[compression_architecture]] -- earlier proposal shelf, superseded by the bridge article
+- [[memory_systems_research]] -- episodic versus semantic memory background
+- [[imagination_computation_research]] -- generative recombination background
+- [[memory_consolidation]] -- biological consolidation background
+- [[memory_compression_to_tiered_architecture]] -- current five-tier architecture translation

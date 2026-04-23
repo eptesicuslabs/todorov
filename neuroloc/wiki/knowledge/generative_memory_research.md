@@ -1,10 +1,10 @@
 # generative memory research
 
-status: current (as of 2026-04-16).
+status: current (as of 2026-04-23).
 
 curated peer-reviewed research on memory compression through structural replacement of cached content with generative mechanisms. this is a different level from bit-quantization work like turboquant or kvtc: where quantization asks "how many bits per stored value," generative memory asks "do we need to store the value at all, or can we regenerate it from a learned model." the biological brain operates at the latter level: it retains an estimated 10^5 to 10^7 bytes of effective content memory from approximately 10^17 bytes of lifetime raw sensory input (both figures are cognitive-science back-of-envelope estimates, not direct measurements; the 10^7 upper bound already requires assumptions about near-zero marginal cost for schema-consistent storage that are not directly measured), implying an effective compression ratio of roughly 10^10 to 10^12. this is nine to eleven orders of magnitude beyond what any bit-quantization method achieves.
 
-this article curates the engineering literature that approaches memory compression structurally. it is a companion to `compression_and_bottlenecks.md` (which treats compression as a biological principle) and `compression_architecture.md` (which enumerates specific compression mechanisms for todorov). the focus here is on architectures where "the model is the memory."
+this article is the literature shelf for the compression cluster. it curates the engineering literature that approaches memory compression structurally. the current project thesis lives in `synthesis/compression_beyond_quantization.md`, and the current architecture translation lives in `bridge/memory_compression_to_tiered_architecture.md`. the focus here is on architectures where "the model is the memory."
 
 ## quantization ceilings to beat
 
@@ -249,9 +249,11 @@ confidence: high for the theoretical framework. unknown for the practical achiev
 
 ## see also
 
-- `compression_and_bottlenecks.md` (biology-focused companion article)
-- `compression_architecture.md` (todorov-specific compression mechanisms)
-- `memory_systems_research.md` (biological memory systems)
-- `ternary_compression_research.md` (bit-quantization methods)
-- `imagination_computation_research.md` (generative recombination)
-- `memory_capacity_research.md` (associative memory capacity)
+- [[compression_beyond_quantization]] -- current project thesis for the compression cluster
+- [[memory_compression_to_tiered_architecture]] -- current five-tier architecture translation
+- [[compression_and_bottlenecks]] -- biology-focused companion article
+- [[compression_architecture]] -- earlier proposal shelf, retained for evidence continuity
+- [[memory_systems_research]] -- biological memory systems
+- [[ternary_compression_research]] -- bit-quantization methods
+- [[imagination_computation_research]] -- generative recombination
+- [[memory_capacity_research]] -- associative memory capacity

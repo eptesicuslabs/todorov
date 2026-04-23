@@ -141,6 +141,9 @@ def validate_metrics_file(path: Path) -> dict[str, Any]:
 
 
 def apply_plot_style() -> None:
+    import matplotlib
+
+    matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
     plt.rcParams.update(

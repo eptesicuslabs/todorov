@@ -98,7 +98,7 @@ REM sleep contributes to consolidation through different mechanisms:
 
 todorov has no consolidation mechanism. KDA's state S_t decays exponentially via alpha -- this is forgetting, not consolidation. MLA's cache stores exact per-token representations, but there is no process that transfers information from KDA state to MLA cache or vice versa. the two systems operate independently within the same forward pass.
 
-a hypothetical consolidation mechanism for todorov would involve using the KDA state (fast, capacity-limited) to periodically update or distill information into a more permanent store. this would require an auxiliary training objective or an explicit replay mechanism -- neither of which currently exists. see [[memory_systems_to_kda_mla]] for discussion.
+a hypothetical consolidation mechanism for todorov would involve using the KDA state (fast, capacity-limited) to periodically update or distill information into a more permanent store. this would require an auxiliary training objective or an explicit replay mechanism -- neither of which currently exists. see [[memory_systems_to_matrix_memory_and_compressed_attention]] for discussion.
 
 ## challenges
 
@@ -131,4 +131,4 @@ the original CLS theory implied that consolidation preserves the hippocampal rep
 - [[pattern_completion]]
 - [[hebbian_learning]]
 - [[short_term_plasticity]]
-- [[memory_systems_to_kda_mla]]
+- [[memory_systems_to_matrix_memory_and_compressed_attention]]

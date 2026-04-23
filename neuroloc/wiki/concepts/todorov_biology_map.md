@@ -1,13 +1,13 @@
 # todorov biology map
 
-status: definitional. last fact-checked 2026-04-16.
+status: definitional. last fact-checked 2026-04-23.
 
 master reference mapping every todorov component to its biological analog. for each component: what it does in todorov, what it maps to in biology, what the mapping gets wrong, and where to find the full analysis.
 
 ## note on architecture versions
 
 this map documents the biological mapping of each *concept*. the concepts
-(KDA delta rule, Mamba-3 complex rotation, MLA low-rank attention, SwiGLU,
+(matrix-memory delta rule, Mamba-3 complex rotation, compressed attention, SwiGLU,
 ternary spikes) remain valid analytical units even as the paid-run
 architecture has pivoted through several substrate variants. as of
 2026-04-16:
@@ -16,21 +16,30 @@ architecture has pivoted through several substrate variants. as of
   the todorov phase 5 reference (267M-280M parameters at h200, bpb 0.663x-
   0.722x vs transformer baseline).
 - the current paid-run architecture is `neuroloc/model/god_machine.py`.
-  the fifth paid run (2026-04-15) replaced KDA / matrix-memory with
+  the fifth paid run (2026-04-15) replaced matrix memory with
   slot memory — softmax addressing over prototype keys. see
   `wiki/synthesis/slot_memory_design.md`.
 - the substrate pivot does not invalidate the biological mapping below;
   it adds a new substrate (slot memory with explicit output gate) whose
   biological analog is closer to hippocampal content-addressable memory
   rather than short-term cortical plasticity.
-- the file below continues to describe KDA / Mamba-3 / MLA / SwiGLU /
+- the file below continues to describe matrix memory / Mamba-3 /
+  compressed attention / SwiGLU /
   spikes as the canonical biological-mapping units because they are
   still the definitional objects of analysis. each todorov preset picks
   a subset. the mapping commentary below applies to each whenever present.
 
-## KDA (src/layers/kda.py; god_machine.py: DeltaRuleMemory)
+the 2026-04-23 research pass does not replace the per-component mappings
+below. it does change the broader frame used to interpret them. the highest-
+value backlog directions are now recorded less as one-to-one analogies and
+more as reusable themes across scales: multi-timescale state, indexing plus
+replay, routing and gating, branch-local computation, and latent state-action
+models. use this page for component-level mappings and the newer synthesis
+pages for cross-component direction.
 
-KDA is a delta-rule recurrent layer that maintains a matrix-valued associative memory. 18 of 24 layers (75%) are KDA.
+## matrix memory (src/layers/kda.py; god_machine.py: DeltaRuleMemory)
+
+matrix memory is a delta-rule recurrent layer that maintains a matrix-valued associative memory. 18 of 24 layers (75%) are matrix-memory layers.
 
 biological analogs:
 
@@ -38,7 +47,7 @@ biological analogs:
   -> [[hebbian_learning]]: the outer product k_t * v_t^T is the classical Hebbian association rule. this is the most direct biological correspondence in the entire architecture
   -> [[short_term_plasticity]]: alpha decay resembles synaptic depression (activity-dependent decay of synaptic efficacy)
   -> NOT [[stdp]]: no timing dependence. k and v come from the SAME timestep. STDP requires comparing activity at DIFFERENT times
-  -> see [[plasticity_to_kda_delta_rule]] for the full adversarial analysis
+  -> see [[plasticity_to_matrix_memory_delta_rule]] for the full adversarial analysis
 
 - **alpha (channel-wise forgetting rate): alpha = sigmoid(alpha_log)**
   -> [[homeostatic_plasticity]]: prevents state saturation, maintains bounded activity. different channels decay at different rates, allowing a hierarchy of memory timescales
@@ -48,35 +57,35 @@ biological analogs:
 - **beta (data-dependent write gate): beta_t = sigmoid(beta_proj(x_t))**
   -> [[acetylcholine_system]]: input-dependent gating of memory encoding. high beta = encoding mode (write to state), low beta = preservation mode (read from state). the closest biological analog to any parameter in todorov
   -> mapping gap: beta sees only the current token x_t. biological ACh is driven by global signals (novelty, uncertainty, task demands). beta has no access to global state
-  -> see [[neuromodulation_to_learning_and_gating]] and [[biological_attention_to_mla]]
+  -> see [[neuromodulation_to_learning_and_gating]] and [[biological_attention_to_compressed_attention]]
 
 - **readout: o_t = q_t^T * S_t**
   -> [[pattern_completion]]: content-addressable retrieval from associative memory, identical in structure to Hopfield network recall
-  -> mapping gap: KDA readout is LINEAR (one matrix-vector multiply). Hopfield recall uses iterative convergence with attractor dynamics. KDA has no error correction
-  -> see [[memory_systems_to_kda_mla]]
+  -> mapping gap: matrix-memory readout is LINEAR (one matrix-vector multiply). Hopfield recall uses iterative convergence with attractor dynamics. matrix memory has no error correction
+  -> see [[memory_systems_to_matrix_memory_and_compressed_attention]]
 
-## MLA (src/layers/mla.py)
+## compressed attention (src/layers/mla.py)
 
-MLA performs softmax attention over compressed per-token representations. 3 of 24 layers (12.5%).
+compressed attention performs softmax attention over compressed per-token representations. 3 of 24 layers (12.5%).
 
 biological analogs:
 
 - **softmax attention: softmax(Q @ K^T / sqrt(d)) @ V**
   -> [[pattern_completion]]: Ramsauer et al. (2021) proved softmax attention is the update rule of a modern Hopfield network with exponential capacity 2^{d/2}
-  -> NOT [[selective_attention]]: MLA computes information retrieval (finding relevant past tokens). biological attention computes resource allocation (directing processing to relevant stimuli). different problems
-  -> see [[biological_attention_to_mla]]
+  -> NOT [[selective_attention]]: compressed attention computes information retrieval (finding relevant past tokens). biological attention computes resource allocation (directing processing to relevant stimuli). different problems
+  -> see [[biological_attention_to_compressed_attention]]
 
 - **KV compression: c_kv = kv_down_proj(x), d_model -> d_c = 128**
-  -> [[hippocampal_memory]]: hippocampal indexing theory (Teyler and DiScenna 1986) proposes that the hippocampus stores compressed pointers to cortical patterns, not full patterns. MLA's compressed latent c_kv is a compressed index to the full token representation
-  -> mapping gap: hippocampal indices are stored through rapid synaptic modification (LTP). MLA stores c_kv in a passive cache with no learning
-  -> see [[memory_systems_to_kda_mla]]
+  -> [[hippocampal_memory]]: hippocampal indexing theory (Teyler and DiScenna 1986) proposes that the hippocampus stores compressed pointers to cortical patterns, not full patterns. compressed attention's latent c_kv is a compressed index to the full token representation
+  -> mapping gap: hippocampal indices are stored through rapid synaptic modification (LTP). compressed attention stores c_kv in a passive cache with no learning
+  -> see [[memory_systems_to_matrix_memory_and_compressed_attention]]
 
 - **full cache (no forgetting)**
-  -> NOT [[memory_consolidation]]: MLA retains every token until the context limit. no decay, no consolidation, no transfer to a slower system. the absence of forgetting is an engineering advantage, not a biological principle
+  -> NOT [[memory_consolidation]]: compressed attention retains every token until the context limit. no decay, no consolidation, no transfer to a slower system. the absence of forgetting is an engineering advantage, not a biological principle
 
 - **12.5% allocation (3/24 layers)**
   -> NOT biologically derived. the 3:1 ratio comes from ML benchmarks (Kimi, Qwen3, OLMo independently converged on ~75/25). the resemblance to biological attention's sparsity is coincidental
-  -> see [[biological_attention_to_mla]] and [[cortical_microcircuit_to_layer_schedule]]
+  -> see [[biological_attention_to_compressed_attention]] and [[cortical_microcircuit_to_layer_schedule]]
 
 ## Mamba3 (src/layers/mamba3.py)
 
@@ -125,7 +134,7 @@ biological analogs:
 
 ## ternary spikes (src/spikes/ternary_spike.py)
 
-ternary quantization of activations to {-1, 0, +1}. applied to KDA K and V projections (18 layers).
+ternary quantization of activations to {-1, 0, +1}. applied to matrix-memory K and V projections (18 layers).
 
 biological analogs:
 
@@ -211,7 +220,7 @@ biological analogs:
 
 ## RoPE (rotary position embedding)
 
-rotation applied to Q and K in KDA and MLA layers.
+rotation applied to Q and K in matrix-memory and compressed-attention layers.
 
 biological analogs:
 
@@ -220,9 +229,9 @@ biological analogs:
   -> mapping gap: RoPE is a fixed, deterministic function of position. theta oscillations are dynamic, modulated by behavior, and emerge from network dynamics. the periods in RoPE are geometric (2*pi*i/d); theta is a single ~7 Hz rhythm
   -> see [[oscillations_to_mamba3_rotation]] for the related analysis of Mamba3 rotation
 
-## layer schedule (KDA, KDA, KDA, Mamba3, KDA, KDA, KDA, MLA) x 3
+## layer schedule (matrix memory, matrix memory, matrix memory, Mamba3, matrix memory, matrix memory, matrix memory, compressed attention) x 3
 
-the architecture's 3:1 ratio (75% KDA, 25% other).
+the architecture's 3:1 ratio (75% matrix memory, 25% other).
 
 biological analogs:
 
@@ -266,3 +275,15 @@ biological analogs:
 - **Q (output quantization)**: ternary spike output -> [[sparse_coding]]. discrete output enforces information bottleneck
 
 the framework unifies the components but no single biological system implements all four stages in this order. the composition C-B-R-Q is an engineering abstraction, not a biological circuit.
+
+## see also
+
+- [[start_here]]
+- [[neuroscience_for_ml_engineers]]
+- [[glossary]]
+- [[mathematical_foundations]]
+- [[PROJECT_PLAN]]
+- [[cross_scale_building_blocks_for_biological_computation]]
+- [[working_memory_as_controlled_access]]
+- [[attention_as_precision_and_routing]]
+- [[state_action_memory_architecture_direction]]

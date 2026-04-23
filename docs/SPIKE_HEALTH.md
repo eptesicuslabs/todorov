@@ -1,5 +1,7 @@
 # Spike Health
 
+historical note (2026-04-22): this file is still useful as technical reference, but the active project lane is now the curriculum rather than active architecture experimentation.
+
 ## Health Criteria
 
 | Metric              | Threshold       | Source      |

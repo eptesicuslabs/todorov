@@ -1,6 +1,31 @@
 # neuroloc operation log
 
-status: current (as of 2026-04-16).
+status: current (as of 2026-04-22).
+
+## 2026-04-22 phase-1 backlog method promoted from design note to live wiki state | 6 wiki updates
+
+state and synthesis updates:
+- `wiki/PROJECT_PLAN.md`: revised `last updated`, `current question`, `immediate next action`, `experimental method`, decision rules, and update history so the architecture backlog now starts from the implemented cpu battery rather than an abstract "define the battery" note. current backlog gaps recorded explicitly: latent-world deliberation / iterative rollout and the model-side NM evaluation surface.
+- `wiki/synthesis/phase1_evaluation_surface_for_neural_models.md`: promoted from external-design note to current local method by recording the implemented `biology_phase1` symbolic battery and its standard metrics (`state_probe_accuracy`, `action_success`, `joint_success`).
+- `wiki/synthesis/synthetic_shared_world_bridge.md`: grounded the phase-2 bridge in the actual local phase-1 battery instead of a hypothetical future battery.
+
+navigation and catalog updates:
+- `wiki/INDEX.md`: updated synthesis count from 11 to 13, added the two new synthesis articles to the catalog, corrected wiki totals to 209 content articles / 216 markdown files, and updated simulation totals to 45 scripts with 17 memory simulations.
+- `wiki/Home.md`: refreshed the top-level counts, added direct links to the canonical state/rules pages, and added a "current backlog method" section pointing to the phase-1 battery and synthetic shared-world bridge.
+- `wiki/tests/index.md`: clarified that the new phase-1 battery currently lives as synthesis + code state and that individual test pages belong here only after concrete runs are archived as evidence.
+
+evidence status captured in the wiki:
+- targeted `biology_phase1` / `phase1_nm` verification is green locally
+- broader residual failures remain on the old Windows / NumPy subprocess instability track, not in the new biology-grounded battery
+
+## 2026-04-21 external-synthesis backlog method added | 2 synthesis articles, 1 canonical-state update
+
+new synthesis articles:
+- `wiki/synthesis/phase1_evaluation_surface_for_neural_models.md`: recorded the external benchmark synthesis that phase 1 for a neural model should be evaluated as recognition / belief-state formation, associative recollection, interference resistance, delayed use under partial observability, episodic reuse, and iterative reasoning / counterfactual rollout, with trainability controls separated from task difficulty.
+- `wiki/synthesis/synthetic_shared_world_bridge.md`: recorded the recommended phase-2 bridge as one exact latent world with multiple renderers (symbolic, image, toy audio, query surface), borrowing bias discipline from synthetic diagnostic benchmarks and keeping modalities tied to the same hidden state.
+
+canonical-state consequence:
+- `wiki/PROJECT_PLAN.md`: updated so passkey is treated as a smoke test inside a broader phase-1 battery rather than the sole backlog gate, and so phase 2 is framed as a synthetic shared-world extension rather than a direct jump to real multimodal benchmarks.
 
 ## 2026-04-09 three implementation research libraries + prosecutor fixes | 3 knowledge articles, 4 fixes
 
@@ -594,3 +619,10 @@ simulation:
 - simulations/consciousness/README.md: simulation documentation
 
 key adversarial finding: todorov's residual stream is topologically a workspace (shared medium accessible by all layers) but dynamically not (no ignition, no selectivity, no capacity limits, passive accumulation). the most important difference is the absence of ignition: GWT is DEFINED by the existence of a nonlinear threshold that creates a qualitative distinction between conscious (broadcast) and unconscious (local) processing. the residual stream has no such threshold -- every layer always broadcasts unconditionally. a communication channel without access control is a bus, not a workspace. the GWT workspace's value comes from what it EXCLUDES, not what it includes. the residual stream excludes nothing. the Goyal & Bengio (2022) result is the strongest evidence that adding workspace-like properties (bandwidth-limited shared representation, competitive write access) can improve performance over unrestricted communication, but this was tested on multi-specialist coordination tasks, not language modeling. whether a bottleneck in the residual stream would help or hurt next-token prediction is an open empirical question. the dissenting argument -- that biological capacity limits are bugs (metabolic/wiring constraints) not features -- has force for language modeling where information bandwidth is effectively free, but less force for tasks requiring sustained focus on a single problem. three proposed modifications (bottleneck gate, confidence gating, sparse broadcast) all deferred to phase 6+ with estimated 10-20% probability of meaningful improvement.
+
+## see also
+
+- `wiki/PROJECT_PLAN.md`
+- `wiki/INDEX.md`
+- `wiki/Home.md`
+- `wiki/OPERATING_DIRECTIVE.md`

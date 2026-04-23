@@ -1,6 +1,8 @@
 # Run Tracker
 
-Raw numbers from every run. No interpretation, just data.
+historical note (2026-04-22): this file is a pre-curriculum run tracker snapshot. later run history and the curriculum pivot are captured in `neuroloc/wiki/PROJECT_PLAN.md`, `docs/STATUS_BOARD.md`, and `state/program_status.yaml`.
+
+raw numbers from early tracked runs. for later h200 and neural-machine runs, use `neuroloc/wiki/PROJECT_PLAN.md`, `docs/STATUS_BOARD.md`, and `state/program_status.yaml`.
 
 ## Phase 1 Runs
 

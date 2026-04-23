@@ -1,6 +1,6 @@
 # training objective vs architectural goal: why a memory substrate trained on next-byte loss never learns to memorise
 
-status: current (as of 2026-04-17).
+status: current (as of 2026-04-22).
 
 ## the realisation
 
@@ -184,27 +184,6 @@ is no reason to expect a fifth paid run on fineweb-edu to be any different,
 and there is corresponding reason to expect a paid run on a memory-shaped
 corpus to behave differently.
 
-## see also
-
-- `wiki/tests/run2_slot_memory_retention_fixed_results.md` — the run card
-  for the fifth paid run, the empirical trigger for this article
-- `wiki/synthesis/slot_memory_design.md` — the substrate design; cpu gates
-  A and B; the substrate that was tested at paid scale here
-- `wiki/mistakes/run2_slot_memory_decay_copy_paste.md` — the first-launch
-  retention bug that obscured the substrate question for one run
-- `wiki/mistakes/run2_slot_memory_fla_silent_fall_through.md` — the
-  second-launch FLA-not-installed silent slowdown that delayed this run
-- `wiki/tests/encoding_simulation_round_b.md` — capacity ceiling under the
-  matrix-memory operation
-- `wiki/synthesis/linear_attention_retrieval_wall.md` — the failure-modes
-  catalogue; this realisation supersedes its causal claim by identifying
-  a more fundamental cause (the loss does not exercise the substrate)
-- `spec/blueprint.md` — the architecture's stated computational goal
-- `spec/next_gen.md` — the longer-horizon roadmap; cognition-shaped
-  pretraining belongs here
-- `wiki/synthesis/substrate_requires_architectural_change.md` — the post-run-3 analysis after this article's proposed discriminant (cognition training) was executed and returned 0% passkey, confirming the architecture-cannot-be-trained branch the article predicted
-- `wiki/tests/run3_cognition_phase1_results.md` — the run card of the paid test this article proposed
-
 ## empirical result (2026-04-17)
 
 phase 1 of the "two-phase pretraining" option proposed in this article
@@ -240,3 +219,35 @@ that a cognition-shaped corpus would discriminate between "LM loss
 is the problem" and "the architecture cannot be trained" is confirmed.
 the answer came back "the architecture cannot be trained" under the
 configuration the project has been using.
+
+note (2026-04-21 / 2026-04-22): this article remains the evidence chain
+for why corpus-only fixes were necessary to test and then insufficient
+to solve the retrieval problem. the current backlog method is broader
+than passkey on a cognition corpus alone. when the architecture track
+resumes after the curriculum, candidates first clear the cpu phase-1
+battery in `wiki/synthesis/phase1_evaluation_surface_for_neural_models.md`
+and then extend through the shared latent-world bridge in
+`wiki/synthesis/synthetic_shared_world_bridge.md`.
+
+## see also
+
+- `wiki/tests/run2_slot_memory_retention_fixed_results.md` - the run card
+  for the fifth paid run, the empirical trigger for this article
+- `wiki/synthesis/slot_memory_design.md` - the substrate design; cpu gates
+  A and B; the substrate that was tested at paid scale here
+- `wiki/synthesis/phase1_evaluation_surface_for_neural_models.md` - the external-synthesis article that replaces passkey-only evaluation with a broader phase-1 battery
+- `wiki/synthesis/synthetic_shared_world_bridge.md` - the follow-on bridge for phase 2 once the phase-1 battery is grounded
+- `wiki/mistakes/run2_slot_memory_decay_copy_paste.md` - the first-launch
+  retention bug that obscured the substrate question for one run
+- `wiki/mistakes/run2_slot_memory_fla_silent_fall_through.md` - the
+  second-launch FLA-not-installed silent slowdown that delayed this run
+- `wiki/tests/encoding_simulation_round_b.md` - capacity ceiling under the
+  matrix-memory operation
+- `wiki/synthesis/linear_attention_retrieval_wall.md` - the failure-modes
+  catalogue; this realisation supersedes its causal claim by identifying
+  a more fundamental cause (the loss does not exercise the substrate)
+- `spec/blueprint.md` - the architecture's stated computational goal
+- `spec/next_gen.md` - the longer-horizon roadmap; cognition-shaped
+  pretraining belongs here
+- `wiki/synthesis/substrate_requires_architectural_change.md` - the post-run-3 analysis after this article's proposed discriminant (cognition training) was executed and returned 0% passkey, confirming the architecture-cannot-be-trained branch the article predicted
+- `wiki/tests/run3_cognition_phase1_results.md` - the run card of the paid test this article proposed

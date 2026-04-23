@@ -106,7 +106,7 @@ the closest analog to biological pruning in todorov's framework is the ternary s
 
 whether todorov would benefit from a training-time pruning phase -- removing low-magnitude weights or consistently-inactive neurons after initial training -- is an empirical question. the lottery ticket hypothesis suggests that sparse subnetworks within dense networks can match full performance, but the evidence for language models is mixed. structured pruning (removing entire attention heads or MLP neurons) has shown more consistent results than unstructured pruning for transformers, but the savings at 300m parameters may not justify the complexity.
 
-the more interesting biological parallel is not removing parameters but DEVELOPMENTAL TIMING. the brain prunes different regions on different schedules, creating a hierarchy of circuit maturity. todorov could potentially implement this by training different layer types (KDA vs MLA) for different numbers of steps, or by progressively adding layers during training. see [[development_to_training_curriculum]] for analysis.
+the more interesting biological parallel is not removing parameters but DEVELOPMENTAL TIMING. the brain prunes different regions on different schedules, creating a hierarchy of circuit maturity. todorov could potentially implement this by training different layer types (KDA vs MLA) for different numbers of steps, or by progressively adding layers during training. see [[development_to_training_schedule]] for analysis.
 
 ## challenges
 

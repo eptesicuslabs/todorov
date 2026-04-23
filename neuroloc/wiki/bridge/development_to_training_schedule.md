@@ -1,6 +1,8 @@
-# bridge: development to todorov training curriculum
+# bridge: development to model training schedule
 
-status: current (as of 2026-04-16).
+status: current (as of 2026-04-22).
+
+this article is about model-training sequencing and staged optimization in the architecture track. it is not about the teaching PDF curriculum that became the project's active workstream on 2026-04-17.
 
 ## the biological mechanism
 
@@ -173,6 +175,12 @@ current: spikes from step 1, alpha learnable from step 1, 41% firing rate throug
 proposed: no spikes during warmup, linear spike ramp over 10% of training, then standard. expected MI and CKA: comparable or better (continuous early training may establish better-organized representations before quantization).
 
 this is a SINGLE CHANGE (spike scheduling) that can be validated in one run at 6m scale before deploying at 300m. it follows the phase 5 sequencing principle: one variable at a time.
+
+## see also
+
+- [[critical_periods]] -- the biological mechanism this bridge is testing
+- [[development_vs_training]] -- comparison article for the same broad theme
+- [[PROJECT_PLAN]] -- authoritative current project state and the curriculum pivot
 
 ## key references
 

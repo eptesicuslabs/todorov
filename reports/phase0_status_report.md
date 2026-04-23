@@ -1,5 +1,7 @@
 # Todorov Phase 0 Status Report
 
+historical note (2026-04-22): this is an early project snapshot preserved for archive. it is not a current status surface.
+
 Eptesicus Laboratories
 2026-03-22
 Author: Deyan Todorov

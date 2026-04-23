@@ -1,6 +1,6 @@
 # neuroloc index
 
-status: current (as of 2026-04-17, curriculum pivot recorded).
+status: current (as of 2026-04-23, curriculum pivot retained, the phase-1 backlog battery recorded, the research-swarm synthesis and visual program added, the compression-cluster role cleanup applied, and the naming/history cleanup applied).
 
 this is the flat reference catalog of every article in the wiki, grouped
 by topic within each top-level directory. for guided navigation, start
@@ -10,19 +10,22 @@ at [[start_here]]. for the rules that govern every article below, see
 
 ## entry points for new readers
 
-- [[OPERATING_DIRECTIVE]] — binding rules for the wiki
+- [[Home]] — landing page and current-workstream orientation
+- [[concepts/start_here]] — guided onboarding path for new readers
 - [[PROJECT_PLAN]] — canonical project state (current run, decision rules, prior runs)
-- [[Home]] — top-level eptesicus laboratories landing page
-- [[log]] — operation log: append-only running narrative of project activity
-- [[_audit_2026-04-16]] — audit of the wiki state before the 2026-04-16 refactor
-- [[concepts/start_here]] — overview for new readers
+- [[synthesis/research_implications_for_neural_model_direction]] — ranked summary of the 2026-04-23 research cluster
+- [[OPERATING_DIRECTIVE]] — binding rules for the wiki
 - [[concepts/the_brain_in_one_page]] — 80/20 bio overview
 - [[concepts/neuroscience_for_ml_engineers]] — neuroscience mapped to ML
 
+## navigation
+
+- [[log]] — operation log: append-only running narrative of project activity
+
 ## current project-state analyses (synthesis/)
 
-all 11 articles in `synthesis/` are the load-bearing project-level
-reasoning documents. one is superseded, ten are current.
+all 24 articles in `synthesis/` are the load-bearing project-level
+reasoning documents. one is superseded, twenty-three are current.
 
 - [[synthesis/substrate_requires_architectural_change]] — the
   post-run-3 analysis after the cognition corpus returned 0% passkey.
@@ -35,6 +38,42 @@ reasoning documents. one is superseded, ten are current.
   structure intact; its proposed discriminant (cognition corpus) was
   executed as run3 and returned 0%, which triggered the next article
   above. supersedes `linear_attention_retrieval_wall`.
+- [[synthesis/phase1_evaluation_surface_for_neural_models]] — the
+  current cpu-first evaluation method for the backlog track. defines
+  phase 1 as state + action rather than next-token prediction and
+  records the implemented `biology_phase1` symbolic battery now wired
+  into `phase1_nm`.
+- [[synthesis/synthetic_shared_world_bridge]] — the current phase-2
+  extension rule. keeps image, audio, and later multimodal work tied
+  to one exact latent world instead of stacking separate benchmarks.
+- [[synthesis/research_implications_for_neural_model_direction]] — the
+  current ranked summary of what the 2026-04-23 research pass changes
+  for the backlog and what it explicitly does not authorize.
+- [[synthesis/beyond_next_token_for_neural_models]] — the external-ai
+  synthesis on why latent state, action, bounded memory, and planning
+  are the more relevant comparison frame than output-sequence modeling.
+- [[synthesis/world_models_imagination_and_planning]] — the local
+  translation of world-model and latent-rollout work into the project's
+  state-plus-action framing.
+- [[synthesis/working_memory_as_controlled_access]] — working memory as
+  routing and access control rather than passive short-term storage.
+- [[synthesis/attention_as_precision_and_routing]] — attention as
+  control, precision, and routing rather than only token retrieval.
+- [[synthesis/cross_scale_building_blocks_for_biological_computation]] —
+  the cross-scale synthesis from molecules through systems to reusable
+  computational primitives.
+- [[synthesis/cellular_molecular_computational_primitives]] — the
+  cellular and molecular mechanisms most plausibly reusable as control
+  or memory primitives.
+- [[synthesis/canonical_visual_narratives_neuroscience]] — canonical
+  neuroscience visuals selected for stable reuse in the wiki and the
+  curriculum.
+- [[synthesis/canonical_visual_narratives_mind_and_memory]] — canonical
+  visuals for indexing, replay, and mind-structure narratives.
+- [[synthesis/canonical_visual_narratives_world_models]] — canonical
+  visuals for latent-world, planning, and beyond-autoregression stories.
+- [[synthesis/visual_grammar_for_wiki_and_curriculum]] — the visual
+  style guide for locally recreated diagrams and figures.
 - [[synthesis/slot_memory_design]] — slot memory substrate design
   and its paid-run empirical status (now three paid runs deep)
 - [[synthesis/correction_field_memory]] — prediction-residual value storage
@@ -43,7 +82,7 @@ reasoning documents. one is superseded, ten are current.
 - [[synthesis/local_vs_global_computation]] — cortical local recurrence
 - [[synthesis/recurrence_vs_feedforward]] — when recurrence helps
 - [[synthesis/sparsity_from_biology_to_ternary_spikes]] — firing-rate analyses
-- [[synthesis/timescale_separation]] — KDA / Mamba / MLA timescale split
+- [[synthesis/timescale_separation]] — matrix memory / mamba / compressed-attention timescale split
 - [[synthesis/linear_attention_retrieval_wall]] — SUPERSEDED. retained for evidence continuity.
 
 ## teaching curriculum (2026-04-17, active workstream)
@@ -58,6 +97,13 @@ reasoning documents. one is superseded, ten are current.
 - phase 6 (ch. 33-36): paper implementation — how to read a paper, modern Hopfield from Ramsauer 2020, Titans from the paper, the project's slot memory from scratch
 
 per-chapter production protocol: outline → user approval → parallel research agents (wiki + cited papers + classical textbooks + online resources + reference implementations + recent papers) → prosecutor agents validate research → LaTeX draft → prosecutor on draft → user review → revision → finalized PDF → next chapter. naming rule: published-technique names only when quoting external sources or naming external paper's architectures; the project's own components use the glossary terms (`matrix memory`, `compressed attention`, `slot memory`, `output gate`, `surprise ratio`). full detail in the plan file and in `PROJECT_PLAN.md` section "curriculum track".
+
+backlog note: when the architecture track resumes, it no longer starts
+from a blank "define the battery" state. the starting point is the
+implemented symbolic `biology_phase1` battery summarized in
+`synthesis/phase1_evaluation_surface_for_neural_models.md`, followed by
+the synthetic shared-world extension in
+`synthesis/synthetic_shared_world_bridge.md`.
 
 ## paid-run cards (tests/, historical context only)
 
@@ -75,7 +121,7 @@ frozen evidence records, one per paid run:
 - [[mistakes/run2_slot_memory_decay_copy_paste]] — inherited retention bug
 - [[mistakes/run2_slot_memory_fla_silent_fall_through]] — FLA not installed silent slowdown
 
-## flat catalog — articles by topic (sums to 207 content articles; add 6 navigation/meta files plus tests/index.md for 214 total wiki markdown files on disk)
+## flat catalog — articles by topic (sums to 241 content articles; add 6 navigation/meta files plus tests/index.md for 248 total wiki markdown files on disk)
 
 ## mechanisms (61 articles)
 
@@ -180,7 +226,7 @@ frozen evidence records, one per paid run:
 - [[neuroscience_for_ml_engineers]] -- the big primer, 7 parts
 - [[mathematical_foundations]] -- math primer with worked examples
 - [[todorov_biology_map]] -- master mapping of every component to biology
-- [[glossary]] -- 55 terms in plain language with ML analogs
+- [[glossary]] -- 73 terms in plain language with ML analogs
 - [[notation]] -- mathematical notation conventions
 
 ## entities (33 notes)
@@ -200,7 +246,7 @@ frozen evidence records, one per paid run:
 - entities/okeefe.md, entities/moser_moser.md
 - entities/baars.md, entities/dehaene.md, entities/tononi.md
 
-## comparisons (13 articles)
+## comparisons (15 articles: 14 current + 1 legacy-title redirect)
 - comparisons/neuron_model_comparison.md -- HH vs LIF vs AdEx vs Izhikevich
 - comparisons/sparse_vs_dense_representations.md -- sparse bio vs dense transformer
 - comparisons/plasticity_local_vs_global.md -- local vs global learning rules
@@ -208,16 +254,33 @@ frozen evidence records, one per paid run:
 - comparisons/cortical_layers_vs_todorov_layers.md -- laminar vs serial stack
 - comparisons/normalization_layernorm_vs_divisive.md -- LayerNorm vs divisive norm
 - comparisons/oscillations_vs_recurrence.md -- oscillatory vs recurrent dynamics
-- comparisons/memory_kda_vs_hippocampus.md -- KDA vs hippocampal memory
+- comparisons/matrix_memory_vs_hippocampus.md -- matrix memory vs hippocampal memory
 - comparisons/biological_vs_silicon_energy.md -- energy per operation comparison
 - comparisons/biological_vs_transformer_attention.md -- selection vs retrieval
 - comparisons/development_vs_training.md -- biological development vs ML training
 - comparisons/pga_vs_grid_cells.md -- G(3,0,1) PGA vs grid cell computations
 - comparisons/gwt_vs_transformer.md -- global workspace vs residual stream
+- comparisons/dreamer_muzero_jepa_titans.md -- latent-world and bounded-memory architecture comparison from the 2026-04-23 research pass
 
-## synthesis (11 articles)
+### legacy-title redirect
+- comparisons/memory_kda_vs_hippocampus.md -- SUPERSEDED redirect to `comparisons/matrix_memory_vs_hippocampus.md`
+
+## synthesis (24 articles)
 - synthesis/substrate_requires_architectural_change.md -- post-run-3 analysis: six paid runs at 0% passkey across two substrates and two corpora trigger the architecture-cannot-be-trained branch; ranks five candidate interventions (output gate init, auxiliary retrieval loss, orthogonal key init, warm-start, substrate replacement)
 - synthesis/training_objective_vs_architectural_goal.md -- root-cause analysis after five paid runs: LM loss on fineweb-edu does not exercise the memory substrate. the proposed discriminant (cognition corpus) ran as run3 and returned 0%, which triggered the article above
+- synthesis/phase1_evaluation_surface_for_neural_models.md -- backlog evaluation method for neural models: recognition / belief state, associative recollection, interference resistance, delayed use, episodic reuse, iterative reasoning, with the currently implemented `biology_phase1` symbolic battery and trainability controls
+- synthesis/synthetic_shared_world_bridge.md -- phase-2 bridge method: one latent world, many renderers; extend phase 1 through symbolic + image + toy-audio views of the same exact state rather than a bolt-on modality stack
+- synthesis/research_implications_for_neural_model_direction.md -- ranked implication summary from the 2026-04-23 research pass: actionable now, simulation next, preserve for later, and too weak
+- synthesis/beyond_next_token_for_neural_models.md -- external-ai synthesis arguing for latent state, bounded memory, and planning as the relevant comparison frame
+- synthesis/world_models_imagination_and_planning.md -- how imagination and planning should be understood as latent rollout rather than text-chain length
+- synthesis/working_memory_as_controlled_access.md -- working memory reframed as gated access and routing
+- synthesis/attention_as_precision_and_routing.md -- attention reframed as precision control and routing rather than only retrieval
+- synthesis/cross_scale_building_blocks_for_biological_computation.md -- recurring computational motifs across scales
+- synthesis/cellular_molecular_computational_primitives.md -- cellular and molecular motifs translated into computational primitives
+- synthesis/canonical_visual_narratives_neuroscience.md -- curated first-batch neuroscience visuals
+- synthesis/canonical_visual_narratives_mind_and_memory.md -- curated first-batch memory and mind visuals
+- synthesis/canonical_visual_narratives_world_models.md -- curated first-batch world-model visuals
+- synthesis/visual_grammar_for_wiki_and_curriculum.md -- visual-asset and diagram-style rules for the wiki and curriculum
 - synthesis/slot_memory_design.md -- softmax addressing over prototype keys, surprise-gated lru writes, output gate; substrate for run2_slot_memory and run3_cognition_phase1
 - synthesis/correction_field_memory.md -- prediction-residual value storage; memory_capacity_delta=0 falsified by trained-prediction sim
 - synthesis/compression_beyond_quantization.md -- six-mechanism compound compression thesis
@@ -226,30 +289,41 @@ frozen evidence records, one per paid run:
 - synthesis/timescale_separation.md -- nested oscillatory clocks, cross-frequency coupling, todorov's two fixed timescales
 - synthesis/local_vs_global_computation.md -- cortical local recurrence, dendritic compartments, source segregation vs residual stream
 - synthesis/compression_and_bottlenecks.md -- DG pattern separation, hippocampal indexing, consolidation pipeline, capacity limits as features
-- synthesis/recurrence_vs_feedforward.md -- canonical microcircuit recurrence, attractor dynamics, error correction, KDA/Mamba3 comparison
+- synthesis/recurrence_vs_feedforward.md -- canonical microcircuit recurrence, attractor dynamics, error correction, matrix-memory vs mamba3 comparison
 
-## bridge (19 articles)
+## bridge (28 articles: 25 current + 3 legacy-title redirects)
 - bridge/neuron_models_to_atmn.md -- ATMN: no leak, batch reset, proposed fix
 - bridge/sparse_coding_to_ternary_spikes.md -- 41% vs cortical 2-10%, STE constraint
 - bridge/population_coding_to_spike_health.md -- MI, CKA, firing rate as population metrics
-- bridge/plasticity_to_kda_delta_rule.md -- KDA is NOT STDP, it is Hopfield-like
+- bridge/plasticity_to_matrix_memory_delta_rule.md -- matrix memory is NOT STDP; the outer-product recurrence is associative-memory math, not timing-dependent plasticity
 - bridge/predictive_coding_to_training_objective.md -- alpha/beta as precision, defer to phase 6+
 - bridge/cortical_microcircuit_to_layer_schedule.md -- 3:1 ratio from ML not biology
 - bridge/lateral_inhibition_to_adaptive_threshold.md -- threshold is NOT divisive normalization
 - bridge/neuromodulation_to_learning_and_gating.md -- alpha is NOT neuromodulatory gain
 - bridge/oscillations_to_mamba3_rotation.md -- rotation is positional encoding, not oscillation
-- bridge/memory_systems_to_kda_mla.md -- NOT complementary learning systems
+- bridge/memory_systems_to_matrix_memory_and_compressed_attention.md -- NOT complementary learning systems
 - bridge/energy_efficiency_to_ternary_spikes.md -- 354x per-op correct, <1% system-level
-- bridge/biological_attention_to_mla.md -- different operations, beta is closest analog
+- bridge/biological_attention_to_compressed_attention.md -- different operations, beta is the closest analog
 - bridge/dendritic_computation_to_swiglu.md -- single-branch vs 30-50 branches
-- bridge/development_to_training_curriculum.md -- NOT critical period plasticity
+- bridge/development_to_training_schedule.md -- training-schedule analogies, not the teaching curriculum
 - bridge/spatial_computation_to_pga.md -- weak to nonexistent connection
 - bridge/global_workspace_to_residual_stream.md -- shared bus, NOT global workspace
 - bridge/positional_encoding_to_rope.md -- theta phase precession, grid cell phase, tonotopy to RoPE rotation
 - bridge/normalization_to_rmsnorm.md -- divisive normalization, synaptic scaling, gain control to RMSNorm
-- bridge/memory_compression_to_tiered_architecture.md -- 5-tier memory architecture proposal for phase 6+
+- bridge/memory_compression_to_tiered_architecture.md -- current five-tier architecture translation for the compression thesis
+- bridge/state_action_memory_architecture_direction.md -- the state / action / memory stack as the current architecture direction frame
+- bridge/indexing_to_memory_interfaces.md -- indexing theory translated into candidate memory-interface rules
+- bridge/replay_to_offline_credit_assignment.md -- replay translated into offline credit assignment and reuse logic
+- bridge/synchrony_to_dynamic_routing.md -- synchrony and coherence translated into dynamic routing implications
+- bridge/visuals_to_phase1_nm_tests.md -- visual narratives translated into state-plus-action phase-1 test design
+- bridge/visuals_to_curriculum_chapters.md -- the first-batch visual program mapped into the curriculum chapter sequence
 
-## tests (21 records)
+### legacy-title redirects
+- bridge/plasticity_to_kda_delta_rule.md -- SUPERSEDED redirect to `bridge/plasticity_to_matrix_memory_delta_rule.md`
+- bridge/memory_systems_to_kda_mla.md -- SUPERSEDED redirect to `bridge/memory_systems_to_matrix_memory_and_compressed_attention.md`
+- bridge/biological_attention_to_mla.md -- SUPERSEDED redirect to `bridge/biological_attention_to_compressed_attention.md`
+
+## tests (22 articles: 20 evidence records + 1 supporting prototype note + 1 series landing page)
 
 ### paid-run cards (6)
 - tests/god_run_results.md -- first paid neural-machine run, 2026-04-11, 283M params, val_bpb 1.3950, passkey 0/20
@@ -266,19 +340,19 @@ frozen evidence records, one per paid run:
 - tests/2026-04-09_bcm_alpha_pilot.md -- plasticity bridge pilot; bcm-like adaptive alpha with activity-dependent forgetting and state norm stabilization
 - tests/2026-04-09_gp_vs_bilinear_pilot.md -- spatial bridge pilot; pga geometric product vs random bilinear at random initialization
 
-### simulation results and analyses (10)
+### historical matrix-memory series landing (1)
+- tests/matrix_memory_capacity_series.md -- grouped landing page for the 2026-04-12 matrix-memory capacity and retention evidence line
+
+### simulation results and analyses (9)
 - tests/god_run_findings.md -- original long-form synthesis of god_run's results
-- tests/decay_sweep_results.md -- asymmetric matrix memory d_head=64 decay sweep; retention knee at decay=0.90 (32 patterns), decay=0.95 (64 patterns)
-- tests/head_dim_sweep_results.md -- head-dim 32-256 sweep at d_head=64; p*(d) sub-linear; retention dominates width
-- tests/overwrite_sweep_results.md -- erasure at decay=0.90 hurts all 7 encodings at 32-pattern knee
-- tests/encoding_simulation_round_a.md -- symmetric memory sign-only vs three-level encoding comparison
-- tests/encoding_simulation_round_b.md -- asymmetric matrix memory encoding comparison; capacity ceiling below symmetric
 - tests/correction_field_trained_prediction_results.md -- trained-predictor correction-field sim; memory_capacity_delta=0 at every quality
 - tests/multi_resolution_head_split_results.md -- fast/medium/slow heads with surprise gates; rare-class recall improves
 - tests/thinking_loop_prototype_results.md -- recurrent hidden-state refinement pilot on modular arithmetic
-- tests/aesthetic_logger_prototype.md -- phase 6a logging module, implemented not yet wired (current status)
 
-## simulations (35+ scripts across 17 script-containing directories plus 3 root-level utilities)
+### supporting prototype note (1)
+- tests/aesthetic_logger_prototype.md -- frozen prototype note for the phase 6a logging module; not counted as an evidence record
+
+## simulations (45 scripts total: 42 across 17 script-containing directories plus 3 root-level utilities)
 - simulations/single_neuron/ (3 scripts: lif_fi_curve leak-validation, adex_patterns, izhikevich_gallery)
 - simulations/plasticity/ (3 scripts: stdp_weight_evolution, homeostatic_scaling, bcm_alpha_pilot)
 - simulations/sparse_coding/ (2 scripts: sparse_coding_demo, hierarchical_ternary)
@@ -287,7 +361,7 @@ frozen evidence records, one per paid run:
 - simulations/neuromodulation/ (1 script: dopamine_rpe)
 - simulations/lateral_inhibition/ (1 script: wta_dynamics)
 - simulations/oscillations/ (1 script: gamma_ping)
-- simulations/memory/ (10 scripts: pattern_completion, capacity_scaling, imagination_recombination, asymmetric_outer_product_recall, correction_field_capacity, correction_field_trained_prediction, multi_resolution_head_split, slot_buffer_capacity, slot_surprise_writes, slot_integration)
+- simulations/memory/ (17 scripts: pattern_completion, capacity_scaling, imagination_recombination, asymmetric_outer_product_recall, correction_field_capacity, correction_field_trained_prediction, multi_resolution_head_split, slot_buffer_capacity, slot_surprise_writes, slot_integration, contextual_recall_world, slot_key_interference_sweep, multi_association_recall, delayed_cue_world, episodic_separation_completion, episodic_replay_reuse, contextual_gate_routing)
 - simulations/attention/ (1 script: biased_competition)
 - simulations/dendritic/ (1 script: multicompartment_neuron)
 - simulations/energy/ (1 script: energy_comparison)
@@ -298,7 +372,16 @@ frozen evidence records, one per paid run:
 - simulations/reasoning/ (1 script: thinking_loop_prototype)
 - simulations/shared.py, simulations/suite_registry.py, simulations/suite_runner.py (root-level utilities)
 
-## knowledge (40 articles)
+## knowledge (49 articles)
+- knowledge/systems_neuroscience_research.md -- research shelf for replay, indexing, cortical recurrence, routing, and neuromodulatory control
+- knowledge/cellular_molecular_neurobiology_research.md -- research shelf for dendrites, receptor dynamics, glia, and biochemical control motifs
+- knowledge/cognitive_architecture_research.md -- research shelf for structure of mind, working memory, executive control, and self-modeling
+- knowledge/cross_scale_building_blocks_research.md -- research shelf for recurring primitives across levels of organization
+- knowledge/architectures_beyond_next_token_research.md -- research shelf for JEPA, world models, bounded memory, and non-autoregressive AI directions
+- knowledge/visual_sources_systems_neuroscience.md -- provenance shelf for the neuroscience visuals selected for recreation
+- knowledge/visual_sources_cognitive_architecture.md -- provenance shelf for the memory, mind, and control visuals selected for recreation
+- knowledge/visual_sources_beyond_autoregression.md -- provenance shelf for the beyond-autoregression and world-model visuals selected for recreation
+- knowledge/benchmark_skill_taxonomies.md -- benchmark and task-taxonomy shelf with the first phase-1 skill-by-reasoning visual
 - knowledge/unified_theory.md -- crbr formulation unifying kda, mamba-3, mla, spikes, swiglu, and gp under one mathematical object
 - knowledge/delta_rule_theory.md -- delta-rule linear attention, online regression view, and fast-weight state updates
 - knowledge/kda_channel_gating.md -- kimi delta attention with channel-wise forgetting and constrained dplr implementation notes
@@ -310,8 +393,8 @@ frozen evidence records, one per paid run:
 - knowledge/ternary_spikes.md -- gerhard empirical findings on adaptive-threshold ternary spikes and firing-rate behavior
 - knowledge/geometric_algebra.md -- projective geometric algebra g(3,0,1), gatr notes, and gp implementation context
 - knowledge/multimodal_encoding.md -- techniques for mapping images, audio, and 3d data into unified token sequences
-- knowledge/papers.md -- compiled index of papers referenced across the todorov knowledge files
-- knowledge/papers_library.md -- extended eptesicus paper library organized by architecture relevance and actionability
+- knowledge/papers.md -- quick paper-entry surface by category
+- knowledge/papers_library.md -- canonical exhaustive paper library with architecture relevance and actionability
 - knowledge/neuroscience_research_2026.md -- curated peer-reviewed neuroscience research library (2020-2026), 16 papers across dendritic computation, cortical microcircuits, memory systems, energy constraints, attention, oscillations
 - knowledge/perception_and_consciousness_research.md -- curated research library on perception, consciousness, attention, embodiment, and time at the cognitive level, 30+ sources from helmholtz to cogitate 2025
 - knowledge/decision_and_emotion_research.md -- curated research library on decision making, emotion, reward, intuition, social cognition, and rationality, 25+ sources across evidence accumulation, somatic markers, dopamine, heuristics, theory of mind, predictive brain
@@ -323,37 +406,46 @@ frozen evidence records, one per paid run:
 - knowledge/glial_computation_research.md -- curated research library on glial cells as active computational participants, 9 sources across glia:neuron ratio, tripartite synapse, astrocytic ltp gating, gliotransmission, activity-dependent myelination, microglial pruning, active forgetting, and opc synaptic input
 - knowledge/autonomic_and_interoception_research.md -- curated research library on body-brain interface, 10 sources across insular interoception, vagus nerve, gut-brain axis, cardiac gating, allostasis, gate control theory, neuromatrix, somatic markers, and polyvagal theory
 - knowledge/connectomics_and_wiring_research.md -- curated research library on brain wiring architecture, 10 sources across complete connectomes, small-world topology, rich-club hubs, wiring optimization, communication costs, sparse connectivity, non-random connectivity, and human vs mouse cortex
-
 - knowledge/executive_function_research.md -- prefrontal working memory maintenance, basal ganglia gating, conflict monitoring, metacognition, planning, task switching. miller & cohen 2001, o'reilly & frank 2006, botvinick 2001, fleming & dolan 2012
 - knowledge/motor_and_forward_models_research.md -- cerebellum as forward model, motor cortex as dynamical system, sequence chunking, optimal feedback control, active inference. wolpert 1998, churchland 2012, graybiel 1998, todorov & jordan 2002, friston 2011
 - knowledge/imagination_research.md -- hippocampal scene construction, constructive episodic simulation, suppression circuit for controlled vs intrusive thought, dmn-executive coupling for creativity, visual imagery, dreaming as offline generation, forward models as primitive imagination. hassabis 2007, schacter & addis 2007, anderson 2025, beaty 2018, pearson 2019, deperrois 2022
-- knowledge/compression_architecture.md -- novel compression proposals for the neural machine: hierarchical ternary coding (0.37 bits/dim), state-predictive residual coding, consolidated state snapshots, content-addressable sparse memory, ternary weight matrices. combines hippocampal indexing, pattern separation, chunking, predictive coding, and consolidation principles
-
+- knowledge/compression_architecture.md -- earlier compression proposal shelf, now superseded by the bridge article but retained for evidence continuity
 - knowledge/learning_rules_research.md -- curated research library on non-backprop learning rules, 8 sources across target propagation, predictive coding at depth, forward-forward, evolution strategies, e-prop on neuromorphic hardware, three-factor hebbian, and the 1-15pp scale gap
 - knowledge/ternary_compression_research.md -- curated research library on ternary and extreme quantization, 9 sources across bitnet b1.58, w1a1 gap, paretoq pareto frontier, matmul-free lm, hardware efficiency, fpga accelerators, scaling laws, and ste improvements
 - knowledge/memory_capacity_research.md -- curated research library on associative memory capacity, 9 sources across modern hopfield exponential capacity, tight upper bounds, gated deltanet mqar, ternary synaptic scaling, ssm retrieval horizon, rnn formal lower bounds, svd kv compression, memory caching, and the unmeasured joint of outer product + decay + ternary
 - knowledge/imagination_computation_research.md -- curated research library on computational imagination, 8 sources across novelty as feature superposition, meta-learning for compositionality, dreamerv3 latent imagination, cmmd and vendi score quality metrics, logit arithmetic, outer-product generative interpolation, and memorization-to-generalization phase transition
 - knowledge/sparse_connectivity_research.md -- curated research library on sparse network connectivity, 8 sources across lottery tickets in transformers, sparsegpt at 175b, deepseek moe, small-world acceleration, rigl dynamic sparse training, biological wiring cost optimization, connectome robustness, and adaptive rewiring emergence
-
 - knowledge/gpu_spike_implementation_research.md -- curated research library on gpu spiking implementations, covering spikingjelly cupy fusion (11x speedup), sparseprop O(log N) binary heap, parallel scan solutions for lif reset (psn, prf, spikingssms, bullet trains), eventprop exact spike-timing gradients, ttfs 0.3 spikes/neuron, matmul-free lm ternary weights, temporal fusion 5-40x speedup, and dense-beats-sparse crossover at 40% firing rate
 - knowledge/gpu_architecture_building_research.md -- curated research library on gpu architecture engineering, covering triton vs cuda tradeoffs, torch.autograd.Function + ste for spike backprop, flash attention tiling for outer-product accumulation, fla chunkwise parallel scan, gradient checkpointing, bf16/fp8 precision, gradcheck verification, and nsight compute profiling
 - knowledge/phase_coding_research.md -- curated research library on phase-based neural coding, covering lisman theta-gamma model, liebe et al. 2025 falsification of phase-order-encodes-sequence-order, trained rnns developing limit cycles (pals et al. 2024), linoss forced harmonic oscillators (rusch & rus iclr 2025 oral), akorn kuramoto synchronization, rope as structural phase code (novel observation), complex-valued position embeddings (wang et al. iclr 2020), and spike timing vs rate coding
-
 - knowledge/unified_learning_hypothesis.md -- the forward pass IS the learning step: outer product = hebbian, BCM alpha = metaplasticity, delta rule = error correction, k-WTA = competition, prediction error = teaching signal. unified learning where computation and training are the same operation. testable hypothesis with specific experiment design.
 - knowledge/compression_novelty.md -- novelty analysis of hierarchical k-WTA + ternary compression. confirmed novel: no prior work on runtime activations with CKA quality validation. closest: ComPEFT (EMNLP 2024) on weight deltas. architecture-agnostic, applies to any activation tensor.
 - knowledge/biological_vision_research.md -- curated research library on biological vision, retinal processing, center-surround receptive fields, ventral/dorsal streams, and visual cortex hierarchies
-- knowledge/generative_memory_research.md -- curated library on memory compression via generative models: quantization ceilings, Dreamer V3, INRs, hypernetworks, Larimar, Memorizing Transformers, Titans, DeltaKV
+- knowledge/generative_memory_research.md -- curated literature shelf on generative memory and structural compression: quantization ceilings, Dreamer V3, INRs, hypernetworks, Larimar, Memorizing Transformers, Titans, DeltaKV
 
 ## statistics
 - total mechanism articles: 61
-- total bridge notes: 19
-- total synthesis articles: 11 (10 current + 1 superseded)
-- total test records: 21 (6 paid-run cards + 5 pilots + 10 simulation results including aesthetic_logger_prototype + god_run_findings; excluding tests/index.md)
+- total bridge notes: 28 (25 current + 3 legacy-title redirects)
+- total synthesis articles: 24 (23 current + 1 superseded)
+- total test records: 20 (6 paid-run cards + 5 pilots + 9 later simulation results; excludes the supporting prototype note and the series landing page)
 - total entity notes: 33
-- total comparison articles: 13
+- total comparison articles: 15 (14 current + 1 legacy-title redirect)
 - total concept articles: 7
-- total knowledge articles: 40
+- total knowledge articles: 49
 - total mistake docs: 2
-- total navigation / meta: 6 (INDEX.md, OPERATING_DIRECTIVE.md, PROJECT_PLAN.md, _audit_2026-04-16.md, Home.md, log.md)
-- total simulations: 35+ scripts across 17 script-containing directories plus 3 root-level utilities (shared.py, suite_registry.py, suite_runner.py)
-- last updated: 2026-04-17
+- total supporting prototype notes: 1 (`tests/aesthetic_logger_prototype.md`)
+- total navigation / meta: 7 (INDEX.md, OPERATING_DIRECTIVE.md, PROJECT_PLAN.md, _audit_2026-04-16.md, Home.md, log.md, tests/index.md)
+- total simulations: 45 scripts across 17 script-containing directories plus 3 root-level utilities (shared.py, suite_registry.py, suite_runner.py)
+- last updated: 2026-04-23
+
+## historical meta
+
+- [[_audit_2026-04-16]] — historical audit of the wiki state before the 2026-04-16 refactor
+
+## see also
+
+- [[Home]]
+- [[PROJECT_PLAN]]
+- [[OPERATING_DIRECTIVE]]
+- [[log]]
+- [[tests/index|tests]]

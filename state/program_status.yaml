@@ -1,11 +1,14 @@
 project: todorov
 canonical_plan: neuroloc/wiki/PROJECT_PLAN.md
 current_phase: curriculum_pivot
-current_step: teaching_pdf_curriculum_is_the_active_workstream_paid_compute_paused_indefinitely_architectural_intervention_track_in_hold
-status: curriculum_pivot_2026_04_17_active_workstream_is_the_teaching_pdf_curriculum_at_claude_plans_compressed_dancing_haven_md_specifies_36_chapters_across_6_phases_math_biology_brain_computation_ml_math_advanced_architectures_paper_implementation_at_20_25_pages_per_chapter_english_latex_dzipobel_voice_with_parallel_research_agents_and_prosecutor_validation_on_research_and_draft_paid_compute_paused_indefinitely_architectural_intervention_track_a_through_e_candidates_remain_in_backlog_but_not_active_six_paid_runs_closed_see_wiki_project_plan_section_pivot_to_teaching_curriculum_for_full_detail
-last_updated: "2026-04-17"
-tests_passing: 76
-total_tests: 76
+current_step: chapter_1_review_ready_chapter_2_outline_awaiting_approval_architecture_backlog_paused
+status: curriculum_pivot_2026_04_22_chapter_1_review_ready_package_exists_chapter_2_outline_is_waiting_for_approval_paid_compute_remains_paused_and_the_architectural_intervention_track_stays_in_backlog_until_curriculum_completion
+last_updated: "2026-04-22"
+tests_passing: 28
+total_tests: 28
+test_collection_total: 276
+test_surface: targeted_nm_regression_battery
+test_status_note: "2026-04-21 targeted nm regression battery passed 28 tests; full repo collection currently counts 276 tests and still includes legacy environment-sensitive failures outside the current curriculum lane."
 critical_fix: "god_machine.py step logger hardcoded dict dropped 40+ probe metrics, fixed class-wide via merge loop and smoke-test disk round-trip guard; bcm train/eval path divergence fixed by aligning recurrent path to running_state_norm; running_state_norm now training-only mutation; 17 prosecutor findings F1-F17 all fixed"
 run_history:
   run_001: Phase 1, sequential, 2000 steps, BPB 2.235 (PASS)
@@ -89,4 +92,4 @@ latest_run_results:
   git_sha: f27b81c
   config_hash: 4e3f02be249cc069
   run_card: neuroloc/wiki/tests/run3_cognition_phase1_results.md
-next_action: "CURRICULUM PIVOT 2026-04-17. the project's active workstream is the teaching PDF curriculum specified at ~/.claude/plans/compressed-dancing-haven.md. 36 chapters across 6 phases (math fundamentals, biology fundamentals, brain computation, ML math, advanced architectures and compression, paper implementation) at 20-25 pages per chapter in English LaTeX, written in the pedagogical voice of /Projects/dzipobel adapted to English. chapter production uses parallel research agents across wiki + cited papers + classical textbooks + online resources + reference implementations + recent papers, with prosecutor agents validating research output before drafting and prosecutor agents validating the draft before user review. user executes chapter production themselves from the plan file. the user approves the outline of every chapter before research begins. the architectural-intervention track (A-E candidates in wiki/synthesis/substrate_requires_architectural_change.md) is held in the research backlog and resumes only after the curriculum has produced enough fluency in the user for principled intervention choice. paid compute is paused indefinitely for the entire duration of the curriculum. no paid run is authorised while the curriculum is the active workstream. see wiki/PROJECT_PLAN.md section 'pivot to teaching curriculum' and section 'curriculum track' for full detail including the 36-chapter outline and the production protocol."
+next_action: "curriculum remains the only active lane. chapter 1 is review-ready in pdf_curriculum/chapters/ch_01_what_a_number_means/ and chapter 2 is outline-only awaiting approval in pdf_curriculum/chapters/ch_02_how_things_change/ch_02_outline.md. continue chapter production from the plan file at ~/.claude/plans/compressed-dancing-haven.md and pdf_curriculum/index/curriculum_status.md. the architectural-intervention backlog remains paused; when it resumes, it restarts from the implemented biology_phase1 symbolic battery plus the remaining latent-world deliberation and model-side neural-model evaluation gaps. no paid run is authorised while the curriculum is active."

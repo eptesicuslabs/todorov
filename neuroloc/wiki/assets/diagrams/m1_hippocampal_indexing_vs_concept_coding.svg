@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560">
+  <rect width="960" height="560" fill="#f6f8fb"/>
+  <text x="60" y="58" font-family="Arial, sans-serif" font-size="28" fill="#1f2937">m1 hippocampal indexing vs concept coding</text>
+  <text x="60" y="88" font-family="Arial, sans-serif" font-size="16" fill="#475569">sparse episode index on the left, reused concept units on the right</text>
+  <rect x="110" y="140" width="320" height="300" rx="20" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="2"/>
+  <text x="205" y="180" font-family="Arial, sans-serif" font-size="24" fill="#0f172a">episode index</text>
+  <circle cx="190" cy="250" r="18" fill="#2563eb"/>
+  <circle cx="250" cy="300" r="18" fill="#2563eb"/>
+  <circle cx="315" cy="235" r="18" fill="#2563eb"/>
+  <circle cx="360" cy="315" r="18" fill="#2563eb"/>
+  <line x1="190" y1="250" x2="250" y2="300" stroke="#2563eb" stroke-width="4"/>
+  <line x1="250" y1="300" x2="315" y2="235" stroke="#2563eb" stroke-width="4"/>
+  <line x1="315" y1="235" x2="360" y2="315" stroke="#2563eb" stroke-width="4"/>
+  <text x="150" y="390" font-family="Arial, sans-serif" font-size="16" fill="#334155">few conjunctive units</text>
+  <text x="150" y="415" font-family="Arial, sans-serif" font-size="16" fill="#334155">bind one episode and later</text>
+  <text x="150" y="440" font-family="Arial, sans-serif" font-size="16" fill="#334155">drive reinstatement</text>
+  <rect x="530" y="140" width="320" height="300" rx="20" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+  <text x="625" y="180" font-family="Arial, sans-serif" font-size="24" fill="#0f172a">concept coding</text>
+  <rect x="590" y="225" width="90" height="42" rx="12" fill="#f59e0b"/>
+  <rect x="700" y="225" width="90" height="42" rx="12" fill="#f59e0b"/>
+  <rect x="590" y="300" width="90" height="42" rx="12" fill="#f59e0b"/>
+  <rect x="700" y="300" width="90" height="42" rx="12" fill="#f59e0b"/>
+  <text x="614" y="252" font-family="Arial, sans-serif" font-size="18" fill="#ffffff">face</text>
+  <text x="726" y="252" font-family="Arial, sans-serif" font-size="18" fill="#ffffff">place</text>
+  <text x="610" y="327" font-family="Arial, sans-serif" font-size="18" fill="#ffffff">tool</text>
+  <text x="726" y="327" font-family="Arial, sans-serif" font-size="18" fill="#ffffff">goal</text>
+  <text x="585" y="390" font-family="Arial, sans-serif" font-size="16" fill="#334155">units reused across episodes</text>
+  <text x="585" y="415" font-family="Arial, sans-serif" font-size="16" fill="#334155">good for abstraction, weaker</text>
+  <text x="585" y="440" font-family="Arial, sans-serif" font-size="16" fill="#334155">as a one-shot event index</text>
+</svg>

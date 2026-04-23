@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="620" viewBox="0 0 960 620">
+  <rect width="960" height="620" fill="#f6f8fb"/>
+  <text x="60" y="58" font-family="Arial, sans-serif" font-size="28" fill="#1f2937">e1 skill by reasoning matrix</text>
+  <text x="60" y="88" font-family="Arial, sans-serif" font-size="16" fill="#475569">project-facing evaluation map for memory, abstraction, dynamics, and semantics across reasoning demands</text>
+  <text x="275" y="150" font-family="Arial, sans-serif" font-size="16" fill="#334155">descriptive</text>
+  <text x="430" y="150" font-family="Arial, sans-serif" font-size="16" fill="#334155">predictive</text>
+  <text x="585" y="150" font-family="Arial, sans-serif" font-size="16" fill="#334155">counterfactual</text>
+  <text x="745" y="150" font-family="Arial, sans-serif" font-size="16" fill="#334155">control use</text>
+  <text x="120" y="235" font-family="Arial, sans-serif" font-size="16" fill="#334155">memory</text>
+  <text x="120" y="315" font-family="Arial, sans-serif" font-size="16" fill="#334155">abstraction</text>
+  <text x="120" y="395" font-family="Arial, sans-serif" font-size="16" fill="#334155">dynamics</text>
+  <text x="120" y="475" font-family="Arial, sans-serif" font-size="16" fill="#334155">semantics</text>
+  <rect x="240" y="180" width="120" height="60" fill="#bfdbfe"/><rect x="395" y="180" width="120" height="60" fill="#60a5fa"/><rect x="550" y="180" width="120" height="60" fill="#2563eb"/><rect x="705" y="180" width="120" height="60" fill="#1d4ed8"/>
+  <rect x="240" y="260" width="120" height="60" fill="#dcfce7"/><rect x="395" y="260" width="120" height="60" fill="#86efac"/><rect x="550" y="260" width="120" height="60" fill="#22c55e"/><rect x="705" y="260" width="120" height="60" fill="#16a34a"/>
+  <rect x="240" y="340" width="120" height="60" fill="#fde68a"/><rect x="395" y="340" width="120" height="60" fill="#fbbf24"/><rect x="550" y="340" width="120" height="60" fill="#f59e0b"/><rect x="705" y="340" width="120" height="60" fill="#d97706"/>
+  <rect x="240" y="420" width="120" height="60" fill="#fecaca"/><rect x="395" y="420" width="120" height="60" fill="#fca5a5"/><rect x="550" y="420" width="120" height="60" fill="#ef4444"/><rect x="705" y="420" width="120" height="60" fill="#dc2626"/>
+  <text x="70" y="560" font-family="Arial, sans-serif" font-size="15" fill="#475569">higher saturation means heavier demand. use this matrix to map probes and benchmarks to phase-1 and phase-2 skills.</text>
+</svg>

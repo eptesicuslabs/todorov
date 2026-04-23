@@ -158,4 +158,4 @@ if the GP vs random bilinear experiment shows that the geometric structure does 
 - [[path_integration]]
 - [[cognitive_maps]]
 - [[pga_vs_grid_cells]]
-- [[memory_systems_to_kda_mla]]
+- [[memory_systems_to_matrix_memory_and_compressed_attention]]

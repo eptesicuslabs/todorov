@@ -1,6 +1,6 @@
 # substrate requires architectural change: six paid runs, zero retrieval, one discriminating corpus
 
-status: current (as of 2026-04-17).
+status: current (as of 2026-04-22).
 
 ## the observation
 
@@ -190,11 +190,22 @@ simulation gate A+B+C pattern to be repeated on the new substrate,
 same as slot memory was built through. minimum ~4 days of focused
 work before the next paid launch.
 
+note (2026-04-21 / 2026-04-22): the project's backlog method widened
+after this article. when the architecture track resumes after the
+curriculum, A-E candidates are no longer judged by passkey alone.
+they must first clear the broader cpu battery in
+`wiki/synthesis/phase1_evaluation_surface_for_neural_models.md`,
+including explicit trainability controls and state/action metrics.
+passkey at 256 remains necessary, but now as a smoke test inside that
+larger battery.
+
 ## see also
 
 - `wiki/tests/run3_cognition_phase1_results.md` — the run card for this observation
 - `wiki/synthesis/training_objective_vs_architectural_goal.md` — the prior analysis whose predicted discriminant this run executed
 - `wiki/synthesis/slot_memory_design.md` — the substrate design itself
+- `wiki/synthesis/phase1_evaluation_surface_for_neural_models.md` — the current external-synthesis article for the cpu-first battery that should replace passkey-only thinking
+- `wiki/synthesis/synthetic_shared_world_bridge.md` — the phase-2 bridge that keeps multimodality tied to one latent world instead of a bolt-on stack
 - `wiki/synthesis/linear_attention_retrieval_wall.md` — the original matrix-memory diagnosis (already marked superseded)
 - `wiki/tests/run2_slot_memory_retention_fixed_results.md` — the prior paid run with same substrate + retention on fineweb
 - `wiki/PROJECT_PLAN.md` — the canonical project state

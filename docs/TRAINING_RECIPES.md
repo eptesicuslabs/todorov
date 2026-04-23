@@ -1,5 +1,7 @@
 # Training Recipes
 
+historical note (2026-04-22): this file predates the curriculum pivot and should be read as an early architecture-era snapshot, not as current run guidance.
+
 No validated recipes yet. Initial configuration:
 
 ## Default Config

@@ -1,5 +1,7 @@
 # Memory Analysis
 
+historical note (2026-04-22): this analysis remains archival reference material. it is not the active workstream surface.
+
 ## Parameter Count
 
 Total parameters: 350,039,268 (~350M)

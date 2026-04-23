@@ -113,7 +113,7 @@ todorov's training recipe has several features that loosely map to critical peri
 
 **no layer-specific critical periods:** all layers in todorov learn at the same rate throughout training. biological critical periods are layer-specific and region-specific (visual cortex matures before prefrontal cortex by years; layer 4 matures before layer 2/3). a training recipe with layer-specific learning rate schedules would be a closer analog.
 
-**spike threshold alpha:** alpha is learnable throughout training with no time-dependent constraint on its plasticity. there is no "closing" of alpha learning analogous to PNN consolidation. see the adversarial analysis in [[development_to_training_curriculum]].
+**spike threshold alpha:** alpha is learnable throughout training with no time-dependent constraint on its plasticity. there is no "closing" of alpha learning analogous to PNN consolidation. see the adversarial analysis in [[development_to_training_schedule]].
 
 **phase 5 sequencing:** the manually specified progression (baseline -> ATMN -> expanded spikes) is a form of developmental staging, but it operates at the run level, not within a single training run. each phase is a separate training from scratch, not a progressive modification of a running system.
 

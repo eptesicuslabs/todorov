@@ -1,5 +1,7 @@
 # phase 3: lessons, mistakes, and knowledge reference
 
+historical note (2026-04-22): this document is a phase-3 archive snapshot. it should not be read as the current forward plan.
+
 Deyan Todorov, Eptesicus Labs
 2026-03-23
 

@@ -52,7 +52,7 @@ the erasure term k_t * (k_t^T * S_{t-1}) subtracts the old value associated with
 **what kda actually does:**
     S_t = diag(alpha) * S_{t-1} + beta_t * k_t * v_t^T
 
-the alpha decay is indiscriminate. it decays everything equally, regardless of whether new information is arriving at that "address." there is no targeted erasure. as [[plasticity_to_kda_delta_rule]] documents: "kda relies on alpha decay for forgetting, which is indiscriminate (decays everything equally) rather than targeted."
+the alpha decay is indiscriminate. it decays everything equally, regardless of whether new information is arriving at that "address." there is no targeted erasure. as [[plasticity_to_matrix_memory_delta_rule]] documents: "kda relies on alpha decay for forgetting, which is indiscriminate (decays everything equally) rather than targeted."
 
 the question for chunk_kda (the fla kernel): does the triton implementation include the erasure term? if not, kda is not a delta rule -- it is a decaying hebbian memory. the difference matters computationally: a true delta rule can update associations in place (key A now maps to value B instead of value A). a decaying hebbian memory can only hope that the old association has decayed sufficiently before the new one dominates. for language modeling with repeated entities (pronouns referring to different antecedents, variables reassigned), the distinction is significant.
 
@@ -145,7 +145,7 @@ the gap is real but may not matter for language modeling. the question is empiri
 - [[canonical_microcircuit]] -- the biological case for recurrent amplification
 - [[predictive_coding]] -- hierarchical error minimization through recurrence
 - [[hebbian_learning]] -- the outer product rule underlying kda writes
-- [[plasticity_to_kda_delta_rule]] -- detailed analysis of kda's biological correspondence
+- [[plasticity_to_matrix_memory_delta_rule]] -- detailed analysis of kda's biological correspondence
 - [[neuron_models_to_atmn]] -- atmn's departures from biological neuron dynamics
 - [[oscillations_vs_recurrence]] -- oscillatory dynamics vs todorov's recurrence
 - [[short_term_plasticity]] -- the tsodyks-markram model and its relation to alpha decay

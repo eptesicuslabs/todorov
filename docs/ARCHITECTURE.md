@@ -1,5 +1,7 @@
 # Todorov Architecture
 
+historical note (2026-04-22): this document describes the pre-pivot architecture surface. use `README.md`, `NEUROLOC.md`, and `neuroloc/wiki/PROJECT_PLAN.md` for the current project state.
+
 ## Overview
 
 Todorov is a 24-layer hybrid architecture combining three attention/sequence

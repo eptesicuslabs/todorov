@@ -171,7 +171,7 @@ when spike_density is low (sparse, selective coding):
 
 when state_norm is high (memory near capacity):
 - alpha_modulation should decrease (accelerate forgetting to prevent saturation)
-- see the BCM-like proposal in [[plasticity_to_kda_delta_rule]]
+- see the BCM-like proposal in [[plasticity_to_matrix_memory_delta_rule]]
 
 ## implementation spec
 
@@ -253,5 +253,5 @@ the HONEST summary: alpha is a per-channel exponential decay rate, learned by gr
 - [[norepinephrine_system]]
 - [[neuromodulatory_framework]]
 - [[precision_weighting]]
-- [[plasticity_to_kda_delta_rule]]
+- [[plasticity_to_matrix_memory_delta_rule]]
 - [[predictive_coding_to_training_objective]]

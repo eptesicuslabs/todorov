@@ -118,7 +118,7 @@ the external-opinion synthesis (2026-04-14, pasted into the project conversation
 - `wiki/tests/head_dim_sweep_results.md` (sub-linear scaling of head-dim widening)
 - `wiki/tests/overwrite_sweep_results.md` (erasure hurts at the retention knee)
 - `wiki/tests/correction_field_trained_prediction_results.md` (memory substrate is invariant to stored content)
-- `wiki/comparisons/memory_kda_vs_hippocampus.md` (prior analysis of the linear-readout weakness)
+- `wiki/comparisons/matrix_memory_vs_hippocampus.md` (prior analysis of the linear-readout weakness)
 
 ## references cited
 

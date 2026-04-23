@@ -1,5 +1,7 @@
 # run_010: kda+mla scaling probe (NOT a todorov baseline)
 
+historical note (2026-04-22): this report remains a valid archived run summary, but the active workstream is now the curriculum and not the h200 run sequence.
+
 **date:** 2026-03-26
 **compute:** runpod h200 (141gb hbm3e, sm_90), 1 hour session
 **cost:** ~30 eur

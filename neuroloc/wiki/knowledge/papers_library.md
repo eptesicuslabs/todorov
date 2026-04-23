@@ -1,6 +1,10 @@
 # Todorov Paper Library — Eptesicus Laboratories
 
-status: current (as of 2026-04-16).
+status: current (as of 2026-04-22).
+
+this is the canonical exhaustive paper library for the knowledge compartment. use [[papers]] when you only need a quick shelf-level index.
+
+this file curates sources and actionability. it does not carry the project's binding current-state conclusions; those belong in synthesis articles and in [[PROJECT_PLAN]].
 
 **Architecture reference:** ~350M parameter hybrid — [KDA, KDA, KDA, Mamba3, KDA, KDA, KDA, MLA] × 3 — targeting 4GB edge devices, INT8 quantization, 128K+ context. Combines channel-wise delta-rule linear attention (KDA), Mamba-3 SISO SSM, Multi-Latent Attention (MLA), ternary spiking neurons (ATMN), and an optional geometric product (GP) self-interaction module.
 
@@ -514,36 +518,15 @@ TVM-based compilation. OpenCL, CUDA, Metal, WebGPU. ~190 tok/s on M2 Ultra. Page
 
 ---
 
-## Consolidated action items for Todorov
+## how to use this library
 
-### Immediate implementation priorities
-1. **XSA in MLA layers** — 2-line modification, free quality gain scaling with context length (arXiv:2603.09078)
-2. **μP for hyperparameter tuning** — Tune at ~35M proxy, transfer to 350M (arXiv:2203.03466)
-3. **Rotation-based quantization** — SpinQuant/QuaRot for INT8 of hybrid layers (arXiv:2405.16406, 2404.00456)
-4. **Quamba techniques** — Apply Hadamard transforms to Mamba-3 layer quantization (arXiv:2410.13229)
-5. **TurboQuant for MLA KV cache** — 3-bit KV cache, zero accuracy loss, 6x memory reduction. Apply PolarQuant+QJL to MLA latent vectors for double compression (MLA + TurboQuant). Critical for 4GB edge target at 128K context (arXiv:2504.19874)
+- use this file to find source material by mechanism family, architecture family, or deployment constraint.
+- when a paper changes the project's active claim, promote that claim into the relevant synthesis article and into [[PROJECT_PLAN]].
+- keep current backlog prioritization and run decisions out of this file. those belong in the synthesis compartment and in the project-state files.
 
-### Architecture decisions to revisit
-5. **Mamba-3 MIMO vs SISO** — MIMO yields +1.8 points at 1.5B; evaluate tradeoff at 350M (arXiv:2603.15569)
-6. **Weight-sharing MLA layers** (Zamba2 pattern) — Could reduce MLA parameter overhead for edge (arXiv:2411.15242)
-7. **Hymba meta tokens** — Learnable tokens storing critical information, 10× less cache (arXiv:2411.13676)
-8. **DSA sparse branches in MLA** — Three-branch sparse selection for 128K+ efficiency (arXiv:2512.02556)
-9. **Nemotron-Flash evolutionary search** — NAS for optimal operator mixing at 350M (arXiv:2511.18890)
+## see also
 
-### Training recipe priorities
-10. **SBDS from MAR** — Validate bidirectional distillation for spiking component (arXiv:2601.21503)
-11. **Adaptive KL distillation** — Combine forward + reverse KL for Todorov KD (arXiv:2404.02657)
-12. **DoReMi data mixing** — Use 35M proxy for mixture optimization (arXiv:2305.10429)
-13. **LLM-JEPA objective** — Evaluate JEPA for multi-view training (arXiv:2509.14252)
-
-### Ablations to run
-14. **Hybrid ratio sweep** — Test 3:1 through 7:1 KDA:MLA ratios per Systematic Analysis findings (arXiv:2507.06457)
-15. **Differential Attention in MLA** — Evaluate impact on INT8 quantization quality (arXiv:2410.05258)
-16. **CoPE vs RoPE** — Test contextual positioning in KDA layers (arXiv:2405.18719)
-17. **Engram module** — Small lookup table in system RAM for factual offloading (arXiv:2601.07372)
-
-### Benchmarking
-18. **SmolLM2-360M** as primary size-class competitor (arXiv:2502.02737)
-19. **Gemma3-270M** as secondary baseline (arXiv:2503.19786)
-20. **Lost-in-the-middle evaluation** — Test whether hybrid KDA+MLA mitigates U-shaped degradation (arXiv:2307.03172)
-21. **SSMs vs Transformers long-context profiling** — Validate 4× SSM speedup at 57K+ tokens on target edge hardware (arXiv:2507.12442)
+- [[papers]] -- quick paper-entry surface
+- [[Home]] -- landing page and current-workstream orientation
+- [[INDEX]] -- flat catalog of all wiki compartments
+- [[PROJECT_PLAN]] -- authoritative current project state

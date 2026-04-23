@@ -16,3 +16,6 @@ notebooks/autoresearch/output/
 run.log
 .triton_cache/
 neuroloc/.obsidian/workspace.json
+pdf_curriculum/**/*.aux
+pdf_curriculum/**/*.log
+pdf_curriculum/**/*.out

@@ -4,7 +4,7 @@ Master reference mapping every Todorov component to its biological analog. For e
 
 ## KDA (src/layers/kda.py)
 
-KDA is a delta-rule recurrent layer that maintains a matrix-valued associative memory. 18 of 24 layers (75%) are KDA.
+KDA is a recurrent matrix-memory layer that maintains a matrix-valued associative memory. 18 of 24 layers (75%) are KDA. historical project language often called it a "delta-rule" layer, but the implemented update lacked the targeted erasure term that stronger label would imply.
 
 Biological analogs:
 
@@ -83,7 +83,7 @@ Biological analogs:
 - **GP self-interaction: out + gp_proj(geometric_product(W_left(x), W_right(x)))**
   - Grid cells: PGA can express rotations, translations, reflections (the operations underlying spatial computation). G(3,0,1) is a superset of SE(2), the group that grid cells and head direction cells operate in.
   - Mapping gap: connection is WEAK to NONEXISTENT at implementation level. PGA is a self-interaction (both inputs from same x), not path integration (accumulating velocity over time). No temporal integration, no velocity signal, no periodicity.
-  - The GP likely functions as a structured bilinear mixer, not a spatial computation module. The critical experiment (GP vs random bilinear control) has not been run.
+  - The GP likely functions as a structured bilinear mixer, not a spatial computation module. The GP-vs-random-bilinear control was later run and did not support a strong spatial-mechanism claim at random initialization.
 
 ## Ternary Spikes (src/spikes/ternary_spike.py)
 

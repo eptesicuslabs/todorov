@@ -92,7 +92,7 @@ however, two implicit stabilization mechanisms exist:
 1. the sigmoid activation on alpha clamps the forgetting rate to (0, 1), preventing both unbounded growth (alpha > 1 would amplify old state) and instant erasure (alpha = 0 would discard all history)
 2. the sigmoid activation on beta_t clamps the write gate to (0, 1), preventing individual associations from being written with unbounded strength
 
-these are architectural constraints, not learned homeostatic responses. a BCM-like or scaling-like mechanism that dynamically adjusts alpha or beta_t based on state magnitude could provide more robust stabilization. see [[plasticity_to_kda_delta_rule]] for discussion of whether this would improve KDA performance.
+these are architectural constraints, not learned homeostatic responses. a BCM-like or scaling-like mechanism that dynamically adjusts alpha or beta_t based on state magnitude could provide more robust stabilization. see [[plasticity_to_matrix_memory_delta_rule]] for discussion of whether this would improve KDA performance.
 
 ## challenges
 

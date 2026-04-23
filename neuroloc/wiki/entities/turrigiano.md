@@ -33,7 +33,7 @@ before Turrigiano's work, it was understood that Hebbian plasticity ([[hebbian_l
 
 ## relevance to todorov
 
-todorov's KDA delta rule lacks an explicit homeostatic mechanism. the sigmoid constraints on alpha and beta_t provide architectural bounds but not activity-dependent regulation. Turrigiano's work motivates the proposed homeostatic state scaling modification described in [[plasticity_to_kda_delta_rule]].
+todorov's KDA delta rule lacks an explicit homeostatic mechanism. the sigmoid constraints on alpha and beta_t provide architectural bounds but not activity-dependent regulation. Turrigiano's work motivates the proposed homeostatic state scaling modification described in [[plasticity_to_matrix_memory_delta_rule]].
 
 ## key references
 

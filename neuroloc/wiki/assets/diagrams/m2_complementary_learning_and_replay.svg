@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="580" viewBox="0 0 960 580">
+  <rect width="960" height="580" fill="#f6f8fb"/>
+  <text x="60" y="58" font-family="Arial, sans-serif" font-size="28" fill="#1f2937">m2 complementary learning and replay</text>
+  <text x="60" y="88" font-family="Arial, sans-serif" font-size="16" fill="#475569">fast episodic binding, replay bridge, and slower structural integration</text>
+  <rect x="90" y="180" width="220" height="110" rx="18" fill="#2563eb"/>
+  <text x="140" y="238" font-family="Arial, sans-serif" font-size="24" fill="#ffffff">fast binding</text>
+  <text x="130" y="268" font-family="Arial, sans-serif" font-size="18" fill="#dbeafe">episode-specific state</text>
+  <rect x="370" y="145" width="220" height="110" rx="18" fill="#16a34a"/>
+  <text x="430" y="203" font-family="Arial, sans-serif" font-size="24" fill="#ffffff">replay bridge</text>
+  <text x="397" y="233" font-family="Arial, sans-serif" font-size="18" fill="#dcfce7">offline reuse and reinstatement</text>
+  <rect x="650" y="180" width="220" height="110" rx="18" fill="#0f766e"/>
+  <text x="688" y="238" font-family="Arial, sans-serif" font-size="24" fill="#ffffff">slow integration</text>
+  <text x="682" y="268" font-family="Arial, sans-serif" font-size="18" fill="#ccfbf1">schema and stable structure</text>
+  <line x1="310" y1="235" x2="370" y2="200" stroke="#2563eb" stroke-width="6"/>
+  <polygon points="360,188 392,188 376,214" fill="#2563eb"/>
+  <line x1="590" y1="200" x2="650" y2="235" stroke="#16a34a" stroke-width="6"/>
+  <polygon points="638,222 670,235 641,249" fill="#16a34a"/>
+  <path d="M 760 330 C 760 420 320 420 220 330" fill="none" stroke="#f59e0b" stroke-width="6"/>
+  <polygon points="238,320 208,332 236,348" fill="#f59e0b"/>
+  <text x="454" y="408" font-family="Arial, sans-serif" font-size="18" fill="#f59e0b">reinstatement and later reuse</text>
+  <text x="60" y="520" font-family="Arial, sans-serif" font-size="15" fill="#475569">blue: fast specific memory. green: replay path. teal: slow structural integration. orange: later reinstatement.</text>
+</svg>

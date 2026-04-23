@@ -1,5 +1,7 @@
 # Knowledge Index
 
+historical note (2026-04-22): this is an older index snapshot. the current canonical state and reading order live in `neuroloc/wiki/PROJECT_PLAN.md` and `AGENTS.md`.
+
 Summary of all knowledge files and their current state.
 
 | File                       | Topic                                    | Status      |

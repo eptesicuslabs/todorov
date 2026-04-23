@@ -194,5 +194,5 @@ the strongest argument AGAINST adding predictive coding: Millidge et al. (2022) 
 - [[free_energy_principle]]
 - [[precision_weighting]]
 - [[predictive_coding_vs_next_token]]
-- [[plasticity_to_kda_delta_rule]]
+- [[plasticity_to_matrix_memory_delta_rule]]
 - [[sparse_coding_to_ternary_spikes]]

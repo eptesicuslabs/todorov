@@ -1,5 +1,7 @@
 # Todorov: Comprehensive Project Report
 
+historical note (2026-04-22): this report is a 2026-03-23 snapshot from before the later h200 runs, the six-run retrieval diagnosis, and the curriculum pivot. use `README.md`, `neuroloc/wiki/PROJECT_PLAN.md`, and `docs/STATUS_BOARD.md` for current state.
+
 Eptesicus Laboratories
 2026-03-23
 Author: Deyan Todorov

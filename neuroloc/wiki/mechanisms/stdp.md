@@ -134,7 +134,7 @@ the asymmetric window implements a primitive form of causal detection: if A cons
 
 ## relationship to todorov
 
-the KDA delta rule uses k_t * v_t^T, which is a Hebbian outer product computed from the SAME timestep, not from different timesteps. there is no explicit timing dependence in the association. however, the recurrence S_t = diag(alpha) * S_{t-1} + beta_t * k_t * v_t^T creates implicit temporal structure: the state S_t carries information about past key-value associations, exponentially decayed. the readout q_t^T * S_t compares the current query against historical associations, which introduces a form of temporal sensitivity through the decay structure rather than through the learning rule itself. see [[plasticity_to_kda_delta_rule]] for the full analysis of whether this constitutes a form of STDP.
+the KDA delta rule uses k_t * v_t^T, which is a Hebbian outer product computed from the SAME timestep, not from different timesteps. there is no explicit timing dependence in the association. however, the recurrence S_t = diag(alpha) * S_{t-1} + beta_t * k_t * v_t^T creates implicit temporal structure: the state S_t carries information about past key-value associations, exponentially decayed. the readout q_t^T * S_t compares the current query against historical associations, which introduces a form of temporal sensitivity through the decay structure rather than through the learning rule itself. see [[plasticity_to_matrix_memory_delta_rule]] for the full analysis of whether this constitutes a form of STDP.
 
 ## challenges
 

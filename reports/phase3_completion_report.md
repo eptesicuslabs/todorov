@@ -1,5 +1,7 @@
 # phase 3 completion report
 
+historical note (2026-04-22): this report is preserved as archive. later analysis qualified some phase-3 conclusions, and the active workstream is now the curriculum.
+
 Deyan Todorov, Eptesicus Labs
 2026-03-23
 

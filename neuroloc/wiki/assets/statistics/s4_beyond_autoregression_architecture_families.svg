@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="700" viewBox="0 0 1600 700">
+  <rect width="100%" height="100%" fill="#fcfbf8"/>
+  <style>
+    .t { font-family: Arial, Helvetica, sans-serif; fill: #1f2430; }
+    .m { font-family: Courier New, Consolas, monospace; fill: #1f2430; }
+    .title { font-size: 36px; font-weight: 700; letter-spacing: 0.5px; }
+    .subtitle { font-size: 16px; fill: #667085; }
+    .axis { stroke: #2f3440; stroke-width: 1.4; }
+    .grid { stroke: #e6e2d9; stroke-width: 1; }
+    .small { font-size: 14px; }
+    .label { font-size: 18px; }
+    .tick { font-size: 15px; fill: #667085; }
+    .mono { font-family: Courier New, Consolas, monospace; font-size: 15px; fill: #1f2430; }
+    .note { font-size: 15px; fill: #667085; }
+  </style>
+
+<text x="110" y="82" class="t title">beyond-autoregression comparison</text>
+<text x="110" y="112" class="t subtitle">primary import by family, not a total score</text>
+<line x1="110" y1="130" x2="1490" y2="130" class="grid"/>
+
+<text x="360" y="205" class="t label" text-anchor="middle">state formation</text>
+<text x="620" y="205" class="t label" text-anchor="middle">action-conditioned dynamics</text>
+<text x="920" y="205" class="t label" text-anchor="middle">task-relevant planning</text>
+<text x="1220" y="205" class="t label" text-anchor="middle">bounded memory</text>
+
+<line x1="220" y1="230" x2="1400" y2="230" class="axis"/>
+<line x1="220" y1="310" x2="1400" y2="310" class="grid"/>
+<line x1="220" y1="390" x2="1400" y2="390" class="grid"/>
+<line x1="220" y1="470" x2="1400" y2="470" class="grid"/>
+<line x1="220" y1="550" x2="1400" y2="550" class="grid"/>
+<line x1="220" y1="230" x2="220" y2="550" class="axis"/>
+<line x1="500" y1="230" x2="500" y2="550" class="grid"/>
+<line x1="760" y1="230" x2="760" y2="550" class="grid"/>
+<line x1="1060" y1="230" x2="1060" y2="550" class="grid"/>
+<line x1="1400" y1="230" x2="1400" y2="550" class="axis"/>
+
+<text x="150" y="282" class="t label">jepa</text>
+<text x="130" y="362" class="t label">dreamer</text>
+<text x="145" y="442" class="t label">muzero</text>
+<text x="155" y="522" class="t label">titans</text>
+
+<rect x="336" y="258" width="48" height="48" fill="#345c8c" opacity="0.90"/>
+<rect x="606" y="338" width="48" height="48" fill="#2c7a7b" opacity="0.90"/>
+<rect x="906" y="418" width="48" height="48" fill="#9f6b00" opacity="0.90"/>
+<rect x="1206" y="498" width="48" height="48" fill="#2f3440" opacity="0.90"/>
+
+<rect x="336" y="338" width="48" height="48" fill="none" stroke="#d9d3c6" stroke-width="1.2"/>
+<rect x="336" y="418" width="48" height="48" fill="none" stroke="#d9d3c6" stroke-width="1.2"/>
+<rect x="336" y="498" width="48" height="48" fill="none" stroke="#d9d3c6" stroke-width="1.2"/>
+<rect x="606" y="258" width="48" height="48" fill="none" stroke="#d9d3c6" stroke-width="1.2"/>
+<rect x="606" y="418" width="48" height="48" fill="none" stroke="#d9d3c6" stroke-width="1.2"/>
+<rect x="606" y="498" width="48" height="48" fill="none" stroke="#d9d3c6" stroke-width="1.2"/>
+<rect x="906" y="258" width="48" height="48" fill="none" stroke="#d9d3c6" stroke-width="1.2"/>
+<rect x="906" y="338" width="48" height="48" fill="none" stroke="#d9d3c6" stroke-width="1.2"/>
+<rect x="906" y="498" width="48" height="48" fill="none" stroke="#d9d3c6" stroke-width="1.2"/>
+<rect x="1206" y="258" width="48" height="48" fill="none" stroke="#d9d3c6" stroke-width="1.2"/>
+<rect x="1206" y="338" width="48" height="48" fill="none" stroke="#d9d3c6" stroke-width="1.2"/>
+<rect x="1206" y="418" width="48" height="48" fill="none" stroke="#d9d3c6" stroke-width="1.2"/>
+
+<text x="220" y="620" class="note">filled square = primary import highlighted by the current comparison surface.</text>
+<text x="220" y="645" class="note">reading rule: complementary pieces, not winner-take-all ranking.</text>
+
+</svg>

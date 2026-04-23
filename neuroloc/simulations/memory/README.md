@@ -58,3 +58,110 @@ run: `python asymmetric_outer_product_recall.py`
 quantitative verdict: this script does not claim to model a full trained sequence processor. it isolates the geometry of the write/read rule itself, using synthetic gaussian keys and values, so the project can answer whether a candidate encoding family can support nontrivial recall before any paid compute run.
 
 relevance: this is the blocker-clearing simulation named in `neuroloc/wiki/PROJECT_PLAN.md`. it tests the project's actual asymmetric matrix-memory operation rather than the symmetric attractor baseline from classical hopfield-style literature. it is the right place to compare dense addressing against sparse addressing and to decide whether the current memory substrate is viable before scaling the neural model.
+
+## slot_key_interference_sweep.py
+
+cpu sweep for one of the missing failure classes in the current battery:
+correlated keys. the script compares slot softmax readout against the plain
+matrix baseline as key correlation increases from near-orthogonal to nearly
+collapsed.
+
+output:
+
+- slot_key_interference_sweep.png
+- slot_key_interference_sweep_metrics.json
+
+run: `python slot_key_interference_sweep.py`
+
+relevance: this is the direct interference test recommended by the external
+phase-1 synthesis. the point is not just "can the mechanism retrieve" but "how
+gracefully does retrieval degrade when addresses stop being clean."
+
+## multi_association_recall.py
+
+synthetic one-cue-many-values recall harness. each cue is bound to several
+values, and evaluation asks whether the mechanism recovers the whole set rather
+than a single item.
+
+output:
+
+- multi_association_recall.png
+- multi_association_recall_metrics.json
+
+run: `python multi_association_recall.py`
+
+relevance: this is the small non-language analogue of mqar-style evaluation.
+the target is bundle retrieval and set recovery, not single-needle lookup.
+
+## delayed_cue_world.py
+
+small partially observable delayed-cue harness with explicit baseline policies:
+no memory, last cue, majority vote, bayes belief, and oracle. the environment
+itself is lightweight, but it gives the project a clean delayed-use test
+surface before any paid run.
+
+output:
+
+- delayed_cue_world.png
+- delayed_cue_world_metrics.json
+
+run: `python delayed_cue_world.py`
+
+relevance: this is the first bridge from pure associative recall to belief-state
+tasks. it does not train a neural model by itself; it establishes a cheap
+partial-observability harness and baseline gap that later model-side evals can
+plug into.
+
+## episodic_separation_completion.py
+
+state-and-action-first episodic indexing harness for separation, completion,
+and novelty. each trial stores similar episodes with controllable overlap,
+queries one with partial cue, and separately probes whether a near-miss should
+be treated as novel rather than collapsed into the wrong stored episode.
+
+output:
+
+- episodic_separation_completion.png
+- episodic_separation_completion_metrics.json
+
+run: `python episodic_separation_completion.py`
+
+relevance: this is the first biology-grounded phase-1 family. it is the cheap
+cpu analogue of pattern separation, pattern completion, and comparator-style
+novelty detection, with explicit oracle, shuffled-mapping, and no-memory
+controls plus both state and action metrics.
+
+## episodic_replay_reuse.py
+
+offline replay and reuse harness. a target latent task is seen once, followed
+by distractor episodes, then queried again under targeted replay, no replay,
+random replay, and recency-only controls.
+
+output:
+
+- episodic_replay_reuse.png
+- episodic_replay_reuse_metrics.json
+
+run: `python episodic_replay_reuse.py`
+
+relevance: this is the consolidation/reuse family for phase 1. it does not ask
+whether a model can predict future outputs. it asks whether replay helps later
+state recovery and action choice after interference.
+
+## contextual_gate_routing.py
+
+bottom-up content plus top-down context routing harness. some trials require
+context to disambiguate the same cue; others should ignore context. the
+controls are correct context, bottom-up only, shuffled context, forced gate
+open, and forced gate closed.
+
+output:
+
+- contextual_gate_routing.png
+- contextual_gate_routing_metrics.json
+
+run: `python contextual_gate_routing.py`
+
+relevance: this is the phase-1 context-gating family. it turns the dendritic
+and interneuron story into a concrete state-and-action surface with explicit
+gate-dependency and false-bind metrics.

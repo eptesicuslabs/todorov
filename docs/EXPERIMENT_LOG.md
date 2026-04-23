@@ -1,6 +1,8 @@
 # Experiment Log
 
-canonical persistent project state lives in `neuroloc/wiki/PROJECT_PLAN.md`. this experiment log is an append-only chronological record of every run; PROJECT_PLAN.md is the structural plan and is updated whenever the project state changes. read PROJECT_PLAN.md first when picking up the project.
+historical note (2026-04-22): this log remains useful as archive, but the active project lane is now the teaching pdf curriculum. for current state, use `neuroloc/wiki/PROJECT_PLAN.md`, `docs/STATUS_BOARD.md`, `state/program_status.yaml`, and `pdf_curriculum/index/curriculum_status.md`.
+
+canonical persistent project state lives in `neuroloc/wiki/PROJECT_PLAN.md`. this experiment log is an append-only chronological record of earlier runs, not a complete live registry of every later h200 and neural-machine run. PROJECT_PLAN.md is the structural plan and the current authority; read it first when picking up the project.
 
 ## Phase 0: Foundation
 

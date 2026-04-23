@@ -1,5 +1,7 @@
 # Changelog
 
+historical note (2026-04-22): this changelog currently reflects the pre-curriculum architecture era. current state and backlog status live in `neuroloc/wiki/PROJECT_PLAN.md` and `docs/STATUS_BOARD.md`.
+
 ## 2026-03-23: run_009 COMPLETE -- Phase 3 ALL GATES PASS
 
 - run_009 (GP spatial validation, mixed data, Kaggle T4): COMPLETE

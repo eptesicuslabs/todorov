@@ -99,9 +99,9 @@ store two patterns in a 4-neuron Hopfield network. pattern 1: x = [+1, -1, +1, -
 
 now probe with a corrupted version of pattern 1: x_probe = [+1, -1, +1, 0] (last element missing). retrieval: y = sign(W * x_probe) = sign([2, -4, 4, -2]) = [+1, -1, +1, -1]. the network completes the pattern. this is pattern completion via the outer product association.
 
-### KDA's state update
+### matrix memory's state update
 
-the KDA delta rule in todorov (see [[plasticity_to_kda_delta_rule]]) performs the same operation:
+the matrix-memory delta rule in todorov (see [[plasticity_to_matrix_memory_delta_rule]]) performs the same operation:
 
     S_t = diag(alpha) * S_{t-1} + beta_t * k_t * v_t^T
 
@@ -113,7 +113,7 @@ translate each part:
 
 readout is q_t^T * S_t: the query probes the associative memory for the stored value most similar to the current query. this is content-addressable retrieval, identical in structure to Hopfield pattern completion.
 
-the key difference from biological [[hebbian_learning]]: KDA's update modifies a recurrent STATE, not a WEIGHT matrix. the associations are transient (they decay with alpha), not permanent. KDA is an associative memory, not a learning rule. see [[plasticity_to_kda_delta_rule]] for the full analysis.
+the key difference from biological [[hebbian_learning]]: matrix memory's update modifies a recurrent STATE, not a WEIGHT matrix. the associations are transient (they decay with alpha), not permanent. matrix memory is an associative memory, not a learning rule. see [[plasticity_to_matrix_memory_delta_rule]] for the full analysis.
 
 ## energy functions and attractor dynamics
 
@@ -149,7 +149,7 @@ this is equivalent to one step of energy minimization in a continuous Hopfield n
 
     E = -log(sum_n exp(x^T * xi_n))
 
-the exponential function gives the modern Hopfield network capacity proportional to 2^{d/2}, vastly exceeding the classical network's 0.138*N capacity. todorov's MLA layers perform this computation: they are modern Hopfield networks retrieving from a compressed cache.
+the exponential function gives the modern Hopfield network capacity proportional to 2^{d/2}, vastly exceeding the classical network's 0.138*N capacity. todorov's compressed-attention layers perform this computation: they are modern Hopfield networks retrieving from a compressed cache.
 
 ## information theory basics
 
@@ -231,8 +231,17 @@ the ternary spike threshold (threshold = alpha * mean(|x|)) adds a second normal
 these foundations connect to specific todorov components through the bridge documents:
 
 - differential equations -> [[neuron_models_to_atmn]] (ATMN's missing leak term)
-- outer products -> [[plasticity_to_kda_delta_rule]] (is KDA Hebbian? yes. is it STDP? no.)
-- energy functions -> [[memory_systems_to_kda_mla]] (MLA as modern Hopfield network)
+- outer products -> [[plasticity_to_matrix_memory_delta_rule]] (is matrix memory Hebbian? yes. is it STDP? no.)
+- energy functions -> [[memory_systems_to_matrix_memory_and_compressed_attention]] (compressed attention as modern Hopfield network)
 - information theory -> [[population_coding_to_spike_health]] (MI and CKA as engineering metrics)
 - divisive normalization -> [[lateral_inhibition_to_adaptive_threshold]] (spike threshold vs biological competition)
 - the full mapping -> [[todorov_biology_map]] (every component, its biological analog, and where the mapping fails)
+
+## see also
+
+- [[start_here]]
+- [[neuroscience_for_ml_engineers]]
+- [[glossary]]
+- [[todorov_biology_map]]
+- [[plasticity_to_matrix_memory_delta_rule]]
+- [[memory_systems_to_matrix_memory_and_compressed_attention]]

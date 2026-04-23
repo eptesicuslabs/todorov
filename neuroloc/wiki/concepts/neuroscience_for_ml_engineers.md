@@ -1,6 +1,6 @@
 # neuroscience for ML engineers
 
-status: definitional. last fact-checked 2026-04-16.
+status: definitional. last fact-checked 2026-04-23.
 
 the 20% of neuroscience that explains 80% of todorov's design. each section maps a biological concept to something you already know (transformers, attention, gradient descent), then shows where biology does something transformers cannot.
 
@@ -61,7 +61,7 @@ the key simplifications (see [[neuron_models_to_atmn]] for the full analysis): A
 
 **why this matters for your architecture:** in a transformer, weights are fixed at inference. in biology, weights change WHILE the network processes data. this is like having Adam running during inference, not just training.
 
-**what you will learn:** Hebbian learning, the outer product rule, and how KDA implements biological associative storage.
+**what you will learn:** Hebbian learning, the outer product rule, and how matrix memory implements biological associative storage.
 
 **connect to what you know:** you already know that attention computes Q * K^T to measure similarity, then uses the result to weight V. the biological version of this operation has a name: [[hebbian_learning]].
 
@@ -73,7 +73,7 @@ a **synapse** connects two neurons. its **synaptic weight** w_ij determines how 
 
 "neurons that fire together wire together." for a population, this becomes Delta_W = eta * x_post * x_pre^T -- an **outer product** that creates a rank-1 association between pre and post activity patterns.
 
-the KDA state update in todorov is:
+the matrix-memory state update in todorov is:
 
     S_t = diag(alpha) * S_{t-1} + beta_t * k_t * v_t^T
 
@@ -87,12 +87,12 @@ pure Hebbian learning is unstable. if a synapse strengthens, it makes co-activat
 - **[[stdp]]** (spike-timing-dependent plasticity): the sign of the weight change depends on the TIMING of pre and post spikes. if pre fires before post (causal), the synapse strengthens. if post fires before pre (anti-causal), it weakens. this implements a form of causal inference.
 - **[[bcm_theory]]**: a sliding threshold determines whether activity leads to strengthening or weakening. the threshold rises with recent activity, preventing runaway growth.
 
-KDA maps to these stabilization mechanisms:
+matrix memory maps to these stabilization mechanisms:
 
 - **alpha** (per-channel forgetting rate): each dimension of the state matrix decays independently. old associations fade. this is closest to synaptic depression -- activity-dependent decay of efficacy. alpha ~ 0.12 initially means ~88% of the state is erased each step.
 - **beta_t** (data-dependent write gate): a learned function of the input determines how strongly each token writes to memory. this resembles **neuromodulatory gating** -- a "third factor" beyond pre and post activity that controls whether learning happens.
 
-the key difference from ML: biological weights are LOCAL. each synapse only sees its own pre and post activity. backpropagation requires GLOBAL error signals traveling backward through the entire network. todorov uses backprop for training, side-stepping this problem. but its recurrent state update (the KDA rule) is local -- each state matrix depends only on its own inputs.
+the key difference from ML: biological weights are LOCAL. each synapse only sees its own pre and post activity. backpropagation requires GLOBAL error signals traveling backward through the entire network. todorov uses backprop for training, side-stepping this problem. but its recurrent state update (the matrix-memory rule) is local -- each state matrix depends only on its own inputs.
 
 ---
 
@@ -135,7 +135,7 @@ see [[sparse_coding_to_ternary_spikes]] for the full analysis and [[efficient_co
 
 **why this matters for your architecture:** you have a KV cache for exact retrieval and a recurrent state for compressed memory. the brain has the same split: hippocampus for fast binding, cortex for slow learning.
 
-**what you will learn:** complementary learning systems theory, the Hopfield network connection, and how KDA/MLA implement the two-system architecture.
+**what you will learn:** complementary learning systems theory, the Hopfield network connection, and how matrix memory plus compressed attention implement the two-system architecture.
 
 **connect to what you know:** a transformer's KV cache stores every token's key and value vectors. retrieval is exact but costs O(T^2) in sequence length T. a recurrent state (like an LSTM or SSM hidden state) compresses all of history into a fixed-size vector. retrieval is O(1) but lossy. the brain faces the same tradeoff.
 
@@ -154,14 +154,14 @@ a **Hopfield network** is an associative memory that stores patterns via outer p
 
 this creates a precise mapping:
 
-- **KDA** = classical Hopfield network. S_t = alpha * S_{t-1} + beta_t * k_t * v_t^T writes rank-1 patterns. q_t^T * S_t retrieves by linear projection. capacity limited by rank of S. alpha decay implements exponential forgetting.
-- **MLA** = modern Hopfield network (softmax attention). every token stored in compressed KV cache. capacity exponential in dimension. no forgetting.
+- **matrix memory** = classical Hopfield network. S_t = alpha * S_{t-1} + beta_t * k_t * v_t^T writes rank-1 patterns. q_t^T * S_t retrieves by linear projection. capacity limited by rank of S. alpha decay implements exponential forgetting.
+- **compressed attention** = modern Hopfield network (softmax attention). every token stored in compressed KV cache. capacity exponential in dimension. no forgetting.
 
-the 75/25 split (18 KDA, 6 MLA) mirrors the biological asymmetry: most processing uses the cheap approximate system (KDA, O(1)). a minority uses the expensive exact system (MLA, O(T^2)).
+the architecture keeps exact retrieval in a small minority of layers: most processing uses the cheap approximate system (matrix memory, O(1)), while compressed attention supplies the expensive exact retrieval path (O(T^2)) only where needed. this asymmetry mirrors the biological story better than an even split would.
 
-what todorov LACKS: consolidation. no mechanism transfers salient KDA state to permanent storage. in the brain, hippocampal replay during sleep provides this. not a limitation at current context lengths (2048-8192 tokens). would become a gap at 100K+.
+what todorov LACKS: consolidation. no mechanism transfers salient matrix-memory state to permanent storage. in the brain, hippocampal replay during sleep provides this. not a limitation at current context lengths (2048-8192 tokens). would become a gap at 100K+.
 
-see [[memory_systems_to_kda_mla]] for the full analysis and [[complementary_learning_systems]] for the biological theory.
+see [[memory_systems_to_matrix_memory_and_compressed_attention]] for the full analysis and [[complementary_learning_systems]] for the biological theory.
 
 ---
 
@@ -204,11 +204,11 @@ see [[oscillations_to_mamba3_rotation]] for the full analysis, including propose
 
 ## part 6: predictive coding (the "training objective")
 
-**why this matters for your architecture:** next-token prediction works. but the brain does something more principled: it predicts everything, everywhere, all at once.
+**why this matters for your architecture:** simple output prediction can be useful, but the broader biological idea is state prediction: the brain predicts distributed activity, consequences, and mismatch, not only the next emitted symbol.
 
 **what you will learn:** the predictive coding framework, precision weighting, and why todorov's backprop-trained weights may already approximate what predictive coding would learn.
 
-**connect to what you know:** you train with cross-entropy loss on the next token. the brain trains each cortical layer to predict the layer below it. the error signals are local, not global.
+**connect to what you know:** standard language-model training uses cross-entropy on the next token. cortical predictive-coding accounts instead emphasize local prediction and local mismatch between adjacent levels.
 
 ### the prediction error hierarchy
 
@@ -233,7 +233,7 @@ Millidge, Tschantz, and Buckley (2022) proved that predictive coding at converge
 
 the practical implication: no reason to switch todorov from cross-entropy to predictive coding. the weights converge to the same solution. the biological advantage (local learning rules) is irrelevant when GPUs compute global gradients efficiently.
 
-where todorov DOES echo predictive coding: the KDA beta gate (beta_t = sigmoid(beta_proj(x_t))) modulates how strongly each token writes to memory. high beta = "surprising, worth encoding." low beta = "expected, safely ignored." this resembles precision weighting, though it is computed from the input alone rather than from prediction error.
+where todorov DOES echo predictive coding: the matrix-memory beta gate (beta_t = sigmoid(beta_proj(x_t))) modulates how strongly each token writes to memory. high beta = "surprising, worth encoding." low beta = "expected, safely ignored." this resembles precision weighting, though it is computed from the input alone rather than from prediction error.
 
 see [[predictive_coding_to_training_objective]] for the full analysis of this correspondence and its limits.
 
@@ -243,19 +243,44 @@ see [[predictive_coding_to_training_objective]] for the full analysis of this co
 
 here are the five biological insights with the highest impact on todorov's architecture, ranked by how directly they influenced the design:
 
-**1. recurrent associative memory.** KDA's outer product k_t * v_t^T IS the Hebbian storage rule. this is not an analogy. it is the same equation that Hopfield used in 1982, that the hippocampus uses for rapid binding, and that Hebb described in 1949. the alpha decay and beta gating are biological stabilization mechanisms (short-term depression and neuromodulatory gating) mapped to learned parameters. this is the strongest biology-to-architecture correspondence in todorov.
+**1. recurrent associative memory.** matrix memory's outer product k_t * v_t^T IS the Hebbian storage rule. this is not an analogy. it is the same equation that Hopfield used in 1982, that the hippocampus uses for rapid binding, and that Hebb described in 1949. the alpha decay and beta gating are biological stabilization mechanisms (short-term depression and neuromodulatory gating) mapped to learned parameters. this is the strongest biology-to-architecture correspondence in todorov.
 
 **2. sparsity as a design principle.** ternary spikes ({-1, 0, +1}) enforce a 41% firing rate. this is denser than biology (1-5%) due to the STE gradient constraint, but it still provides quantization from 32-bit floats to 1.58 bits per dimension. sparsity acts as both compute reduction and regularization. the adaptive threshold (alpha * mean(|x|)) is a crude form of the divisive normalization found in every cortical area.
 
 **3. adaptive thresholds.** biological neurons adjust their excitability based on recent activity (homeostatic plasticity). todorov's per-neuron learnable thresholds (V_th = exp(threshold_log) in ATMN) serve a similar function: each dimension learns its own operating point. at 267M scale, this produces stable spike health metrics (MI = 1.168, CKA = 0.732, firing rate = 40.8%) across training.
 
-**4. complementary memory systems.** the KDA/MLA split mirrors the hippocampus/cortex split. KDA provides O(1) recurrent memory with exponential decay (working memory). MLA provides O(T^2) exact retrieval from compressed cache (reference memory). the 75/25 ratio allocates most computation to the cheap system, with a minority for exact retrieval when needed.
+**4. complementary memory systems.** the matrix-memory/compressed-attention split mirrors the hippocampus/cortex split. matrix memory provides O(1) recurrent memory with exponential decay (working memory). compressed attention provides O(T^2) exact retrieval from compressed cache (reference memory). the 75/25 ratio allocates most computation to the cheap system, with a minority for exact retrieval when needed.
 
 **5. the missing pieces.** three biological principles have no counterpart in todorov:
 - **oscillatory coordination**: the brain routes information dynamically through phase synchronization. todorov's Mamba3 rotation is positional encoding, not communication gating.
-- **consolidation**: the brain transfers memories from hippocampus to cortex via replay. todorov has no mechanism to transfer salient KDA state to permanent storage.
+- **consolidation**: the brain transfers memories from hippocampus to cortex via replay. todorov has no mechanism to transfer salient matrix-memory state to permanent storage.
 - **dendritic computation**: biological neurons compute nonlinear functions on individual dendritic branches before summing at the cell body. todorov neurons receive a single weighted sum, like a perceptron.
 
 these gaps are not necessarily problems. they are the places where the next round of architecture improvements might come from, if the biological analogy holds at scale.
 
 the rest of the wiki goes deep on each of these. start with the [[bridge]] documents -- they map each biological mechanism to specific todorov source code.
+
+## what the 2026-04-23 research pass adds
+
+the original point of this page was to explain the parts of neuroscience that best illuminate the existing architecture. the newer research cluster adds a broader design frame on top of that:
+
+- [[working_memory_as_controlled_access]] argues that working memory is better treated as controlled access and routing than as a passive buffer
+- [[attention_as_precision_and_routing]] sharpens the difference between selection, precision control, and content retrieval
+- [[cross_scale_building_blocks_for_biological_computation]] and [[cellular_molecular_computational_primitives]] pull repeated motifs out of the cellular, circuit, and systems literature
+- [[world_models_imagination_and_planning]] and [[beyond_next_token_for_neural_models]] give the external-ai comparison frame that best matches the project's state-plus-action direction
+- [[canonical_visual_narratives_neuroscience]] provides the first stable visual spine for the highest-leverage stories on circuits, predictive inference, and dendritic computation
+
+## see also
+
+- [[start_here]]
+- [[the_brain_in_one_page]]
+- [[mathematical_foundations]]
+- [[todorov_biology_map]]
+- [[glossary]]
+- [[memory_systems_to_matrix_memory_and_compressed_attention]]
+- [[plasticity_to_matrix_memory_delta_rule]]
+- [[working_memory_as_controlled_access]]
+- [[attention_as_precision_and_routing]]
+- [[world_models_imagination_and_planning]]
+- [[canonical_visual_narratives_neuroscience]]
+- [[research_implications_for_neural_model_direction]]

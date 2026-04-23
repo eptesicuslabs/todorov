@@ -1,6 +1,6 @@
 # slot memory design
 
-status: current (as of 2026-04-17).
+status: current (as of 2026-04-22).
 
 ## empirical status (2026-04-15, first launch of run2_slot_memory)
 
@@ -91,6 +91,16 @@ changes (output gate init, auxiliary retrieval loss, orthogonal
 prototype keys, warm start from hand-placed addresses, substrate
 replacement). run card at
 `neuroloc/wiki/tests/run3_cognition_phase1_results.md`.
+
+note (2026-04-22): this article now serves as the design-and-evidence
+record for the slot substrate rather than as the live launch plan.
+the backlog question is no longer "does slot memory alone pass
+passkey?" it is "which intervention, on this substrate or a
+replacement, clears the broader cpu phase-1 battery and only then paid
+retrieval?" see
+`wiki/synthesis/phase1_evaluation_surface_for_neural_models.md` and
+`wiki/synthesis/synthetic_shared_world_bridge.md` for the updated
+evaluation method.
 
 
 
@@ -240,7 +250,7 @@ pass criterion: at N=64, d=64, temperature=1.0, noise=0.0, exact retrieval > 0.9
 
 ### simulation B: slot buffer with surprise-gated writes
 
-`neuroloc/simulations/memory/slot_buffer_surprise_writes.py`.
+`neuroloc/simulations/memory/slot_surprise_writes.py`.
 
 tests: a stream of 512 mixed predictable/surprising tokens. only surprising tokens write. measure whether after the stream, querying with a surprising token's key returns that token's value even through 256+ tokens of intervening predictable tokens.
 
@@ -248,7 +258,7 @@ pass criterion: at 10% surprising fraction, passkey-equivalent retrieval > 0.80 
 
 ### simulation C: integration smoke
 
-`neuroloc/simulations/memory/slot_vs_matrix_integration.py`.
+`neuroloc/simulations/memory/slot_integration.py`.
 
 tiny model, 6 delta layers + 1 attn, d_model=128. train for 500 cpu steps on synthetic passkey-containing byte data. measure passkey retrieval on held-out passkeys. compare matrix-memory baseline vs slot-memory swap. expected: matrix 0%, slot > 15%.
 
@@ -281,6 +291,8 @@ no paid compute until steps 2-5 all pass. sunk cost (three failed runs) teaches 
 
 - `wiki/synthesis/substrate_requires_architectural_change.md` (the post-run-3 analysis after three paid tests of this substrate returned 0% passkey across two corpora; ranks five candidate architectural interventions that supersede further substrate-hyperparameter tuning)
 - `wiki/synthesis/training_objective_vs_architectural_goal.md` (the post-paid-run analysis: why the slot substrate trained cleanly to val_bpb 1.4777 and still produced 0/100 passkey under SGD on natural text — the training loss does not exercise the substrate; the proposed discriminant ran as run3_cognition_phase1 and returned 0%, triggering the article above)
+- `wiki/synthesis/phase1_evaluation_surface_for_neural_models.md` (the current external-synthesis article for what the cpu battery should test before another paid run)
+- `wiki/synthesis/synthetic_shared_world_bridge.md` (the recommended way to extend the same latent-world tests into phase 2 without confounding failures)
 - `wiki/tests/run3_cognition_phase1_results.md` (the third paid test of this substrate, on a corpus where retrieval is explicit 50% of training; val_bpb plateaued at the alphabet prior and passkey stayed at 0/100)
 - `wiki/tests/run2_slot_memory_retention_fixed_results.md` (the paid run card: headline numbers, comparison to the four prior paid runs, what was validated and what was not)
 - `wiki/mistakes/run2_slot_memory_decay_copy_paste.md` (the first-launch retention bug that obscured the substrate question for one paid run)

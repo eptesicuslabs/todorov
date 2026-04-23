@@ -1,8 +1,19 @@
 # tests
 
-status: current (as of 2026-04-17).
+status: current (as of 2026-04-23).
 
-this folder records concrete simulations and experiments that were actually run.
+this folder records concrete simulations and experiments that were actually
+run, plus a small number of frozen supporting prototype notes that were
+directly attached to those runs or artifacts.
+
+the design and gating method for the architecture backlog now lives in
+`wiki/synthesis/phase1_evaluation_surface_for_neural_models.md` and
+`wiki/synthesis/synthetic_shared_world_bridge.md`. this index remains a
+catalog of executed evidence records, not a planning page. the newly
+implemented `biology_phase1` symbolic battery is therefore reflected in
+the synthesis/wiki state first; individual dated test records should be
+added here only after each simulation family is run and archived as its
+own evidence page.
 
 each test page should include:
 - date run
@@ -33,18 +44,29 @@ each test page should include:
 - [[tests/2026-04-09_bcm_alpha_pilot|2026-04-09 bcm-like adaptive alpha pilot]] -- gamma=0.3-0.5 significantly stabilizes kda state norm over long sequences (p=0.001) without degrading retrieval. bcm-like forgetting works as predicted.
 - [[tests/2026-04-09_gp_vs_bilinear_pilot|2026-04-09 gp vs bilinear pilot]] -- pga provides no advantage over random bilinear or elementwise at random init. geometric structure benefit must come from trained weight interaction, not raw algebra.
 
-### simulation results and analyses
+### historical matrix-memory series
 
-- [[tests/head_dim_sweep_results|head dimension sweep results]] -- five-point asymmetric matrix-memory width sweep showing sub-linear $p^*(d)$ growth and identifying retention, not width alone, as the real bottleneck.
-- [[tests/decay_sweep_results|decay sweep results]] -- nine-point retention sweep at `d_head=64` showing the first exact-query 32-pattern reopening at `decay=0.90` and the first 64-pattern reopening at `decay=0.95`.
-- [[tests/overwrite_sweep_results|overwrite sweep results]] -- focused overwrite comparison at `decay=0.90` showing that erasure hurts every tested encoding at the first useful 32-pattern retention knee.
-- [[tests/encoding_simulation_round_a|encoding simulation round a]] -- symmetric memory sign-only vs three-level encoding comparison
-- [[tests/encoding_simulation_round_b|encoding simulation round b]] -- asymmetric matrix memory encoding comparison; capacity ceiling below symmetric
+- [[tests/matrix_memory_capacity_series|matrix-memory capacity series]] --
+  grouped landing page for the early 2026-04-12 evidence line:
+  encoding round a, encoding round b, head-dimension sweep, decay sweep,
+  and overwrite sweep
+
+### later simulation results and analyses
+
 - [[tests/correction_field_trained_prediction_results|correction-field trained-prediction results]] -- trained-predictor correction-field sim; memory_capacity_delta=0 at every quality
 - [[tests/multi_resolution_head_split_results|multi-resolution head split results]] -- fast/medium/slow heads with surprise gates; rare-class recall improves
 - [[tests/thinking_loop_prototype_results|thinking-loop prototype results]] -- recurrent hidden-state refinement pilot on modular arithmetic
+
+### historical long-form syntheses
+
 - [[tests/god_run_findings|god_run findings]] -- original long-form synthesis of god_run's results
 
-### module prototypes
+### supporting prototype notes
 
-- [[tests/aesthetic_logger_prototype|aesthetic logger prototype]] -- phase 6a logging module; implemented, not yet wired into train_model
+- [[tests/aesthetic_logger_prototype|aesthetic logger prototype]] -- frozen prototype note for the phase 6a logging module; not a live module-status page
+
+## see also
+
+- [[PROJECT_PLAN]]
+- [[synthesis/phase1_evaluation_surface_for_neural_models]]
+- [[synthesis/synthetic_shared_world_bridge]]

@@ -43,7 +43,7 @@ the selectionist framework also provides a bridge between neural development and
 
 ## relevance to todorov
 
-todorov's ternary spike mechanism can be interpreted through the selective stabilization lens: on each forward pass, the spike function "selects" which dimensions are active ({-1, +1}) and which are eliminated ({0}). but this selection is transient (different inputs select different dimensions) and does not permanently remove any connections. the architectural analog of selective stabilization would be training-time pruning, which todorov does not implement. see [[synaptic_pruning]] and [[development_to_training_curriculum]] for analysis.
+todorov's ternary spike mechanism can be interpreted through the selective stabilization lens: on each forward pass, the spike function "selects" which dimensions are active ({-1, +1}) and which are eliminated ({0}). but this selection is transient (different inputs select different dimensions) and does not permanently remove any connections. the architectural analog of selective stabilization would be training-time pruning, which todorov does not implement. see [[synaptic_pruning]] and [[development_to_training_schedule]] for analysis.
 
 ## key references
 

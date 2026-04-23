@@ -114,7 +114,7 @@ CLS has influenced several lines of machine learning research:
 
 ## relationship to todorov
 
-todorov's KDA + MLA architecture presents a superficial structural parallel to CLS: KDA (dominant, recurrent, fast-writing) and MLA (minority, cache-based, exact retrieval). however, the analogy fails at the mechanistic level. CLS requires consolidation -- the transfer of information from the fast system to the slow system via replay. todorov has no consolidation mechanism. see [[memory_kda_vs_hippocampus]] and [[memory_systems_to_kda_mla]] for detailed analysis.
+todorov's KDA + MLA architecture presents a superficial structural parallel to CLS: KDA (dominant, recurrent, fast-writing) and MLA (minority, cache-based, exact retrieval). however, the analogy fails at the mechanistic level. CLS requires consolidation -- the transfer of information from the fast system to the slow system via replay. todorov has no consolidation mechanism. see [[matrix_memory_vs_hippocampus]] and [[memory_systems_to_matrix_memory_and_compressed_attention]] for detailed analysis.
 
 ## challenges
 
@@ -147,5 +147,5 @@ CLS treats the hippocampus as immune to interference thanks to sparse representa
 - [[pattern_completion]]
 - [[hebbian_learning]]
 - [[homeostatic_plasticity]]
-- [[memory_kda_vs_hippocampus]]
-- [[memory_systems_to_kda_mla]]
+- [[matrix_memory_vs_hippocampus]]
+- [[memory_systems_to_matrix_memory_and_compressed_attention]]

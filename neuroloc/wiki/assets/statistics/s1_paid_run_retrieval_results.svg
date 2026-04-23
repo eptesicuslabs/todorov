@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="780" viewBox="0 0 1600 780">
+  <rect width="100%" height="100%" fill="#fcfbf8"/>
+  <style>
+    .t { font-family: Arial, Helvetica, sans-serif; fill: #1f2430; }
+    .m { font-family: Courier New, Consolas, monospace; fill: #1f2430; }
+    .title { font-size: 36px; font-weight: 700; letter-spacing: 0.5px; }
+    .subtitle { font-size: 16px; fill: #667085; }
+    .axis { stroke: #2f3440; stroke-width: 1.4; }
+    .grid { stroke: #e6e2d9; stroke-width: 1; }
+    .small { font-size: 14px; }
+    .label { font-size: 18px; }
+    .tick { font-size: 15px; fill: #667085; }
+    .mono { font-family: Courier New, Consolas, monospace; font-size: 15px; fill: #1f2430; }
+    .note { font-size: 15px; fill: #667085; }
+  </style>
+
+<text x="110" y="82" class="t title">paid-run retrieval evidence</text>
+<text x="110" y="112" class="t subtitle">passkey@256 across six paid runs, 2026-04-11 to 2026-04-17</text>
+<line x1="110" y1="130" x2="1490" y2="130" class="grid"/>
+
+<rect x="1130" y="56" width="320" height="92" fill="none" stroke="#d9d3c6" stroke-width="1.2"/>
+<text x="1150" y="84" class="m small">runs: 6</text>
+<text x="1260" y="84" class="m small">substrates: 2</text>
+<text x="1150" y="110" class="m small">corpora: 2</text>
+<text x="1260" y="110" class="m small">passkey@256: 0/100</text>
+
+<rect x="150" y="180" width="1300" height="340" fill="none" stroke="#d9d3c6" stroke-width="1.2"/>
+<line x1="150" y1="520" x2="1450" y2="520" class="axis"/>
+<line x1="150" y1="180" x2="150" y2="520" class="axis"/>
+
+<line x1="150" y1="435" x2="1450" y2="435" class="grid"/>
+<line x1="150" y1="350" x2="1450" y2="350" class="grid"/>
+<line x1="150" y1="265" x2="1450" y2="265" class="grid"/>
+<line x1="150" y1="180" x2="1450" y2="180" class="grid"/>
+
+<text x="118" y="524" class="t tick">0</text>
+<text x="110" y="439" class="t tick">25</text>
+<text x="110" y="354" class="t tick">50</text>
+<text x="110" y="269" class="t tick">75</text>
+<text x="102" y="184" class="t tick">100</text>
+<text x="54" y="354" transform="rotate(-90 54,354)" class="t label">accuracy (%)</text>
+
+<line x1="220" y1="520" x2="1380" y2="520" stroke="#b54747" stroke-width="2.4"/>
+<circle cx="220" cy="520" r="6" fill="#b54747"/>
+<circle cx="452" cy="520" r="6" fill="#b54747"/>
+<circle cx="684" cy="520" r="6" fill="#b54747"/>
+<circle cx="916" cy="520" r="6" fill="#b54747"/>
+<circle cx="1148" cy="520" r="6" fill="#b54747"/>
+<circle cx="1380" cy="520" r="6" fill="#b54747"/>
+
+<text x="207" y="548" class="m small">r1</text>
+<text x="439" y="548" class="m small">r2</text>
+<text x="671" y="548" class="m small">r3</text>
+<text x="903" y="548" class="m small">r4</text>
+<text x="1135" y="548" class="m small">r5</text>
+<text x="1367" y="548" class="m small">r6</text>
+
+<text x="150" y="590" class="t label">run key</text>
+<text x="150" y="617" class="m small">r1 god_run</text>
+<text x="150" y="640" class="m small">r2 god_run_v2</text>
+<text x="150" y="663" class="m small">r3 run1_baseline_noerasure</text>
+<text x="700" y="617" class="m small">r4 run2_slot_memory</text>
+<text x="700" y="640" class="m small">r5 run2_slot_memory_retention_fixed</text>
+<text x="700" y="663" class="m small">r6 run3_cognition_phase1</text>
+
+<text x="150" y="716" class="note">matrix memory: r1-r3   |   slot memory: r4-r6   |   fineweb-edu: r1-r5   |   cognition corpus: r6</text>
+<text x="150" y="742" class="note">observation: all six paid runs remained at 0% passkey accuracy at 256 tokens.</text>
+
+</svg>

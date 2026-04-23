@@ -1,5 +1,7 @@
 # Effective Receptive Field Analysis
 
+historical note (2026-04-22): this placeholder predates later runs and the curriculum pivot. current state lives in the canonical wiki and status files.
+
 No ERF measurements yet. Will be populated after Phase 1 training.
 
 ## Measurement Method

@@ -1,6 +1,8 @@
 # bridge: memory compression to tiered architecture
 
-status: current (as of 2026-04-16).
+status: current (as of 2026-04-23).
+
+this page is the architecture-translation layer for the compression cluster. it assumes the six-mechanism thesis argued in `synthesis/compression_beyond_quantization.md` and turns that thesis into one explicit five-tier candidate design. the literature shelf remains `knowledge/generative_memory_research.md`.
 
 ## the biological mechanism
 
@@ -336,12 +338,12 @@ the estimated total implementation effort is approximately 3-6 months of focused
 
 ## recommendation
 
-do not implement this as a modification to the currently-running god_machine. god_run is validating the 5-feature single-tier design. implementing tiered memory requires:
+do not treat this bridge as the next immediate implementation item. as of 2026-04-23 the active workstream is the teaching curriculum, and the architecture backlog is paused. when that backlog resumes, this page should be read as a phase-6+ architecture sketch rather than a launch recipe.
 
-1. first, see whether the current single-tier delta state is actually bottlenecked on capacity. the god_machine's eval suite (passkey, selective copy, perplexity-at-length) will reveal whether capacity is the issue. if it is not, tiered memory is premature optimization.
-2. second, prototype the core components (prediction head, vq-vae on hidden states, schema learning) as standalone experiments. each of these is a 1-2 week project.
-3. third, if prototypes succeed, propose a tiered-memory god_machine variant (call it god_machine_v2) as a separate experiment with clear isolated ablations.
-4. fourth, include the provenance log and adversarial-robust erasure as first-class features from the start, not as bolt-ons.
+1. first, resume from the implemented phase-1 battery and the remaining model-side neural-model evaluation gaps.
+2. second, validate smaller compression components cpu-first. the correction-field result already showed that residual values do not raise matrix-memory capacity on their own, so a full tiered build should not be the first thing retried.
+3. third, only if simpler components show signal, propose a dedicated tiered-memory variant with isolated ablations rather than folding it into an existing substrate run.
+4. fourth, keep provenance logging and targeted erasure as first-class constraints from the start, not as bolt-ons.
 
 ## key references
 
@@ -358,11 +360,11 @@ do not implement this as a modification to the currently-running god_machine. go
 
 ## see also
 
-- `generative_memory_research.md` (curated research library)
-- `synthesis/compression_beyond_quantization.md` (synthesis argument)
-- `compression_and_bottlenecks.md` (biological precedent)
-- `compression_architecture.md` (prior tiered compression spec)
-- `memory_systems_research.md` (episodic vs semantic memory)
-- `memory_kda_vs_hippocampus.md` (existing analysis of kda's gap vs hippocampus)
-- `plasticity_to_kda_delta_rule.md` (delta rule math)
-- `predictive_coding_to_training_objective.md` (predictive coding options for todorov)
+- [[generative_memory_research]] -- curated research library and evidence layer
+- [[compression_beyond_quantization]] -- current compression thesis
+- [[compression_and_bottlenecks]] -- biological precedent
+- [[compression_architecture]] -- earlier proposal shelf, superseded
+- [[memory_systems_research]] -- episodic versus semantic memory
+- [[matrix_memory_vs_hippocampus]] -- existing analysis of the matrix-memory gap versus hippocampus
+- [[plasticity_to_matrix_memory_delta_rule]] -- delta-rule math
+- [[predictive_coding_to_training_objective]] -- predictive-coding options for the project

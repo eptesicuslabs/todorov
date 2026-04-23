@@ -116,8 +116,8 @@ confidence: high for the gap identification. this is not a claim that the joint 
 - [[delta_rule_theory]]
 - [[kda_channel_gating]]
 - [[mla_compression]]
-- [[plasticity_to_kda_delta_rule]]
-- [[memory_systems_to_kda_mla]]
+- [[plasticity_to_matrix_memory_delta_rule]]
+- [[memory_systems_to_matrix_memory_and_compressed_attention]]
 
 ## relevance to the neural machine
 

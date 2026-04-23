@@ -10,7 +10,9 @@ the curriculum specifies 36 chapters across 6 phases (math fundamentals → biol
 
 while the curriculum is the active workstream, no paid compute run is authorised. the next paid run returns only after curriculum completion AND an architectural intervention has been selected and cpu-validated per the pre-pivot experimental method (which is preserved in PROJECT_PLAN.md below the curriculum pivot section). the user will execute chapter production themselves from the plan file.
 
-the prior phase (neural machine research) and its six-paid-run history is preserved below as historical record.
+current curriculum status (2026-04-22): chapter 1 is review-ready at `pdf_curriculum/chapters/ch_01_what_a_number_means/` and chapter 2 is outline-only awaiting approval at `pdf_curriculum/chapters/ch_02_how_things_change/ch_02_outline.md`.
+
+the prior phase (neural machine research) and its six-paid-run history is preserved below as historical record. pre-pivot phase summaries below should be read as historical snapshots, not as the active program surface; some older phase-3 conclusions were later qualified as confounded or vacuous in the bug history and canonical state files.
 
 ## prior phase: neural machine research (neuroloc)
 

@@ -56,7 +56,7 @@ tulving, e. (1983). *elements of episodic memory*. oxford university press.
 
 key insight: memory is not one system. episodic memory records personal experiences (what happened, where, when) and is tied to autonoetic consciousness -- the subjective sense of re-experiencing the past. semantic memory stores facts, concepts, and general knowledge without experiential context. the two systems have different encoding requirements, retrieval mechanisms, and neural substrates.
 
-relevance to neural computer: the episodic/semantic distinction maps to a fundamental architectural choice. kda's delta rule state accumulates token-by-token history (episodic-like), while mla's compressed key-value cache stores factual associations stripped of positional context (semantic-like). the two-system architecture is not an accident -- it reflects a real computational division. see [[memory_systems_to_kda_mla]].
+relevance to neural computer: the episodic/semantic distinction maps to a fundamental architectural choice. kda's delta rule state accumulates token-by-token history (episodic-like), while mla's compressed key-value cache stores factual associations stripped of positional context (semantic-like). the two-system architecture is not an accident -- it reflects a real computational division. see [[memory_systems_to_matrix_memory_and_compressed_attention]].
 
 ### multiple trace theory
 
@@ -80,7 +80,7 @@ mcclelland, j. l., mcnaughton, b. l., & o'reilly, r. c. (1995). why there are co
 
 key insight: the brain requires two learning systems with opposite properties. the hippocampus learns quickly from single episodes (fast binding, sparse representations, pattern separation) to avoid catastrophic interference. the neocortex learns slowly across many episodes (gradual weight change, distributed representations, statistical regularities) to extract structure. interleaved replay during sleep bridges the two rates.
 
-relevance to neural computer: the cls framework is the most influential theory mapping to hybrid architectures. see [[complementary_learning_systems]] for the mechanism and [[memory_systems_to_kda_mla]] for the bridge analysis. note: the bridge article documents that todorov's kda+mla is NOT a direct implementation of cls -- both systems learn at the same rate during training. the analogy is structural (fast recurrence + compressed cache), not temporal (fast learning + slow learning).
+relevance to neural computer: the cls framework is the most influential theory mapping to hybrid architectures. see [[complementary_learning_systems]] for the mechanism and [[memory_systems_to_matrix_memory_and_compressed_attention]] for the bridge analysis. note: the bridge article documents that todorov's kda+mla is NOT a direct implementation of cls -- both systems learn at the same rate during training. the analogy is structural (fast recurrence + compressed cache), not temporal (fast learning + slow learning).
 
 ### opposing representations colocated in hippocampal subfield ca1
 
@@ -252,7 +252,7 @@ gershman, s. j., fiete, i. r., & irie, k. (2025). the hippocampus as a key-value
 
 key insight: the hippocampus can be formally modeled as a content-addressable memory (cam) that stores key-value pairs, where the key is a contextual pattern (spatial, temporal, or abstract) and the value is the associated memory content. retrieval is by partial key match (pattern completion). the cam formalism unifies diverse hippocampal functions -- spatial navigation, episodic recall, relational inference -- under a single computational description.
 
-relevance to neural computer: this is the most direct theoretical connection between hippocampal memory and kda. the delta rule's matrix-valued state is literally a key-value store updated by error correction. the cam formalism validates the choice of content-addressable memory as the core computational primitive and provides a theoretical framework for analyzing kda's capacity, interference, and retrieval dynamics. see [[hippocampal_memory]], [[memory_systems_to_kda_mla]].
+relevance to neural computer: this is the most direct theoretical connection between hippocampal memory and kda. the delta rule's matrix-valued state is literally a key-value store updated by error correction. the cam formalism validates the choice of content-addressable memory as the core computational primitive and provides a theoretical framework for analyzing kda's capacity, interference, and retrieval dynamics. see [[hippocampal_memory]], [[memory_systems_to_matrix_memory_and_compressed_attention]].
 
 ## key architectural concepts
 
@@ -283,7 +283,7 @@ the memory systems literature provides several key validations and challenges fo
 **validated design choices:**
 - kda's delta rule as content-addressable memory is directly supported by gershman et al. 2025, which formalizes the hippocampus as a key-value cam with error-correcting updates
 - the read-modify-write cycle (every retrieval updates state) matches the reconsolidation literature, where prediction error gates memory modification
-- the 3:1 kda-to-mla ratio maps to the asymmetry between detailed episodic traces (kda, hippocampal-like) and compressed semantic representations (mla, neocortical-like), though the bridge analysis ([[memory_systems_to_kda_mla]]) documents that the analogy is structural, not temporal
+- the 3:1 kda-to-mla ratio maps to the asymmetry between detailed episodic traces (kda, hippocampal-like) and compressed semantic representations (mla, neocortical-like), though the bridge analysis ([[memory_systems_to_matrix_memory_and_compressed_attention]]) documents that the analogy is structural, not temporal
 - ternary spike compression as chunking is consistent with the expertise literature: the value of compressed representations depends on their learned structure, not their bit depth
 - rope as spatial addressing parallels the method of loci's exploitation of spatial indexing for non-spatial memory
 
@@ -304,6 +304,6 @@ the memory systems literature provides several key validations and challenges fo
 - [[memory_consolidation]]
 - [[complementary_learning_systems]]
 - [[pattern_completion]]
-- [[memory_systems_to_kda_mla]]
+- [[memory_systems_to_matrix_memory_and_compressed_attention]]
 - [[place_cells]]
 - [[grid_cells]]

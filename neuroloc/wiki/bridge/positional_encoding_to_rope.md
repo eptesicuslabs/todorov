@@ -223,5 +223,5 @@ in MLA layers, RoPE is applied to a separate d_R=32 projection, not to the conte
 - [[neural_synchrony]] -- communication through coherence, phase-based gating
 - [[oscillations_to_mamba3_rotation]] -- related bridge: oscillatory dynamics in Mamba3 recurrent state
 - [[spatial_computation_to_pga]] -- PGA as spatial computation mechanism
-- [[memory_systems_to_kda_mla]] -- KDA/MLA functional division of labor
+- [[memory_systems_to_matrix_memory_and_compressed_attention]] -- KDA/MLA functional division of labor
 - [[pga_vs_grid_cells]] -- adversarial comparison of PGA and grid cells

@@ -1,6 +1,6 @@
 # aesthetic logger prototype
 
-status: current (as of 2026-04-16).
+status: historical context only. frozen as of 2026-04-23. do not edit.
 
 date: 2026-04-14
 implementation status: implemented, not yet wired into train_model
@@ -8,11 +8,13 @@ module: `neuroloc/model/aesthetic_logger.py`
 test: `tests/test_aesthetic_logger.py`
 related spec: `neuroloc/spec/next_gen.md` phase 6a
 
-## what this is
+## what this note is
 
-phase 6a dual-stream logging prototype. reads a god_machine `metrics.jsonl`
-artifact and produces four matplotlib png panels to disk. standalone module
-plus cli entry point; train_model wiring is a later commit.
+this note records the 2026-04-14 prototype state of the phase 6a dual-stream
+logging module. it is not a live status page. the module reads a god_machine
+`metrics.jsonl` artifact and produces four matplotlib png panels to disk.
+standalone module plus cli entry point; train_model wiring was left for a
+later commit.
 
 ## module surface
 
@@ -50,7 +52,7 @@ checked in simulation artifact at
 pytest tests/test_aesthetic_logger.py -v
 ```
 
-## next step
+## recorded next step
 
 wire into `train_model` in `neuroloc/model/god_machine.py` so that each
 validation tick triggers a render into
@@ -60,7 +62,7 @@ list.
 
 ## see also
 
-- `wiki/tests/index.md` — tests/ catalog
-- `wiki/PROJECT_PLAN.md` — canonical project state
-- `wiki/INDEX.md` — full wiki navigation map
-- `wiki/OPERATING_DIRECTIVE.md` — rules governing this article
+- [[tests/index|tests]]
+- [[PROJECT_PLAN]]
+- [[INDEX]]
+- [[OPERATING_DIRECTIVE]]

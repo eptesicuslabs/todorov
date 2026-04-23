@@ -318,6 +318,9 @@ def build_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
 
 def build_figure(records: list[dict[str, Any]], output_path: Path) -> None:
     apply_plot_style()
+    import matplotlib
+
+    matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
     fig, axes = plt.subplots(1, len(HEAD_DIMS), figsize=(5 * len(HEAD_DIMS), 4), sharey=True)

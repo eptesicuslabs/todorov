@@ -1,6 +1,6 @@
 # development vs training
 
-status: current (as of 2026-04-16).
+status: current (as of 2026-04-22).
 
 ## the question
 
@@ -163,6 +163,12 @@ the 10^4 to 10^5 difference in timescale is not just quantitative. it means that
 progressive context extension is validated and should continue. phase 5 sequencing across runs is methodologically sound. within-run developmental staging (progressive spike activation, layer-specific learning rates, training-time pruning) is a speculative optimization with no strong prior support from either the ML or neuroscience literature. the expected benefit is small and the hyperparameter cost is real. defer to phase 6+ for experimental investigation, if at all.
 
 the one exception: if todorov encounters optimization difficulties at 300m+ scale (loss spikes, spike collapse, training instability), developmental staging (e.g., training without spikes for the first N steps, then gradually introducing them) should be considered as a stabilization technique. this would be an engineering solution motivated by biological intuition, not a principled implementation of developmental neuroscience.
+
+## see also
+
+- [[development_to_training_schedule]] -- bridge article on training-schedule analogies and concrete proposed changes
+- [[critical_periods]] -- biological mechanism behind the comparison
+- [[PROJECT_PLAN]] -- authoritative current project state and curriculum pivot
 
 ## key references
 

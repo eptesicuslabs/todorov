@@ -122,6 +122,8 @@ placed addresses, or a different substrate entirely.
 
 ## see also
 
+- `wiki/synthesis/phase1_evaluation_surface_for_neural_models.md` — the later external-synthesis article that broadens phase-1 evaluation beyond passkey-only gating
+- `wiki/synthesis/synthetic_shared_world_bridge.md` — the later bridge article for extending the same latent-world tests into phase 2
 - `wiki/synthesis/substrate_requires_architectural_change.md` — the post-run-3 analysis
 - `wiki/synthesis/training_objective_vs_architectural_goal.md` — the prior analysis that this run was designed to discriminate
 - `wiki/synthesis/slot_memory_design.md` — the substrate under test

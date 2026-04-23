@@ -213,14 +213,14 @@ memory: store new experiences with full detail. retrieve them by
 content (what was it?), by time (when did it happen?), or by
 association (what else was happening?).
 
-prediction: given a sequence of signals, predict what comes next.
-measure prediction quality. use prediction errors to drive learning
-and allocate processing.
+prediction: given a sequence of signals, evaluate the current state
+against expected state transitions and expected consequences. use
+prediction errors to drive learning and allocate processing.
 
 these three capabilities emerge from the same core operation:
 - recognition = retrieve mode (match input against memory)
 - memory = remember mode (write input to memory state)
-- prediction = predict mode (compare input against expectation)
+- prediction = predict mode (compare present state against expected state or action outcome)
 
 ## research questions -- ANSWERED by experiments (2026-04-09)
 
@@ -305,6 +305,10 @@ keys also reads only the 13 surviving dimensions of the state, leaving
 "ghost" content in the zeroed dimensions that accumulates and interferes.
 both failure modes are the strongest current review findings from
 god_run_v2 and motivate the current run ordering.
+
+**historical run block**: the run ordering below is preserved as the
+pre-curriculum paid-run plan. it is not currently authorised while the
+curriculum is active.
 
 **run 1 (baseline dense)**: use `god_machine.py` with preset
 `run1_baseline_noerasure`: dense keys, dense values, and no delta

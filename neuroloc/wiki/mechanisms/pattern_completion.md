@@ -22,7 +22,7 @@ in matrix form:
 
     W = (1/N) * sum_{p=1}^{P} xi^p * (xi^p)^T
 
-this is the same outer product prescription as [[hebbian_learning]] and as the k * v^T association in KDA (see [[plasticity_to_kda_delta_rule]]).
+this is the same outer product prescription as [[hebbian_learning]] and as the k * v^T association in KDA (see [[plasticity_to_matrix_memory_delta_rule]]).
 
 ### the energy function
 
@@ -137,7 +137,7 @@ KDA is closer to classical Hopfield networks (linear capacity) than to modern Ho
 
 MLA performs standard softmax attention: softmax(Q * K^T / sqrt(d)) * V. by the Ramsauer et al. result, this IS the update rule of a modern Hopfield network. MLA implements pattern completion with exponential storage capacity, exact retrieval (one-step convergence), and content-addressable access.
 
-this creates an ironic reversal: if softmax attention IS a modern Hopfield network, then MLA (not KDA) is the hippocampal analog -- the system with fast, precise pattern retrieval. KDA, with its linear readout and limited capacity, is more like a classical associative memory with Hebbian storage and interference-limited recall. see [[memory_kda_vs_hippocampus]] for full analysis.
+this creates an ironic reversal: if softmax attention IS a modern Hopfield network, then MLA (not KDA) is the hippocampal analog -- the system with fast, precise pattern retrieval. KDA, with its linear readout and limited capacity, is more like a classical associative memory with Hebbian storage and interference-limited recall. see [[matrix_memory_vs_hippocampus]] for full analysis.
 
 ## challenges
 
@@ -169,5 +169,5 @@ Hopfield's original model did not include inhibition. biological pattern complet
 - [[hebbian_learning]]
 - [[complementary_learning_systems]]
 - [[memory_consolidation]]
-- [[plasticity_to_kda_delta_rule]]
-- [[memory_kda_vs_hippocampus]]
+- [[plasticity_to_matrix_memory_delta_rule]]
+- [[matrix_memory_vs_hippocampus]]

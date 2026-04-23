@@ -54,7 +54,7 @@ in a transformer, the residual stream is the sole channel for inter-layer commun
 
 **communication.** neurons communicate with spikes -- discrete, all-or-nothing events. transformers use continuous-valued activations. spikes carry information in their timing and their identity (which neuron fired), not in their amplitude. this forces a different kind of information encoding. see [[population_coding]].
 
-**memory.** synaptic weights change during processing, not just during training. short-term plasticity adapts synapses on millisecond timescales. the brain effectively rewrites its program while running. transformer weights are fixed at inference time. see [[short_term_plasticity]] and [[memory_systems_to_kda_mla]].
+**memory.** synaptic weights change during processing, not just during training. short-term plasticity adapts synapses on millisecond timescales. the brain effectively rewrites its program while running. transformer weights are fixed at inference time. see [[short_term_plasticity]] and [[memory_systems_to_matrix_memory_and_compressed_attention]].
 
 **learning.** the brain uses local learning rules. each synapse adjusts based on the activity of its two connected neurons, plus a global neuromodulatory signal (like dopamine for reward). there is no backpropagation of error gradients through the entire network. see [[plasticity_local_vs_global]].
 

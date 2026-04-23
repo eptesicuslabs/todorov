@@ -1,5 +1,7 @@
 # Phase Gates
 
+historical note (2026-04-22): this gating plan predates the curriculum pivot. it should be read as archival phase logic, not as the active program surface.
+
 ## Phase 0: Foundation
 
 | Gate             | Description                              | Status  |
@@ -29,23 +31,23 @@ Kill condition: BPB > 3x Transformer baseline after hyperparameter search.
 
 Original gates (passkey_32k, passkey_128k) replaced with 6M-scale gates after run_003 analysis.
 
-## Phase 3: Spatial Module -- COMPLETE (ALL GATES PASS)
+## Phase 3: Spatial Module -- historical snapshot (later partially qualified)
 
 | Gate               | Description                                    | Result                                  | Status |
 |--------------------|------------------------------------------------|-----------------------------------------|--------|
 | spatial_classify   | 3D shape classification outperforms Transformer| GP 30.0% vs Transformer 25.0% (run_009)| PASS   |
 | spatial_dynamics   | n-body dynamics outperforms Transformer        | GP MAE=51.55 vs BL MAE=72.70 (run_009) | PASS   |
-| equivariance_test  | Equivariance error <5% at 60-degree rotation   | 1.34e-07 (run_009)                      | PASS   |
-| language_no_degrade| Language BPB not degraded >10% with GP         | -18.8% (GP improves) (run_009)          | PASS   |
+| equivariance_test  | Equivariance error <5% at 60-degree rotation   | 1.34e-07 (run_009), later judged vacuous| QUALIFIED |
+| language_no_degrade| Language BPB not degraded >10% with GP         | -18.8% at run_009, later judged confounded | QUALIFIED |
 
-## Phase 4: Multimodal Fusion
+## Phase 4: Multimodal Fusion (historical planned phase)
 
 | Gate               | Description                                    | Status  |
 |--------------------|------------------------------------------------|---------|
 | cross_modal        | Cross-modal transfer demonstrated              | PENDING |
 | joint_embedding    | Joint embedding quality verified               | PENDING |
 
-## Phase 5: Scale and Optimize
+## Phase 5: Scale and Optimize (historical planned phase)
 
 | Gate               | Description                                    | Status  |
 |--------------------|------------------------------------------------|---------|

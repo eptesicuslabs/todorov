@@ -220,7 +220,7 @@ recommended phase: phase 6+ (after phase 5 sequence is complete). this is a rese
 ## related bridge docs
 
 - [[neuron_models_to_atmn]] -- ATMN temporal integration (required for oscillatory thresholds)
-- [[plasticity_to_kda_delta_rule]] -- KDA as associative memory (alternative to binding-by-synchrony)
+- [[plasticity_to_matrix_memory_delta_rule]] -- KDA as associative memory (alternative to binding-by-synchrony)
 - [[lateral_inhibition_to_adaptive_threshold]] -- adaptive threshold analysis
 
 ## open questions

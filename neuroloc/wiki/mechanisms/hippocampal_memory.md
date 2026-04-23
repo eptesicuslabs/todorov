@@ -87,7 +87,7 @@ the cost of one-shot learning is limited capacity and vulnerability to interfere
 
 ## relationship to todorov
 
-KDA's matrix-valued state S_t functions as an associative memory with content-addressable retrieval (q^T * S_t), analogous to CA3 pattern completion. however, the correspondence is limited: CA3 is a nonlinear auto-associative network with attractor dynamics, while KDA is a linear heteroassociative memory with exponential decay. see [[memory_kda_vs_hippocampus]] for a detailed comparison.
+KDA's matrix-valued state S_t functions as an associative memory with content-addressable retrieval (q^T * S_t), analogous to CA3 pattern completion. however, the correspondence is limited: CA3 is a nonlinear auto-associative network with attractor dynamics, while KDA is a linear heteroassociative memory with exponential decay. see [[matrix_memory_vs_hippocampus]] for a detailed comparison.
 
 the DG's extreme sparsity (~2-5% firing rate) contrasts sharply with todorov's ternary spike firing rate (~41%). both serve the purpose of reducing interference between stored patterns, but they operate in fundamentally different regimes. see [[sparse_coding_to_ternary_spikes]].
 
@@ -116,4 +116,4 @@ the hippocampal memory system faces several unresolved questions:
 - [[memory_consolidation]]
 - [[sparse_coding]]
 - [[hebbian_learning]]
-- [[memory_kda_vs_hippocampus]]
+- [[matrix_memory_vs_hippocampus]]

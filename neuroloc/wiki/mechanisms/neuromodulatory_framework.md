@@ -133,4 +133,4 @@ see [[neuromodulation_to_learning_and_gating]] for a concrete proposal.
 - [[norepinephrine_system]]
 - [[neuromodulation_to_learning_and_gating]]
 - [[precision_weighting]]
-- [[plasticity_to_kda_delta_rule]]
+- [[plasticity_to_matrix_memory_delta_rule]]

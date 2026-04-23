@@ -196,11 +196,11 @@ The honest assessment: Mamba3 rotation captures the MATHEMATICAL form of oscilla
 
 ## Part 6: Predictive Coding (The "Training Objective")
 
-**Why this matters for your architecture:** next-token prediction works. But the brain does something more principled: it predicts everything, everywhere, all at once.
+**Why this matters for your architecture:** simple output prediction can be useful, but the broader biological idea is state prediction: the brain predicts distributed activity, consequences, and mismatch, not only the next emitted symbol.
 
 **What you will learn:** the predictive coding framework, precision weighting, and why Todorov's backprop-trained weights may already approximate what predictive coding would learn.
 
-**Connect to what you know:** you train with cross-entropy loss on the next token. The brain trains each cortical layer to predict the layer below it. The error signals are local, not global.
+**Connect to what you know:** standard language-model training uses cross-entropy on the next token. cortical predictive-coding accounts instead emphasize local prediction and local mismatch between adjacent levels.
 
 ### The Prediction Error Hierarchy
 
@@ -223,7 +223,7 @@ Millidge, Tschantz, and Buckley (2022) proved that predictive coding at converge
 2. The difference is in FORWARD DYNAMICS (inference), not weight learning.
 3. Predictive coding networks process input through iterative settling (multiple forward-backward passes per input). Todorov does one forward pass.
 
-The practical implication: no reason to switch Todorov from cross-entropy to predictive coding. The weights converge to the same solution. The biological advantage (local learning rules) is irrelevant when GPUs compute global gradients efficiently.
+The practical implication is narrower than it first appears: predictive-coding results argue that local-error systems can reach similar parameter updates under some conditions, but they do NOT imply that next-token prediction should remain the canonical external objective for every future neural model.
 
 Where Todorov DOES echo predictive coding: the KDA beta gate (beta_t = sigmoid(beta_proj(x_t))) modulates how strongly each token writes to memory. High beta = "surprising, worth encoding." Low beta = "expected, safely ignored." This resembles precision weighting, though it is computed from the input alone rather than from prediction error.
 

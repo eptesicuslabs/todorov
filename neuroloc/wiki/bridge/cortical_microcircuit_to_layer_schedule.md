@@ -152,4 +152,4 @@ the probability of a meaningful improvement is estimated at 20-30%. the cost of 
 - [[canonical_microcircuit]]
 - [[excitatory_inhibitory_balance]]
 - [[cortical_layers_vs_todorov_layers]]
-- [[plasticity_to_kda_delta_rule]]
+- [[plasticity_to_matrix_memory_delta_rule]]

@@ -26,7 +26,7 @@ Hebb's second major contribution was the concept of the cell assembly: a group o
 
 ## relevance to todorov
 
-the KDA delta rule's outer product k_t * v_t^T is a direct instantiation of the Hebbian association rule. see [[plasticity_to_kda_delta_rule]].
+the KDA delta rule's outer product k_t * v_t^T is a direct instantiation of the Hebbian association rule. see [[plasticity_to_matrix_memory_delta_rule]].
 
 ## key reference
 

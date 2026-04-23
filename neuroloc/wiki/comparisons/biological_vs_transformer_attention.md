@@ -143,4 +143,4 @@ the rebuttal: the computational problem is different. biological attention solve
 - [[precision_weighting]]
 - [[winner_take_all]]
 - [[neural_synchrony]]
-- [[memory_kda_vs_hippocampus]]
+- [[matrix_memory_vs_hippocampus]]

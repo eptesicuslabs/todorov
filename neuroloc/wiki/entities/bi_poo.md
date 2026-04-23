@@ -28,7 +28,7 @@ the Bi and Poo experiment was not the first demonstration of timing-dependent pl
 
 ## relevance to todorov
 
-the Bi and Poo learning window demonstrates that biological learning is fundamentally temporal: the sign of plasticity depends on the ORDER of events, not just their co-occurrence. todorov's KDA delta rule does not implement this timing dependence (k_t and v_t are from the same timestep), which means it captures the Hebbian correlation component of plasticity but not the temporal asymmetry. see [[plasticity_to_kda_delta_rule]].
+the Bi and Poo learning window demonstrates that biological learning is fundamentally temporal: the sign of plasticity depends on the ORDER of events, not just their co-occurrence. todorov's KDA delta rule does not implement this timing dependence (k_t and v_t are from the same timestep), which means it captures the Hebbian correlation component of plasticity but not the temporal asymmetry. see [[plasticity_to_matrix_memory_delta_rule]].
 
 ## key reference
 

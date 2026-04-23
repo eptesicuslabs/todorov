@@ -1,8 +1,10 @@
-# Papers Index
+# papers quick index
 
-status: current (as of 2026-04-16).
+status: current (as of 2026-04-22).
 
-Compiled index of all papers referenced across the Todorov knowledge files.
+this file is the quick paper-entry surface for the knowledge compartment. it stays category-first on purpose. use [[papers_library]] for the exhaustive annotated library and actionability notes.
+
+do not treat this page as the canonical source for current project conclusions. those belong in the synthesis articles and in [[PROJECT_PLAN]].
 
 
 ## Core Architecture Papers
@@ -121,3 +123,9 @@ Compiled index of all papers referenced across the Todorov knowledge files.
 |--------|---------|---------|
 | Ternary spike findings | eptesicuslabs/gerhard | Adaptive threshold spiking with STE gradients and health monitoring |
 | Geometric algebra findings | eptesicuslabs/echoloc | G(3,0,1) multivector encoding for 3D geometric data |
+
+## see also
+
+- [[papers_library]] -- canonical exhaustive paper library
+- [[INDEX]] -- flat catalog of all wiki compartments
+- [[PROJECT_PLAN]] -- authoritative current project state

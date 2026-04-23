@@ -72,7 +72,7 @@ in biology, the three compression stages are linked by a directed information fl
 
 todorov has no analog to this process. kda's state decays via alpha, but what is lost is simply lost -- it is not transferred to mla or any other store. mla's cache grows monotonically within a context window but is discarded entirely between sequences. there is no mechanism for the model to decide "this kda state contains information worth preserving" and distill it into a more permanent form. the two memory systems share a residual stream, but each layer's memory (kda state or mla cache) is private to that layer.
 
-the bridge article (see [[memory_systems_to_kda_mla]]) considered three hypothetical consolidation mechanisms: periodic state distillation, experience replay during training, and kda-mla prediction loss. all were assessed as high-risk with uncertain benefit.
+the bridge article (see [[memory_systems_to_matrix_memory_and_compressed_attention]]) considered three hypothetical consolidation mechanisms: periodic state distillation, experience replay during training, and kda-mla prediction loss. all were assessed as high-risk with uncertain benefit.
 
 the fundamental reason: consolidation in biology solves a problem that todorov does not have at current scale. biological organisms experience events over seconds to years and must maintain memories across sleep cycles. todorov processes a finite context window in a single forward pass. there is no "overnight" between tokens. the timescale that motivates CLS does not exist in autoregressive inference.
 
@@ -92,7 +92,7 @@ this is hebbian storage: the same outer product rule used in classical hopfield 
 
 the compression happens because rank-1 updates are inherently lossy. a 64x64 matrix has 4096 parameters, but a rank-1 matrix is fully specified by 128 parameters (64 for k, 64 for v). each write compresses a token's information into these 128 degrees of freedom, projected onto the existing state. when multiple writes accumulate, they interfere: constructively when keys are similar and values reinforce, destructively when keys are similar but values differ. this interference IS compression -- the state cannot hold all associations at full fidelity, so it retains a lossy summary that reflects the statistics of recent associations weighted by recency (via alpha decay).
 
-the delta rule modification (see [[plasticity_to_kda_delta_rule]]) makes this compression more intelligent. instead of blindly adding k_t * v_t^T, the delta rule subtracts the current prediction error, writing only what the state does not already know: delta_t = v_t - S_{t-1}^T * k_t. this is error-correcting hebbian learning, and it implements adaptive compression that prioritizes novel information over redundant information. the delta rule is implemented but not yet validated at scale.
+the delta rule modification (see [[plasticity_to_matrix_memory_delta_rule]]) makes this compression more intelligent. instead of blindly adding k_t * v_t^T, the delta rule subtracts the current prediction error, writing only what the state does not already know: delta_t = v_t - S_{t-1}^T * k_t. this is error-correcting hebbian learning, and it implements adaptive compression that prioritizes novel information over redundant information. the delta rule is implemented but not yet validated at scale.
 
 this is the strongest mechanistic parallel to hippocampal memory: one-shot hebbian binding that produces a lossy, interference-limited associative store. both systems use rank-limited outer products. both forget through interference (or, in kda's case, through decay and rank saturation). both sacrifice fidelity for speed. the parallel is genuine -- it follows from the shared mathematics of outer-product association, not from an analogy imposed after the fact.
 
@@ -118,7 +118,7 @@ kda retrieval is linear heteroassociative: o_t = q_t^T * S_t is a single matrix-
 
 the compression bottleneck (d_c = 128) limits the dimensionality of stored representations, not the number of retrievable patterns. kda, the "uncompressed" recurrent state, is actually the more severely capacity-limited system, with linear (rank-limited) storage that scales as O(head_dim).
 
-the biological narrative (compression = limited capacity = pattern separation) maps onto kda, not mla. the architecture concentrates 75% of its depth on the capacity-limited system and uses the high-capacity system sparingly -- a ratio that matches the cortical/hippocampal volume ratio, but only under the inverted mapping where mla is hippocampal (see [[memory_kda_vs_hippocampus]]). this inversion is uncomfortable: the "compressed" system has more capacity than the "uncompressed" one. the lesson is that compression and capacity are not opposites. compression can increase effective capacity by reducing interference, exactly as the dg's extreme sparsity increases hippocampal storage by reducing inter-pattern overlap.
+the biological narrative (compression = limited capacity = pattern separation) maps onto kda, not mla. the architecture concentrates 75% of its depth on the capacity-limited system and uses the high-capacity system sparingly -- a ratio that matches the cortical/hippocampal volume ratio, but only under the inverted mapping where mla is hippocampal (see [[matrix_memory_vs_hippocampus]]). this inversion is uncomfortable: the "compressed" system has more capacity than the "uncompressed" one. the lesson is that compression and capacity are not opposites. compression can increase effective capacity by reducing interference, exactly as the dg's extreme sparsity increases hippocampal storage by reducing inter-pattern overlap.
 
 ## the honest assessment
 
@@ -148,7 +148,7 @@ three experiments could sharpen this assessment. first, sweep the spike threshol
 - [[pattern_completion]]
 - [[complementary_learning_systems]]
 - [[memory_consolidation]]
-- [[memory_kda_vs_hippocampus]]
-- [[memory_systems_to_kda_mla]]
+- [[matrix_memory_vs_hippocampus]]
+- [[memory_systems_to_matrix_memory_and_compressed_attention]]
 - [[sparse_coding_to_ternary_spikes]]
-- [[plasticity_to_kda_delta_rule]]
+- [[plasticity_to_matrix_memory_delta_rule]]

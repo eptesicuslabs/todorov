@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560">
+  <rect width="960" height="560" fill="#f6f8fb"/>
+  <text x="60" y="58" font-family="Arial, sans-serif" font-size="28" fill="#1f2937">n2 predictive coding stack</text>
+  <text x="60" y="88" font-family="Arial, sans-serif" font-size="16" fill="#475569">schematic of prediction, mismatch routing, and state refinement</text>
+  <rect x="120" y="360" width="240" height="90" rx="16" fill="#2563eb" opacity="0.9"/>
+  <text x="165" y="412" font-family="Arial, sans-serif" font-size="22" fill="#ffffff">sensory state</text>
+  <rect x="360" y="230" width="240" height="90" rx="16" fill="#0f766e" opacity="0.92"/>
+  <text x="415" y="282" font-family="Arial, sans-serif" font-size="22" fill="#ffffff">latent state</text>
+  <rect x="600" y="100" width="240" height="90" rx="16" fill="#1d4ed8" opacity="0.92"/>
+  <text x="648" y="152" font-family="Arial, sans-serif" font-size="22" fill="#ffffff">higher context</text>
+  <rect x="660" y="250" width="180" height="78" rx="16" fill="#dc2626" opacity="0.92"/>
+  <text x="705" y="297" font-family="Arial, sans-serif" font-size="22" fill="#ffffff">mismatch</text>
+  <line x1="480" y1="230" x2="720" y2="190" stroke="#2563eb" stroke-width="5"/>
+  <polygon points="710,182 734,188 714,202" fill="#2563eb"/>
+  <line x1="720" y1="190" x2="480" y2="230" stroke="#f59e0b" stroke-width="5"/>
+  <polygon points="490,222 468,230 486,244" fill="#f59e0b"/>
+  <line x1="240" y1="360" x2="480" y2="320" stroke="#2563eb" stroke-width="5"/>
+  <polygon points="470,312 494,318 474,332" fill="#2563eb"/>
+  <line x1="750" y1="250" x2="600" y2="275" stroke="#dc2626" stroke-width="5"/>
+  <polygon points="610,267 586,277 608,289" fill="#dc2626"/>
+  <text x="560" y="206" font-family="Arial, sans-serif" font-size="16" fill="#2563eb">top-down prediction</text>
+  <text x="520" y="258" font-family="Arial, sans-serif" font-size="16" fill="#f59e0b">context update</text>
+  <text x="320" y="334" font-family="Arial, sans-serif" font-size="16" fill="#2563eb">bottom-up drive</text>
+  <text x="690" y="236" font-family="Arial, sans-serif" font-size="16" fill="#dc2626">prediction error</text>
+  <text x="60" y="510" font-family="Arial, sans-serif" font-size="15" fill="#475569">blue: state flow. orange: contextual refinement. red: mismatch routed upward or sideways for correction.</text>
+</svg>

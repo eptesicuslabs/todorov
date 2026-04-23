@@ -35,7 +35,7 @@ before Hensch's work, critical periods were understood as passive developmental 
 
 ## relevance to todorov
 
-Hensch's E/I balance gate maps loosely to todorov's spike threshold alpha: the level of inhibition (quantization stringency) determines the regime of computation. but the analogy breaks on the most important dimension: Hensch's gate is DEVELOPMENTAL (it opens once and closes once), while alpha is LEARNABLE throughout training. see [[critical_periods]] and [[development_to_training_curriculum]] for detailed analysis.
+Hensch's E/I balance gate maps loosely to todorov's spike threshold alpha: the level of inhibition (quantization stringency) determines the regime of computation. but the analogy breaks on the most important dimension: Hensch's gate is DEVELOPMENTAL (it opens once and closes once), while alpha is LEARNABLE throughout training. see [[critical_periods]] and [[development_to_training_schedule]] for detailed analysis.
 
 ## key references
 

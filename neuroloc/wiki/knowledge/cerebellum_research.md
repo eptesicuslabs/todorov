@@ -100,7 +100,7 @@ this is unique in the brain. cortical plasticity uses unsupervised (hebbian) or 
 
 - [[three_factor_learning]]
 - [[predictive_coding]]
-- [[plasticity_to_kda_delta_rule]]
+- [[plasticity_to_matrix_memory_delta_rule]]
 - [[hebbian_learning]]
 - [[cortical_column]]
 - [[canonical_microcircuit]]

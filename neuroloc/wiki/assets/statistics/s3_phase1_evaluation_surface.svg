@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="760" viewBox="0 0 1600 760">
+  <rect width="100%" height="100%" fill="#fcfbf8"/>
+  <style>
+    .t { font-family: Arial, Helvetica, sans-serif; fill: #1f2430; }
+    .m { font-family: Courier New, Consolas, monospace; fill: #1f2430; }
+    .title { font-size: 36px; font-weight: 700; letter-spacing: 0.5px; }
+    .subtitle { font-size: 16px; fill: #667085; }
+    .axis { stroke: #2f3440; stroke-width: 1.4; }
+    .grid { stroke: #e6e2d9; stroke-width: 1; }
+    .small { font-size: 14px; }
+    .label { font-size: 18px; }
+    .tick { font-size: 15px; fill: #667085; }
+    .mono { font-family: Courier New, Consolas, monospace; font-size: 15px; fill: #1f2430; }
+    .note { font-size: 15px; fill: #667085; }
+  </style>
+
+<text x="110" y="82" class="t title">phase-1 evaluation surface</text>
+<text x="110" y="112" class="t subtitle">state-plus-action battery, not next-token ranking</text>
+<line x1="110" y1="130" x2="1490" y2="130" class="grid"/>
+
+<text x="1110" y="82" class="m small">gates: 6</text>
+<text x="1110" y="108" class="m small">implemented symbolic families: 6</text>
+<text x="1290" y="82" class="m small">core metrics: 3</text>
+<text x="1290" y="108" class="m small">passkey: smoke only</text>
+
+<rect x="110" y="180" width="690" height="420" fill="none" stroke="#d9d3c6" stroke-width="1.2"/>
+<text x="140" y="215" class="t label">gates</text>
+<line x1="130" y1="235" x2="780" y2="235" class="grid"/>
+<text x="145" y="275" class="m small">1</text><text x="180" y="275" class="t label">recognition and belief-state formation</text>
+<text x="145" y="330" class="m small">2</text><text x="180" y="330" class="t label">associative recollection</text>
+<text x="145" y="385" class="m small">3</text><text x="180" y="385" class="t label">interference resistance</text>
+<text x="145" y="440" class="m small">4</text><text x="180" y="440" class="t label">delayed use under partial observability</text>
+<text x="145" y="495" class="m small">5</text><text x="180" y="495" class="t label">episodic reuse</text>
+<text x="145" y="550" class="m small">6</text><text x="180" y="550" class="t label">iterative reasoning and counterfactual rollout</text>
+
+<rect x="850" y="180" width="640" height="420" fill="none" stroke="#d9d3c6" stroke-width="1.2"/>
+<text x="880" y="215" class="t label">implemented symbolic families</text>
+<line x1="870" y1="235" x2="1470" y2="235" class="grid"/>
+<text x="890" y="275" class="t label">slot key interference sweep</text>
+<text x="890" y="330" class="t label">multi-association recall</text>
+<text x="890" y="385" class="t label">delayed cue world</text>
+<text x="890" y="440" class="t label">episodic separation and completion</text>
+<text x="890" y="495" class="t label">episodic replay and reuse</text>
+<text x="890" y="550" class="t label">contextual gate routing</text>
+
+<rect x="110" y="635" width="1380" height="90" fill="none" stroke="#d9d3c6" stroke-width="1.2"/>
+<text x="140" y="668" class="t label">canonical metrics</text>
+<line x1="310" y1="650" x2="310" y2="708" class="grid"/>
+<line x1="760" y1="650" x2="760" y2="708" class="grid"/>
+<line x1="1120" y1="650" x2="1120" y2="708" class="grid"/>
+<text x="340" y="688" class="m small">state_probe_accuracy</text>
+<text x="790" y="688" class="m small">action_success</text>
+<text x="1150" y="688" class="m small">joint_success</text>
+
+</svg>

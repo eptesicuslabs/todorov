@@ -1,6 +1,8 @@
 # compression architecture for the neural machine
 
-status: current (as of 2026-04-16).
+status: superseded by bridge/memory_compression_to_tiered_architecture.md. retained for evidence continuity.
+
+this page is an earlier proposal shelf from before the current synthesis/bridge split in the compression cluster. it preserves several speculative mechanism ideas, but it is not the current canonical architecture surface.
 
 ## the problem
 
@@ -84,7 +86,13 @@ the combination: ternary weights (1.58 bits/param) + k-wta ternary activations (
 
 ## see also
 
+- [[bridge/memory_compression_to_tiered_architecture]]
+- [[synthesis/compression_beyond_quantization]]
+- [[generative_memory_research]]
+- [[compression_novelty]]
+- [[imagination_computation_research]]
+- [[unified_learning_hypothesis]]
 - [[sparse_coding_to_ternary_spikes]]
 - [[energy_efficiency_to_ternary_spikes]]
-- [[memory_systems_to_kda_mla]]
+- [[memory_systems_to_matrix_memory_and_compressed_attention]]
 - [[compression_and_bottlenecks]]
