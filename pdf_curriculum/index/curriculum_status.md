@@ -1,6 +1,6 @@
 # curriculum status
 
-status: current (2026-04-22). curriculum is the only active lane.
+status: current (2026-04-23). curriculum is the only active lane.
 
 ## current chapter package
 
@@ -18,6 +18,15 @@ chapter 1 is the current review-ready artifact:
 chapter 2 is outline-only and awaits approval:
 
 - outline: `pdf_curriculum/chapters/ch_02_how_things_change/ch_02_outline.md`
+
+## synced snapshot
+
+the current coherent repo snapshot is pushed at:
+
+- branch: `codex/research-curriculum-sync`
+- commit: `695e3da`
+
+this snapshot includes the review-ready chapter 1 package, the chapter 2 outline, the expanded neuroloc research/wiki synthesis, the phase-1 symbolic NM battery, and the scientific svg visual set now used by the wiki.
 
 ## passive backlog note
 
