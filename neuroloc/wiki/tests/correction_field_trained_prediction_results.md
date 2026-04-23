@@ -101,6 +101,7 @@ the honest reframing is that the correction-field is an additive prediction head
 ## see also
 
 - `wiki/tests/index.md` — tests/ catalog
+- [[synthesis/correction_field_memory]] — current synthesis article updated after this follow-up closed the memory-side capacity question
 - `wiki/PROJECT_PLAN.md` — canonical project state
 - `wiki/INDEX.md` — full wiki navigation map
 - `wiki/OPERATING_DIRECTIVE.md` — rules governing this article

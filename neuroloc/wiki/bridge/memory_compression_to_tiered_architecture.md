@@ -15,48 +15,48 @@ the mammalian brain retains approximately 10^5 to 10^7 bytes of effective usable
 5. **algorithmic / manifold abstraction**: memories are coordinates on learned manifolds, not raw feature patterns.
 6. **reconsolidation**: retrieval is a rewrite operation; lossy reconstruction replaces the old memory (nader et al. 2000; sevenster et al. 2014).
 
-none of todorov's existing memory mechanisms implement these at the level beyond "minor biological inspiration." the kda delta state is a direct accumulator with exponential decay. the mla cache is a low-rank projection of kv. the residual stream passes activations unchanged between layers. there is no predictive filter, no generative decoder, no schema, no index, no manifold compression, and no reconsolidation.
+none of todorov's existing memory mechanisms implement these at the level beyond "minor biological inspiration." the matrix memory state is a direct accumulator with exponential decay. the compressed-attention cache is a low-rank projection of kv. the residual stream passes activations unchanged between layers. there is no predictive filter, no generative decoder, no schema, no index, no manifold compression, and no reconsolidation.
 
 the proposal in this document is an engineering architecture that implements the six biological mechanisms as a five-tier memory system with a provenance audit log, satisfying two hard constraints: total memory size must be bounded, and continuous learning must not grow model weights.
 
 ## the current todorov implementation
 
-### delta state (kda)
+### matrix memory
 
 ```
 S_t = diag(alpha) * S_{t-1} + beta_t * k_t * v_t^T
 ```
 
-the kda state is a rank-limited outer-product accumulator. it stores associations (k, v) and retrieves via `o_t = q_t^T * S_t`. the compression ratio relative to storing raw kv pairs is bounded by the interference capacity of the outer-product memory, approximately `0.14 * min(d_k, d_v)` distinct patterns before interference-free retrieval begins to fail, rising to approximately `0.38 * min(d_k, d_v)` at the overcapacity boundary (classical hopfield analysis: hopfield 1982; amit, gutfreund, sompolinsky 1985). at d_k = d_v = 64, this is approximately 9 patterns at the interference-free threshold and approximately 24 patterns at the overcapacity boundary. older patterns decay at rate `1 - alpha` per step.
+the matrix memory state is a rank-limited outer-product accumulator. it stores associations (k, v) and retrieves via `o_t = q_t^T * S_t`. the compression ratio relative to storing raw kv pairs is bounded by the interference capacity of the outer-product memory, approximately `0.14 * min(d_k, d_v)` distinct patterns before interference-free retrieval begins to fail, rising to approximately `0.38 * min(d_k, d_v)` at the overcapacity boundary (classical hopfield analysis: hopfield 1982; amit, gutfreund, sompolinsky 1985). at d_k = d_v = 64, this is approximately 9 patterns at the interference-free threshold and approximately 24 patterns at the overcapacity boundary. older patterns decay at rate `1 - alpha` per step.
 
 this is a single-tier memory with fixed decay. there is no differentiation between "recent and verbatim" versus "old and compressed." the only compression is interference-based overwriting and a learned spike-mask projection from raw residual stream.
 
-### compressed attention (mla)
+### compressed attention
 
 ```
 c_kv = W_down @ x
 k, v = W_up_k @ c_kv, W_up_v @ c_kv
 ```
 
-mla stores a compressed latent representation per token. the latent has dimensionality `d_c << d_model`, reducing kv storage by a factor of approximately `d_model / (d_c + d_R)` where d_R is the rope split. for d_model=1024, d_c=128, d_R=32, this is 6.4x compression. the cache still stores one entry per token, so it grows linearly with context length.
+compressed attention stores a compressed latent representation per token. the latent has dimensionality `d_c << d_model`, reducing kv storage by a factor of approximately `d_model / (d_c + d_R)` where d_R is the rope split. for d_model=1024, d_c=128, d_R=32, this is 6.4x compression. the cache still stores one entry per token, so it grows linearly with context length.
 
 this is architectural low-rank compression, not structural replacement. it is roughly in the same family as more recent structural kv compression methods such as vqkv (arxiv 2603.16435, author-reported ~5.7x on llama-3.1-8b), commvq (apple ml, arxiv 2506.18879, author-reported ~8x at 2-bit), vqllm (kumar et al. 2024, arxiv 2410.15704, author-reported ~5.5x), and deltakv (arxiv 2602.08005, author-reported ~3.45x). all of these methods store the compressed kv verbatim as indices or residuals; none of them replace storage with computation. the published structural-compression frontier for language model memory is in the ~5-8x range from these methods, which is why a different abstraction is needed.
 
 ### residual stream
 
-activations flow from layer to layer via addition (x = x + f(x)). the residual stream is not a memory store; it is a communication channel. no compression happens in the residual stream. it is mentioned here only to clarify what is NOT memory.
+activations flow from layer to layer via addition (x = x + f(x)). the residual stream is not a memory store; it is a communication channel. no compression happens in the residual stream. it is mentioned here only to clarify what is outside the memory path.
 
-### ternary spikes (in neural_machine, not god_machine)
+### ternary quantized activations
 
-k and v are ternarized to {-1, 0, 1} before being multiplied into the state. this reduces storage bits per value from 16 (bf16) to approximately 1.5 (ternary), a factor of ~10x. but the reduction is in representation bits, not in number of stored entries. all tokens are still stored.
+k and v are quantized to {-1, 0, 1} before being multiplied into the state. this reduces storage bits per value from 16 (bf16) to approximately 1.5, a factor of ~10x. but the reduction is in representation bits, not in number of stored entries. all tokens are still stored.
 
-### k-wta rate-coded sparsity (in god_machine)
+### rate-coded sparsity
 
 k and v are top-k filtered at 20 percent before state update. this reduces effective information density by 5x but does not reduce storage. stored entries still grow linearly with context length.
 
 ### summary
 
-the current todorov architecture has approximately 10x-20x compression relative to a vanilla transformer kv cache via the combination of mla projection, ternary or k-wta sparsity, and delta-rule interference-based capacity limits. this is modest and operates entirely at the bit-packing or architectural-projection level. it does not implement any of the six brain-inspired compression mechanisms structurally.
+the current todorov architecture has approximately 10x-20x compression relative to a vanilla transformer kv cache via the combination of compressed-attention projection, low-bit or rate-coded sparsity, and matrix-memory interference limits. this is modest and operates entirely at the bit-packing or architectural-projection level. it does not implement any of the six brain-inspired compression mechanisms structurally.
 
 ## the proposed change
 
@@ -77,13 +77,13 @@ each tier has a specific algorithm, a specific size budget, and a specific retri
 
 #### tier 0 — working memory (verbatim)
 
-- **substrate**: current kda delta state, unmodified. an outer-product matrix of shape `(B, H, D_k, D_v)` per layer.
+- **substrate**: current matrix memory state, unmodified. an outer-product matrix of shape `(B, H, D_k, D_v)` per layer.
 - **size budget**: fixed. at d_k = d_v = 64 and 24 delta layers, the state is approximately 48 mb per batch item.
 - **retention policy**: exponential decay per step as currently implemented. no explicit eviction.
 - **update rule**: `state = alpha * state * (I - beta * k * k^T) + beta * k * v^T` (current gated delta rule).
 - **biological analog**: ca3 recurrent autoassociative memory, rank-limited, fast-write.
 - **purpose**: immediately-useful memory for the current context window.
-- **what's new**: nothing. this is the current kda state.
+- **what's new**: nothing. this is the current matrix memory state.
 
 #### tier 1 — predictive residual (surprise only)
 
@@ -246,7 +246,7 @@ if a source is later flagged as malicious:
 
 the architecture satisfies the no-weight-growth constraint at every tier:
 
-- tier 0: fixed-size matrix, updates in place. already satisfied by kda.
+- tier 0: fixed-size matrix, updates in place. already satisfied by matrix memory.
 - tier 1: fixed-size buffer, fifo overwrite. satisfied by design.
 - tier 2: fixed codebook count. new codebook entries are never added; existing entries are updated via ema. satisfied by design.
 - tier 3: fixed schema count. new schemas are never added; existing schemas update slowly via online learning. satisfied by design.
@@ -278,7 +278,7 @@ the added parameters are modest relative to the main model. most of them are sma
 
 ### positive
 
-- **compression ratio**: each tier is ~10x-100x smaller than the previous (verbatim -> surprise -> codebook -> schema -> generative). compounded, the tail of old memory is effectively zero-cost, while the head of recent memory is verbatim. total effective capacity is 100x-1000x beyond the current kda state for the same total memory footprint.
+- **compression ratio**: each tier is ~10x-100x smaller than the previous (verbatim -> surprise -> codebook -> schema -> generative). compounded, the tail of old memory is effectively zero-cost, while the head of recent memory is verbatim. total effective capacity is 100x-1000x beyond the current matrix memory state for the same total memory footprint.
 - **safety**: provenance logging + delta-rule erasure gives a concrete mechanism for "unlearning" specific sources without retraining. this is stricter than any published machine unlearning technique because delta-rule erasure is algebraically exact (up to key-overlap caveats, see below).
 - **continuous learning viability**: the fixed-size constraint means the model can absorb new information without growing. combined with tier-protected schemas (only schemas get slow updates), the risk of catastrophic drift is bounded.
 - **scientific contribution**: if implemented and validated, this is the first published memory architecture that compounds all six brain-inspired compression mechanisms in a single system.
@@ -287,7 +287,7 @@ the added parameters are modest relative to the main model. most of them are sma
 
 - **training complexity**: each tier has its own loss, its own update rule, and its own convergence dynamics. training stability will be harder than a single-tier delta memory.
 - **hyperparameter surface**: surprise thresholds, schema counts, codebook sizes, migration intervals, age thresholds, importance scores. many knobs to tune.
-- **retrieval latency**: a query may need to traverse all 5 tiers to find its answer. the existing baseline kda retrieval is a single einsum. the tiered retrieval is multiple lookups. for generation at inference time this may dominate.
+- **retrieval latency**: a query may need to traverse all 5 tiers to find its answer. the existing baseline matrix-memory retrieval is a single einsum. the tiered retrieval is multiple lookups. for generation at inference time this may dominate.
 - **engineering complexity**: building, testing, and debugging a 5-tier system with provenance logging and adversarial-robust erasure is substantial work. months, not days.
 
 ### risks
@@ -326,13 +326,13 @@ each milestone is a separate research paper's worth of work. the full architectu
 
 | component | implementation difficulty | risk to existing performance | expected benefit | biological fidelity |
 |---|---|---|---|---|
-| tier 0 (current kda) | already done | none | baseline | low |
+| tier 0 (current matrix memory) | already done | none | baseline | low |
 | tier 1 (surprise buffer) | moderate | low | 10-100x compression | high |
 | tier 2 (vq-vae codebook) | hard | moderate | 100-1000x compression | high |
 | tier 3 (schema delta) | hard | moderate | 100x compression | high |
 | tier 4 (generative only) | easy once tiers 0-3 work | low | infinite compression (zero storage) | high |
 | provenance log | moderate | low | safety infrastructure | moderate (audit log is engineering, not biological) |
-| delta-rule erasure for unlearning | easy (already in kda) | low | adversarial robustness | moderate |
+| write-side erasure for unlearning | easy (already in matrix memory) | low | adversarial robustness | moderate |
 
 the estimated total implementation effort is approximately 3-6 months of focused engineering plus research, assuming the prerequisites (prediction head prototype, vq-vae prototype) succeed at small scale first.
 
@@ -344,6 +344,18 @@ do not treat this bridge as the next immediate implementation item. as of 2026-0
 2. second, validate smaller compression components cpu-first. the correction-field result already showed that residual values do not raise matrix-memory capacity on their own, so a full tiered build should not be the first thing retried.
 3. third, only if simpler components show signal, propose a dedicated tiered-memory variant with isolated ablations rather than folding it into an existing substrate run.
 4. fourth, keep provenance logging and targeted erasure as first-class constraints from the start, not as bolt-ons.
+
+## see also
+
+- [[generative_memory_research]] -- curated research library and evidence layer
+- [[compression_beyond_quantization]] -- current compression thesis
+- [[compression_and_bottlenecks]] -- biological precedent
+- [[compression_architecture]] -- earlier proposal shelf, superseded
+- [[memory_systems_research]] -- episodic versus semantic memory
+- [[matrix_memory_vs_hippocampus]] -- existing analysis of the matrix-memory gap versus hippocampus
+- [[plasticity_to_matrix_memory_delta_rule]] -- matrix-memory write math
+- [[predictive_coding_to_training_objective]] -- predictive-coding options for the project
+- [[indexed_reconstruction_compression]] -- current compact-handle plus reconstruction synthesis
 
 ## key references
 
@@ -357,14 +369,3 @@ do not treat this bridge as the next immediate implementation item. as of 2026-0
 - behrouz, a., zhong, p., mirrokni, v. (2025). titans: learning to memorize at test time. arxiv 2501.00663.
 - nader, k., schafe, g. e., ledoux, j. e. (2000). fear memories require protein synthesis in the amygdala for reconsolidation after retrieval. nature 406, 722-726.
 - mildenhall, b., srinivasan, p. et al. (2020). nerf: representing scenes as neural radiance fields. eccv.
-
-## see also
-
-- [[generative_memory_research]] -- curated research library and evidence layer
-- [[compression_beyond_quantization]] -- current compression thesis
-- [[compression_and_bottlenecks]] -- biological precedent
-- [[compression_architecture]] -- earlier proposal shelf, superseded
-- [[memory_systems_research]] -- episodic versus semantic memory
-- [[matrix_memory_vs_hippocampus]] -- existing analysis of the matrix-memory gap versus hippocampus
-- [[plasticity_to_matrix_memory_delta_rule]] -- delta-rule math
-- [[predictive_coding_to_training_objective]] -- predictive-coding options for the project

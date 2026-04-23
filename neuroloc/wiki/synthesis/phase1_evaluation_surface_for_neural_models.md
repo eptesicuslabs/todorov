@@ -69,7 +69,7 @@ recommended local measurements:
 
 this is the missing gate in most memory discussions. a system can look good on
 clean recall and still fail as soon as keys are correlated, slots collide, or
-new episodes keep arriving. the hebbian benchmark, memory gym, and popgym
+new episodes keep arriving. the associative-learning benchmark, memory gym, and popgym
 arcade all point in the same direction: interference has to be tested
 separately from clean retrieval.
 
@@ -313,6 +313,7 @@ surface. the two should not be conflated.
 - [[attention_as_precision_and_routing]]
 - [[state_action_memory_architecture_direction]]
 - [[visuals_to_phase1_nm_tests]]
+- [[indexed_reconstruction_compression]]
 - [[tests/run3_cognition_phase1_results]]
 
 ## references

@@ -1,6 +1,6 @@
 # substrate requires architectural change: six paid runs, zero retrieval, one discriminating corpus
 
-status: current (as of 2026-04-22).
+status: current (as of 2026-04-23).
 
 ## the observation
 
@@ -206,6 +206,7 @@ larger battery.
 - `wiki/synthesis/slot_memory_design.md` — the substrate design itself
 - `wiki/synthesis/phase1_evaluation_surface_for_neural_models.md` — the current external-synthesis article for the cpu-first battery that should replace passkey-only thinking
 - `wiki/synthesis/synthetic_shared_world_bridge.md` — the phase-2 bridge that keeps multimodality tied to one latent world instead of a bolt-on stack
+- [[indexed_reconstruction_compression]] — current compact-handle plus reconstruction direction after the cellular, capacity, compression, and evaluation-gap pass
 - `wiki/synthesis/linear_attention_retrieval_wall.md` — the original matrix-memory diagnosis (already marked superseded)
 - `wiki/tests/run2_slot_memory_retention_fixed_results.md` — the prior paid run with same substrate + retention on fineweb
 - `wiki/PROJECT_PLAN.md` — the canonical project state

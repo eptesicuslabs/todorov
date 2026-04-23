@@ -14,7 +14,7 @@ the published quantization frontier as of early 2026:
 
 - kvtc (nvidia research, arxiv 2511.01815): pca decorrelation + dynamic programming bit allocation + deflate entropy coding. the paper claims up to 20x kv cache reduction at under 1 point accuracy drop on longbench, math-500, and ruler, combining a classical rate-distortion pipeline with nvcomp gpu-accelerated entropy coding. specific numbers require direct verification against the paper's main tables.
 
-- mla (deepseek, arxiv 2405.04434): multi-head latent attention projects kv to a low-rank latent per token. the deepseek-v3 technical report (arxiv 2412.19437) reports large kv cache reductions vs standard mha and has been production-validated at 670b scale. still stores the compressed kv; this is architecture-level compression not structural replacement.
+- deepseek low-rank attention (arxiv 2405.04434): the external paper's mechanism projects kv to a low-rank latent per token. the deepseek-v3 technical report (arxiv 2412.19437) reports large kv cache reductions vs standard mha and has been production-validated at 670b scale. still stores the compressed kv; this is architecture-level compression not structural replacement.
 
 - vqkv (arxiv 2603.16435, march 2026): vector quantization applied directly to kv cache at inference time. reports 82.8 percent compression (approximately 5.7x) on llama-3.1-8b with 98.6 percent longbench retention. training-free, verbatim indexed storage, not model-regenerative. this is a strong recent baseline for structural kv compression.
 
@@ -66,7 +66,7 @@ das, p. et al. (2024). larimar: large language models with episodic memory contr
 
 larimar adds a distributed episodic memory matrix to a pretrained language model. memory is a learned matrix of shape (k, d) where k is the number of slots and d is the dimension. write operations use a pseudo-inverse update rule. retrieval is associative. larimar enables one-shot knowledge updates (add or remove a fact) without fine-tuning, with 4x-10x speedup over fine-tuning baselines on the zsre knowledge-editing benchmark.
 
-relevance: larimar demonstrates that an associative memory with delta-rule-like updates can store and retrieve facts with a fixed-size memory matrix. the memory does not grow with new facts; new facts overwrite existing slots. this satisfies the "no weight growth" constraint for continuous learning. the update rule is mathematically equivalent to the kda delta-rule erasure when keys are orthogonal.
+relevance: larimar demonstrates that an associative memory with delta-rule-like updates can store and retrieve facts with a fixed-size memory matrix. the memory does not grow with new facts; new facts overwrite existing slots. this satisfies the "no weight growth" constraint for continuous learning. the update rule is mathematically equivalent to the matrix-memory erasure update when keys are orthogonal.
 
 confidence: high. larimar is peer-reviewed at icml with reproducible benchmarks. caveat: larimar's memory is tested on small, structured knowledge-editing tasks (single facts), not on streaming continuous experience. adversarial robustness is not evaluated.
 
@@ -257,3 +257,4 @@ confidence: high for the theoretical framework. unknown for the practical achiev
 - [[ternary_compression_research]] -- bit-quantization methods
 - [[imagination_computation_research]] -- generative recombination
 - [[memory_capacity_research]] -- associative memory capacity
+- [[indexed_reconstruction_compression]] -- current compact-handle plus reconstruction synthesis that uses this shelf as prior-art support

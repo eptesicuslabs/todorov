@@ -2,6 +2,27 @@
 
 This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
+# single plan rule (2026-04-23)
+
+`neuroloc/wiki/PROJECT_PLAN.md` is the one canonical plan and session-start
+state file. every new session reads this file after AGENTS.md and treats it as
+the current recovery point for both the curriculum lane and the paused research
+backlog.
+
+other state files are subordinate, not competing plans:
+
+- `~/.claude/plans/compressed-dancing-haven.md` is the detailed curriculum
+  specification and chapter-production protocol.
+- `pdf_curriculum/index/curriculum_status.md` is a lightweight curriculum index.
+- `state/program_status.yaml` is structured run/status data.
+- `docs/STATUS_BOARD.md` is a per-run/status-board summary.
+- `reports/` contains read-only reports and recovery dossiers.
+
+when these files disagree, resolve the disagreement into
+`neuroloc/wiki/PROJECT_PLAN.md` first, then sync the subordinate file only if
+the current task actually touches that surface. do not require future sessions
+to read every subordinate file just to recover the project state.
+
 # teaching curriculum pivot (2026-04-17)
 
 **the project's active workstream is the teaching PDF curriculum** specified in the plan file at `~/.claude/plans/compressed-dancing-haven.md`. paid compute is paused indefinitely. the architectural-intervention track (A-E candidates in `neuroloc/wiki/synthesis/substrate_requires_architectural_change.md`) remains in the research backlog but is NOT the active workstream; it resumes only when the curriculum has produced enough fluency to choose and execute an intervention independently.
@@ -20,7 +41,7 @@ the curriculum specifies 36 chapters across 6 phases (math fundamentals, biology
 
 5. **user executes chapter production**. any agent working on this project during the curriculum era produces outlines, research gather, drafts, and compilations; the user approves outlines before research begins and approves drafts before finalization.
 
-6. **the actual curriculum plan file is a live source of truth and must stay detailed and current.** the master plan file at `~/.claude/plans/compressed-dancing-haven.md` is not a one-time outline dump. whenever chapter status changes, the production protocol changes, the active chapter changes, a backlog/resume rule changes, a chapter package becomes review-ready, or a curriculum-level decision is made, the plan file must be updated in detail so a future agent can recover the real state from it alone. if `PROJECT_PLAN.md` and the actual plan file diverge, fix both until they agree on the current curriculum state.
+6. **the private curriculum plan is detailed protocol, not a second project plan.** the master curriculum specification at `~/.claude/plans/compressed-dancing-haven.md` must stay detailed and current when chapter status or curriculum protocol changes, but `neuroloc/wiki/PROJECT_PLAN.md` remains the single session-start plan. if they diverge, fix `PROJECT_PLAN.md` first, then sync the curriculum plan so it agrees on curriculum detail.
 
 # what this is
 
@@ -455,7 +476,7 @@ exp(g) gate convention. best_val_bpb 1.4453 (+0.050 vs v1, 0.404x ratio).
 RETRIEVAL STILL 0: passkey 0/100 ci 3.7% at 256/1024/4096, copy 0/100 at
 256/512/1024/2048. delta_state_structure_probe ratio 0.977 pairwise_cos 0.003
 (noise). f1 fix did not recover passkey. external review listed 8 candidate
-contributing mechanisms; theory was provisional pending controls.
+contributing mechanisms; theory was provisional before controls.
 
 run1_baseline_noerasure: god_machine.py with all 5 bundle features off.
 h200, 353m params, fineweb-edu 131m tokens, 4000 steps, 42 min. final
@@ -545,16 +566,18 @@ AGENTS.md to match, not the other way around.
 
 # read order for new sessions
 
-1. this file (AGENTS.md)
-2. neuroloc/wiki/PROJECT_PLAN.md (canonical persistent project state, read this first of the neuroloc files)
-3. neuroloc/wiki/OPERATING_DIRECTIVE.md (binding wiki/state rules, read before any wiki work)
-4. state/program_status.yaml
-5. docs/STATUS_BOARD.md
-6. eara.yaml
-7. program.md
-8. scripts/autoresearch_loop.md
-9. knowledge/ files relevant to current phase
-10. neuroloc/spec/blueprint.md (if doing neural machine work)
-11. neuroloc/spec/next_gen.md (phase 6+ roadmap)
-12. neuroloc/spec/implementation_plan.md (for the 5-run protocol)
-13. neuroloc/HANDOFF.md (for wiki/simulation state)
+minimum recovery path:
+
+1. this file (`AGENTS.md`)
+2. `neuroloc/wiki/PROJECT_PLAN.md`
+
+task-specific reads after that:
+
+- read `neuroloc/wiki/OPERATING_DIRECTIVE.md` before wiki or state edits
+- read `~/.claude/plans/compressed-dancing-haven.md` only for detailed curriculum protocol or chapter-production work
+- read `pdf_curriculum/index/curriculum_status.md` only for lightweight chapter package paths
+- read `state/program_status.yaml` or `docs/STATUS_BOARD.md` only when checking structured run/status details
+- read `eara.yaml`, `program.md`, and `scripts/autoresearch_loop.md` only if the architecture loop is explicitly reactivated
+- read `knowledge/`, `neuroloc/wiki/knowledge/`, `neuroloc/wiki/synthesis/`, and `neuroloc/wiki/bridge/` files relevant to the current research question
+- read `neuroloc/spec/blueprint.md`, `neuroloc/spec/next_gen.md`, or `neuroloc/spec/implementation_plan.md` only when working on the paused neural-machine backlog
+- read `neuroloc/HANDOFF.md` only when recovering wiki/simulation details not already captured in `PROJECT_PLAN.md`

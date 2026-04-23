@@ -49,4 +49,5 @@ the curriculum remains the only active workstream. the architecture backlog beco
 - [[cross_scale_building_blocks_for_biological_computation]]
 - [[phase1_evaluation_surface_for_neural_models]]
 - [[synthetic_shared_world_bridge]]
+- [[indexed_reconstruction_compression]]
 - [[PROJECT_PLAN]]

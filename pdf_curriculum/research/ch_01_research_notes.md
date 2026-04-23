@@ -263,7 +263,7 @@ source-gap (resolved by curriculum-original content): no surveyed source treats 
 - extend to the rationals ℚ = {p/q : p, q ∈ ℤ, q ≠ 0}. now divisions have answers.
 - the rationals are dense: between any two distinct rationals there is another rational. but the rationals have HOLES.
 
-**the hole (source: Spivak's set-C argument):**
+**the hole (source: Spivak's least-upper-bound argument):**
 - consider the set C = {x ∈ ℚ : x² < 2}. C has rational upper bounds — for instance, 3/2 is a rational upper bound because (3/2)² = 9/4 > 2.
 - CLAIM: C has no rational least upper bound.
 - proof sketch: if b ∈ ℚ were the LUB of C, then b² = 2 (heuristically: b is squeezed against the boundary). but no rational satisfies b² = 2 (proven next in section 3 via Lang's Theorem 4, paraphrased into curriculum voice).
@@ -482,10 +482,10 @@ every claim below traces to a source (or is labeled as curriculum-original const
 
 ## remaining open gaps
 
-1. Lang's Chapter 13 function definition verbatim — OCR fetch was truncated. medium-confidence characterization from secondary sources. drafter should use Rosen's Definition 1 as the primary textbook-cited definition (which IS verbatim-confirmed) rather than Lang's Chapter 13 version.
+1. Lang's Chapter 13 function definition verbatim — OCR fetch was truncated. medium-confidence characterization from secondary sources. drafter should use Rosen's Definition 1 as the primary textbook-cited definition (which is verbatim-confirmed) rather than Lang's Chapter 13 version.
 2. Lang's Chapter 14 mapping formalism verbatim — not retrieved. the mapping-vs-function separation in Lang is confirmed from ToC, but Lang's exact handling of codomain/range and injective/surjective classification is not verbatim-confirmed.
 3. Lang's Interlude informal set definition verbatim — not retrieved. secondary accounts confirm operational treatment. drafter should use Rosen Section 2.1's informal definition as the primary reference.
-4. Spivak's exact prose for the set-C argument in Chapter 2 — not verbatim-confirmed. the logical structure is high-confidence; the exact sentences are not. drafter constructs the argument in curriculum voice using Spivak as structural source.
+4. Spivak's exact prose for the least-upper-bound argument in Chapter 2 — not verbatim-confirmed. the logical structure is high-confidence; the exact sentences are not. drafter constructs the argument in curriculum voice using Spivak as structural source.
 5. √2 irrationality proof — the verbatim Lang version (Theorem 4) is captured above. Spivak's version structure matches; exact Spivak wording not extracted. curriculum uses Lang's Theorem 4 as the reference and paraphrases into curriculum voice.
 
 these gaps do NOT block drafting. the primary definitions and arguments are sourced with verbatim or high-confidence material.
@@ -516,8 +516,8 @@ prosecutor 2 (completeness + pedagogical coverage + naming compliance) — findi
 - F7 (P2): C(n, k) worked example now has explicit 6-step rhetorical move sequence.
 - F8 (P2): "set" informal definition note added, citing Rosen Section 2.1 as reference.
 - F9 (P2): Dawkins voice examples ("Do not confuse the two!", "Notice that...") added; plus 5 verbatim Lang voice examples extracted.
-- F10 (P2): quiz expanded from 5 to 9 questions, now covering all 7 sections including section 4 (variables) and section 5 (functions).
+- F10 (P2): quiz expanded from 5 to 10 questions, now covering all 7 sections including section 4 (variables) and section 5 (functions).
 - F11 (P3): historical motivation decision recorded: EXCLUDED.
 - F12 (P3): infinity stance decision recorded: brief treatment ~1pp.
 - F13 (P1): Lang's *Basic Mathematics* researched (Agent C) and added to source list. verbatim quotes and voice examples extracted.
-- F14 (P2): Spivak's *Calculus* researched (Agent D) and added to source list. P1-P13 axioms, set-C argument, completeness characterization extracted.
+- F14 (P2): Spivak's *Calculus* researched (Agent D) and added to source list. P1-P13 axioms, least-upper-bound argument, completeness characterization extracted.

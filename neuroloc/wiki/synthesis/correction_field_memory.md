@@ -1,6 +1,6 @@
 # correction-field memory
 
-status: current (as of 2026-04-16).
+status: current (as of 2026-04-23).
 
 ## the core idea
 
@@ -10,24 +10,24 @@ the correction-field reframing changes WHAT gets stored. instead of raw represen
 
 ## empirical status (2026-04-14)
 
-the cpu simulation `simulations/memory/correction_field_capacity.py` ran the full sweep (17,568 trials across d_head {32,64,128}, pattern_counts {4,8,16,32,64}, prediction_qualities {0, 0.3, 0.5, 0.7, 0.9, 0.95, 0.99}, decays {0.5, 0.8, 0.9, 0.95, 1.0}, 32 trials per cell) using a synthetic prediction of the form `pred = q * v + sqrt(1 - q^2) * noise`. headline findings at d_head=64, decay=0.9:
+the cpu simulation `simulations/memory/correction_field_capacity.py` ran the capacity sweep (16,800 records across d_head {32,64,128}, pattern_counts {4,8,16,32,64}, prediction_qualities {0, 0.3, 0.5, 0.7, 0.9, 0.95, 0.99}, decays {0.5, 0.8, 0.9, 0.95, 1.0}, 32 trials per cell) using a synthetic prediction of the form `pred = q * v + sqrt(1 - q^2) * noise`. the same artifact also includes 768 surprise-gating records, for 17,568 records total. headline findings at d_head=64, decay=0.9:
 
-- **memory_capacity_gain = 0 across every prediction quality.** storing residuals in the state instead of raw values does NOT increase the matrix memory's own effective pattern count. raw_effective_capacity and correction_field_memory_effective_capacity are both 32.
+- **memory_capacity_gain = 0 across every prediction quality.** storing residuals in the state instead of raw values does not increase the matrix memory's own effective pattern count. raw_effective_capacity and correction_field_memory_effective_capacity are both 32.
 - **reconstruction_effective_capacity = 64 at prediction_quality >= 0.5**, vs raw_effective_capacity = 32. the combined system (prediction + memory correction) doubles effective capacity, but the gain comes from the prediction, not the memory.
 - **memory_threshold_shift_by_decay = 0.** the hypothesized decay-tolerance shift is falsified under this test: the memory still needs decay=0.9 for 32 patterns regardless of whether values are residuals or raw.
 - **surprise gating works as designed.** at predictable_fraction=0.05 and tau=0.99, write_fraction_mean drops to 0.016 (1.6% of tokens write). the filter rate scales controllably with tau.
 
 these results partially falsify the article's original claims. the design's value is not a memory-side capacity increase and not a decay-tolerance shift. its value is the predict+reconstruct mechanism: a small prediction head provides most of the content, and the matrix memory only needs to carry what the prediction failed to anticipate. the architecture is a learned-decoder-plus-residual-cache, not a self-compressing memory.
 
-an important caveat: the synthetic prediction `q * v + sqrt(1-q^2) * noise` has no structure beyond the variance ratio. a real trained prediction head would have correlated structure (predicts some key directions better than others, exhibits systematic biases) that the memory could complement non-trivially. the trained-prediction sim (pending) is the next test; if it shows the same flat memory_capacity_gain, the design ships only as a prediction-head-with-residual-cache. if it shows non-trivial memory gain, the self-compression thesis survives.
+the trained-prediction follow-up has now run. it also returned zero memory-side capacity gain. the remaining value of this design is reconstruction-side: a prediction head can provide a baseline reconstruction and the memory can provide a key-conditioned residual correction, but the matrix memory itself does not become a higher-capacity store.
 
 ## what the design actually provides (post-simulation)
 
 1. **predictive filtering** (mechanism 1): confirmed in simulation. surprise-gated writes reduce write frequency in proportion to prediction quality. a well-predicted sequence writes fewer entries, leaving the state less crowded.
-2. **generative replacement** (mechanism 2): confirmed. the prediction head supplies most of the content at reconstruction time. the memory provides only the correction residual.
+2. **generative replacement** (mechanism 2): supported at the reconstruction level. in the synthetic sweep, high prediction quality lets the prediction term supply most reconstructed content. in the trained-prediction follow-up, the prediction term supplies a partial baseline and the memory still supplies the key-conditioned residual correction.
 3. **capacity via prediction, not via memory** (revised claim): the reconstruction-level effective capacity doubles over the raw memory when prediction quality >= 0.5, but this gain is from the prediction head, not from a property of the matrix memory itself. the memory's intrinsic capacity ceiling stays at 32 patterns under decay=0.9.
 
-the remaining three mechanisms in the six-mechanism list (content-addressable indexing, manifold abstraction, reconsolidation) are orthogonal and composable with this one. the correction-field design does not prevent later tiers from compressing corrections further via codebook indexing or schema-delta encoding. it IS a valid first tier of the compound compression stack — but for different reasons than the pre-simulation article claimed.
+the remaining three mechanisms in the six-mechanism list (content-addressable indexing, manifold abstraction, reconsolidation) are orthogonal and composable with this one. the correction-field design does not prevent later tiers from compressing corrections further via codebook indexing or schema-delta encoding. it is a valid first tier of the compound compression stack, but for different reasons than the pre-simulation article claimed.
 
 ## mathematical formulation
 
@@ -65,13 +65,13 @@ p_t is computed once per timestep and reused for both the write residual (r_t = 
 
 1. **keys are dense.** keys are projected from the raw hidden state h_t, not from the residual r_t. this preserves the address space. the project's hard rule ("keys must stay dense") is satisfied.
 
-2. **value norms are smaller when prediction is good.** when prediction explains 90% of the hidden-state variance, ||r_t|| is ~32% of ||h_t|| (since variance is squared norm, ||r||^2 = 0.1 * ||h||^2 implies ||r|| = sqrt(0.1) * ||h|| ~ 0.316 ||h||). the information per value vector drops proportionally. note: the synthetic-prediction sim (2026-04-14) showed this does NOT translate to an increased per-head pattern count in the memory itself — memory_capacity_gain was zero. the smaller-norm property still helps by enabling a prediction head to dominate reconstruction without the memory needing to carry the full raw content.
+2. **value norms are smaller when prediction is good.** when prediction explains 90% of the hidden-state variance, ||r_t|| is ~32% of ||h_t|| (since variance is squared norm, ||r||^2 = 0.1 * ||h||^2 implies ||r|| = sqrt(0.1) * ||h|| ~ 0.316 ||h||). the information per value vector drops proportionally. note: the synthetic-prediction sim (2026-04-14) showed this does not translate to an increased per-head pattern count in the memory itself — memory_capacity_gain was zero. the smaller-norm property still helps by enabling a prediction head to dominate reconstruction without the memory needing to carry the full raw content.
 
 3. **write frequency adapts to content.** the surprise modulation g(s_t) means predictable tokens produce near-zero writes. in natural language, the distribution of surprise is heavy-tailed: most tokens are predictable (function words, common continuations), and a few are novel (rare words, topic shifts, factual content). the state preferentially stores the rare, novel tokens.
 
 4. **retrieval is generative.** the model does not look up raw stored content. it first predicts what it expects, then adds the stored correction. if the correction is missing (decayed or never stored because it was predictable), the model falls back to its prediction alone. this is the same graceful degradation that biological memory exhibits: old memories drift toward the generative prior.
 
-5. **self-compressing during training (partially falsified 2026-04-14; hypothesis pending trained-prediction test).** at initialization, f is random and r_t ~ h_t (no prediction quality). the state stores approximately raw values, behaving like the current design. as training progresses, f learns to predict and r_t shrinks. the state writes less per token (confirmed via surprise-gated write fraction falling to 1.6% at high predictable-fraction + tau). but in the synthetic-prediction sim, writing less per token did NOT increase the pattern count the memory could hold at matched decay. the self-compression-as-capacity-gain thesis is pending the trained-prediction sim; if that also shows zero memory-side gain, the property reduces to "writes less per token" without a capacity consequence.
+5. **write filtering, not memory-side self-compression.** at initialization, f is random and r_t ~ h_t (no prediction quality). as f improves, residuals can shrink and surprise-gated writes can become rarer. the synthetic simulation confirmed the write-filter half of this claim, but both synthetic and trained-prediction simulations found no increased retrievable pattern count in the memory itself. the property is therefore narrowed to "writes less or reconstructs better," not "the matrix memory stores more associations."
 
 6. **no new architectural components.** the prediction function f is a single linear map (or low-rank pair) per layer. the surprise ratio s_t is a scalar computed from two norms already available. the write gate modification g(s_t) is one multiply. total parameter overhead is d^2 per layer for f (or 2 * d * r for the low-rank variant with r << d), which at d=1024 and r=64 is 131k per layer (~3.1m total for 24 layers, ~1% of the 283m model).
 
@@ -90,21 +90,21 @@ the individual components exist in isolation:
 - predictive coding (rao and ballard 1999) filters by prediction error in biological cortex, but no published deep learning architecture applies this to the state update of a recurrent outer-product memory.
 - dreamer v3 (hafner et al. 2023) stores small latent codes with a generative decoder, but for rl environments, not for autoregressive language memory.
 
-the correction-field design stacks all three as one integrated write-read mechanism in the existing matrix memory. the state matrix becomes a learned map from query directions to prediction corrections. the map writes fewer entries per token as prediction improves (confirmed in simulation), but whether this translates to additional retrievable capacity in the memory itself is still open — the synthetic-q sim said no, trained-prediction sim is pending.
+the correction-field design stacks all three as one integrated write-read mechanism in the existing matrix memory. the state matrix becomes a learned map from query directions to prediction corrections. the map can write fewer entries per token as prediction improves, but the tested memory-side capacity result is negative in both synthetic and trained-prediction regimes.
 
 ## the self-compression property
 
-this is the deepest novel claim: the state's information content is bounded above by the model's prediction error. the argument below is informal and relies on stated assumptions; it is not a formal proof.
+this is the deepest hypothesis, not a proved property: the value payload is bounded by the model's prediction residual, but the full state is not, because the update also stores raw-hidden-derived keys and raw-hidden-derived write gates.
 
-let I(S_t) denote the mutual information between the state S_t and the sequence of hidden states h_1, ..., h_t that produced it. for the current raw-value design, I(S_t) is bounded below by the rank of S_t times the per-dimension entropy of the stored values. for the correction-field design, the following informal bound applies under these assumptions: (a) the state update is deterministic given the residuals and write gates, (b) the write gate b_t is bounded in [0, 1], (c) r_i is conditionally independent of r_j for j > i given S_{i-1}:
+let K_t denote the key sequence and B_t the write gates. under deterministic updates, the defensible informal upper bound is:
 
 ```
-I(S_t) <= sum_{i=1}^{t} H(r_i | S_{i-1})
+I(S_t; h_{1..t}) <= H(K_{1..t}, B_{1..t}, r_{1..t})
 ```
 
-the inequality follows from the data processing inequality applied to the chain rule for mutual information: S_t is a deterministic function of (r_1, ..., r_t, b_1, ..., b_t, decay), so I(S_t; h_{1..t}) = I(S_t; r_{1..t}) <= H(r_{1..t}) <= sum H(r_i | S_{i-1}) by the chain rule for entropy. note that H(r_i | S_{i-1}) is itself a function of all prior residuals via the state, so the bound is not a closed-form function of prediction quality alone. as the prediction function f improves, each H(r_i | S_{i-1}) decreases (because r_i = h_i - f(h_{i-1}) gets smaller and more concentrated). therefore I(S_t) decreases — the state carries less total information even though it accumulates over more timesteps.
+the current raw-value design has a finite state capacity controlled by rank, precision, decay, and interference; this article does not claim a general lower bound from rank alone. the correction-field design can lower the value payload when residuals become smaller and more concentrated, but the raw key channel and write-gate channel still carry information about the hidden sequence. shrinking residuals therefore does not prove that the full state information decreases. the evidence supports write filtering and reconstruction bias, not a formal self-compression theorem.
 
-the practical consequence: a well-trained model's matrix memory writes less per token. the information in S is dominated by the genuinely surprising tokens. the predictable majority contributes near-zero to the state's frobenius norm. this is the opposite of the current design, where every token adds its full representation regardless of novelty. caveat: the synthetic-prediction sim (2026-04-14) confirmed the "writes less per token" half of this claim but showed that smaller per-token writes did NOT translate to an increased retrievable pattern count at matched decay. the state carries less information, but the information-to-capacity mapping is weaker than the bound above suggests. whether a trained prediction head with correlated structure recovers a capacity effect is the subject of the pending trained-prediction simulation.
+the practical consequence: a well-trained model's matrix memory may write less per token. the information in S should be dominated by genuinely surprising tokens. the predictable majority should contribute less to the state's frobenius norm. this is the opposite of the current design, where every token adds its full representation regardless of novelty. caveat: the synthetic-prediction sim (2026-04-14) confirmed the "writes less per token" half of this claim but showed that smaller per-token writes did not translate to an increased retrievable pattern count at matched decay. the trained-prediction follow-up did not recover that capacity effect.
 
 ## the cross-layer depth gradient
 
@@ -151,7 +151,7 @@ the head split is not a mandatory component. the core design (prediction-residua
 
 ### decay coefficient
 
-the correction-field design changes the interpretation of decay. in the current design, decay controls retention: higher decay means older raw representations persist longer. in the correction-field design, decay controls how long CORRECTIONS persist. the pre-simulation hypothesis was that since corrections are smaller than raw values, the same decay rate would give a longer effective retention time and the decay sweep's 0.90 threshold would shift downward. **this hypothesis was falsified in the synthetic-prediction sim (2026-04-14).** memory_threshold_shift_by_decay was zero across all tested conditions; the memory still needs decay=0.9 for 32 patterns regardless of whether values are residuals or raw. see testable prediction 5. the trained-prediction sim may change this if real predictions exhibit direction-dependent accuracy that lowers the effective load on specific key directions, but under the synthetic test the decay-tolerance shift does not happen.
+the correction-field design changes the interpretation of decay. in the current design, decay controls retention: higher decay means older raw representations persist longer. in the correction-field design, decay controls how long corrections persist. the pre-simulation hypothesis was that since corrections are smaller than raw values, the same decay rate would give a longer effective retention time and the decay sweep's 0.90 threshold would shift downward. this hypothesis was falsified in the synthetic-prediction sim and not rescued by the trained-prediction follow-up.
 
 ### erasure
 
@@ -163,7 +163,7 @@ the design enforces dense keys by construction: keys come from the raw hidden st
 
 ### compressed attention layers
 
-the 4 compressed attention layers in the architecture are unchanged. they provide exact per-token retrieval over a low-rank cache. the correction-field design affects only the 24 matrix-memory layers. the two mechanisms are complementary: compressed attention handles verbatim retrieval for recent context, the correction-field memory handles compressed retrieval for older context.
+the 4 compressed attention layers in the architecture are unchanged. they provide exact lookup over compressed per-token representations. the correction-field design affects only the 24 matrix-memory layers. the two mechanisms are intended to be complementary: compressed attention supplies recent-context lookup over cached representations, while a validated correction-field path would add prediction-biased residual corrections for older context.
 
 ## parameter budget at 283m scale
 
@@ -177,7 +177,7 @@ percentage of 283m model                              ~1.1%
 
 the W_v projection already exists (it projects h_t to get values). the change is that its input switches from h_t to r_t. no new projection matrix is needed for the value side. the only genuinely new parameter is W_pred (the prediction head) and optionally the surprise threshold.
 
-## what this does NOT do
+## what this does not do
 
 this design does not address:
 - **codebook compression** (tier 2). the corrections stored in the state are still continuous vectors, not discrete codebook indices. codebook compression of corrections is a later tier, composable with this one.
@@ -187,36 +187,38 @@ this design does not address:
 
 ## testable predictions
 
-1. **capacity increase in memory alone**: FALSIFIED (2026-04-14, synthetic prediction). storing residuals instead of raw values did not increase the matrix memory's own effective pattern count. memory_capacity_gain is zero across all tested prediction qualities. open question: does a trained prediction head with correlated structure change the result?
+1. **capacity increase in memory alone**: falsified in both synthetic and trained-prediction simulations. storing residuals instead of raw values did not increase the matrix memory's own effective pattern count. memory_capacity_gain is zero across all tested prediction qualities.
 
-2. **reconstruction capacity gain**: CONFIRMED (2026-04-14, synthetic prediction). the combined prediction + memory correction has double the effective capacity of the raw memory at prediction_quality >= 0.5. the gain is attributable to the prediction head, not the memory.
+2. **reconstruction capacity gain**: confirmed (2026-04-14, synthetic prediction). the combined prediction + memory correction has double the effective capacity of the raw memory at prediction_quality >= 0.5. the gain is attributable to the prediction head, not the memory.
 
-3. **write sparsity**: PARTIALLY CONFIRMED (2026-04-14, synthetic). the surprise-gated write fraction drops to 1.6% at predictable_fraction=0.05 and tau=0.99, confirming the filter mechanism works. on real natural language the distribution of surprise needs to be measured before a concrete write-fraction prediction can be made.
+3. **write sparsity**: partially confirmed (2026-04-14, synthetic). the surprise-gated write fraction drops to 1.6% at predictable_fraction=0.05 and tau=0.99, confirming the filter mechanism works. on real natural language the distribution of surprise needs to be measured before a concrete write-fraction prediction can be made.
 
-4. **depth gradient**: UNTESTED. at convergence, the frobenius norm of S_L (correction-field state at layer L, normalized by the frobenius norm of the raw-value state at the same layer) is hypothesized to decrease with L. requires training a correction-field preset to convergence and measuring per-layer state norms. no synthetic equivalent.
+4. **depth gradient**: untested. at convergence, the frobenius norm of S_L (correction-field state at layer L, normalized by the frobenius norm of the raw-value state at the same layer) is hypothesized to decrease with L. requires training a correction-field preset to convergence and measuring per-layer state norms. no synthetic equivalent.
 
-5. **decay tolerance shift**: FALSIFIED (2026-04-14, synthetic prediction). memory_threshold_shift_by_decay is zero. the memory still needs decay=0.9 for 32 patterns regardless of whether values are residuals or raw. open question: does the reconstruction-level threshold (not the memory-alone threshold) shift? the sim's current summary computes both; the reconstruction-level shift is also zero in the synthetic regime, but trained-prediction data may differ.
+5. **decay tolerance shift**: falsified in the tested regimes. memory_threshold_shift_by_decay is zero. the memory still needs decay=0.9 for 32 patterns regardless of whether values are residuals or raw. the reconstruction-level interpretation remains separate from the memory-side capacity claim.
 
-6. **graceful degradation**: UNTESTED. as the prediction function f is weakened (e.g., by reducing its rank), the correction-field design is hypothesized to smoothly converge to the raw-value design. the synthetic sim at q=0 shows the memory-alone numbers ARE identical (capacity 32 at both), which is consistent with graceful degradation but not a strong test because q=0 is not the same as a weakened trained head.
+6. **graceful degradation**: untested. as the prediction function f is weakened (e.g., by reducing its rank), the correction-field design is hypothesized to smoothly converge to the raw-value design. the synthetic sim at q=0 shows the memory-alone numbers are identical (capacity 32 at both), which is consistent with graceful degradation but not a strong test because q=0 is not the same as a weakened trained head.
 
-empirical artifact: `neuroloc/output/simulation_suites/correction_field_capacity/correction_field_capacity_metrics.json` (full sweep, 471s, 17568 trials).
+empirical artifacts: `neuroloc/output/simulation_suites/correction_field_capacity/correction_field_capacity_metrics.json` (synthetic sweep, 471s, 17,568 records) and `neuroloc/output/simulation_suites/correction_field_trained_prediction_full/correction_field_trained_prediction/correction_field_trained_prediction_metrics.json` (trained-prediction follow-up, 2,880 paired recall records).
 
-## implementation path (revised post-simulation)
+## current implementation status
 
-the correction-field design slots into the run sequence from `blueprint.md`, but the rationale for each slot is updated to reflect what the simulation showed:
+this article is no longer a launch plan. the trained-prediction follow-up closed the memory-side capacity question negatively. the correction-field mechanism may still be useful as a reconstruction-side bias or as one component of an indexed reconstruction system, but it should not be treated as the next memory-capacity intervention for the current matrix memory.
 
-- **run 1 (baseline dense, pending benchmark)**: no correction field. validates that the base matrix memory with dense keys and no erasure can hold retrievable content at all. this is the precondition for the correction-field to matter: if the memory cannot retrieve anything, adding a prediction head won't help.
-- **run 2 (value-side compression, conditional)**: the correction-field design is a candidate IF the trained-prediction cpu sim shows non-trivial memory gain. the synthetic-q sim showed zero memory gain; the trained version is pending. if the trained sim also shows zero memory gain, the design ships as a prediction-head-with-residual-cache (same mechanism, but framed as "the prediction head is the compressor, the memory is a corrector" rather than "the memory self-compresses"). fallback for run 2 if both sims are negative: rate-coded 50% selection on values only, dense keys preserved.
-- **run 3 (if run 2 passes)**: add the multi-resolution head split. fast heads with raw values, slow heads with correction-field residuals. the split is itself untested and needs its own cpu sim before this runs.
-- **run 4 (if run 3 passes)**: add codebook compression of the corrections stored in the slow heads (tier 2 from the 5-tier proposal). this is where the stored content becomes discrete indices and the per-memory storage cost drops sharply.
-
-the correction-field mechanism and the rate-coded approach are not mutually exclusive. rate-coded truncation can be applied to residuals (compresses what the memory has to hold). if both pass simulation, run 2 can combine them; if only rate-coded passes, run 2 uses rate-coded on values only.
+the follow-up direction is now the compact-handle plus reconstruction frame in `indexed_reconstruction_compression.md`: store addresses, schema or latent ids, compact residuals, and provenance; reconstruct through a shared decoder; and evaluate compression under an explicit stored-bit budget.
 
 ## see also
 
-- `compression_beyond_quantization.md` (the six biological mechanisms; this article implements mechanisms 1-3)
-- `bridge/memory_compression_to_tiered_architecture.md` (the 5-tier proposal; this article is the mechanism for tiers 0-1)
-- `knowledge/generative_memory_research.md` (curated research on generative replacement; provides the theoretical ceiling)
-- `PROJECT_PLAN.md` (canonical project state; must be updated when this design enters the experimental method)
-- `spec/blueprint.md` (run sequencing; correction-field design replaces the value-only rate-coding slot)
-- `spec/next_gen.md` (roadmap; correction-field is the concrete mechanism for phases 6b-6c)
+- [[compression_beyond_quantization]] (the six biological mechanisms; this article now supplies reconstruction-side evidence only)
+- [[memory_compression_to_tiered_architecture]] (the five-tier proposal; this article is evidence for why residual values alone are insufficient)
+- [[generative_memory_research]] (curated research on generative replacement; provides the theoretical ceiling)
+- [[indexed_reconstruction_compression]] (current compact-handle plus reconstruction direction)
+- [[PROJECT_PLAN]] (canonical project state)
+- [[tests/correction_field_trained_prediction_results]] (trained-prediction follow-up confirming memory-side null result)
+
+## references
+
+- [behrouz et al. 2025, titans: learning to memorize at test time](https://arxiv.org/abs/2501.00663)
+- [deltakv, residual kv-cache compression](https://arxiv.org/abs/2602.08005)
+- [rao and ballard 1999, predictive coding in visual cortex](https://www.nature.com/articles/nn0199_79)
+- [hafner et al. 2023, mastering diverse domains through world models](https://arxiv.org/abs/2301.04104)

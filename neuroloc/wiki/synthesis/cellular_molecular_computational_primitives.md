@@ -44,4 +44,5 @@ these ideas are worth preserving, but they are not yet action-ready.
 - [[visual_sources_systems_neuroscience]]
 - [[cross_scale_building_blocks_for_biological_computation]]
 - [[state_action_memory_architecture_direction]]
+- [[indexed_reconstruction_compression]]
 - [[canonical_visual_narratives_neuroscience]]
