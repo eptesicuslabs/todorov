@@ -3,11 +3,6 @@
 neuroloc is the repository-native neuroscience wiki, simulation corpus,
 and architecture-backlog memory for todorov.
 
-it no longer represents the active project lane by itself.
-as of 2026-04-17, the active workstream is the teaching pdf curriculum in
-`pdf_curriculum/`, while neuroloc remains the canonical research substrate
-behind the curriculum and the paused architectural backlog.
-
 ## current role
 
 neuroloc currently serves four jobs:
